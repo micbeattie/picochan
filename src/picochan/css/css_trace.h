@@ -1,0 +1,88 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ */
+
+#ifndef _PCH_CSS_CSS_TRACE_H
+#define _PCH_CSS_CSS_TRACE_H
+
+#include "css_internal.h"
+
+#include "trc/trace.h"
+
+struct trdata_register_cu {
+        pch_cunum_t     cunum;
+        pch_sid_t       first_sid;
+        uint16_t        num_devices;
+};
+
+struct trdata_register_mem_cu {
+        pch_cunum_t     cunum;
+        pch_sid_t       first_sid;
+        uint16_t        num_devices;
+        pch_dmaid_t     txdmaid;
+        pch_dmaid_t     rxdmaid;
+};
+
+struct trdata_cunum_traceold_tracenew {
+        pch_cunum_t     cunum;
+        bool            old_trace;
+        bool            new_trace;
+};
+
+struct trdata_irqnum_opt {
+        int16_t         irqnum_opt;
+};
+
+struct trdata_address_change {
+        uint32_t        old_addr;
+        uint32_t        new_addr;
+};
+
+#define PCH_CSS_TRACE_COND(rt, cond, data) \
+        PCH_TRC_WRITE(&CSS.trace_bs, (cond), (rt), (data))
+
+#define PCH_CSS_TRACE(rt, data) PCH_CSS_TRACE_COND((rt), true, (data))
+
+static inline void trace_schib_byte(pch_trc_record_type_t rt, pch_schib_t *schib, uint8_t byte) {
+        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
+                ((struct pch_trc_trdata_sid_byte){get_sid(schib), byte}));
+}
+
+static inline void trace_schib_word_byte(pch_trc_record_type_t rt, pch_schib_t *schib, uint32_t word, uint8_t byte) {
+        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
+                ((struct pch_trc_trdata_word_sid_byte){word, get_sid(schib), byte}));
+}
+
+static inline void trace_schib_packet(pch_trc_record_type_t rt, pch_schib_t *schib, proto_packet_t p) {
+        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
+                ((struct pch_trc_trdata_word_sid){proto_packet_as_word(p), get_sid(schib)}));
+}
+
+static inline void trace_schib_ccw(pch_trc_record_type_t rt, pch_schib_t *schib, pch_ccw_t *ccw_addr, pch_ccw_t ccw) {
+        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
+                ((struct pch_trc_trdata_ccw_addr_sid){
+                        .ccw = ccw,
+                        .addr = (uint32_t)ccw_addr,
+                        .sid = get_sid(schib)
+                }));
+}
+
+static inline void trace_schib_callback(pch_trc_record_type_t rt, pch_schib_t *schib, pch_intcode_t *ic) {
+        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
+                ((struct pch_trc_trdata_intcode_scsw){
+                        .intcode = *ic,
+                        .scsw = schib->scsw,
+                }));
+}
+
+static inline void trace_schib_scsw_cc(pch_trc_record_type_t rt, pch_schib_t *schib, pch_scsw_t *scsw, uint8_t cc) {
+        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
+                ((struct pch_trc_trdata_scsw_sid_cc){
+                        .scsw = *scsw,
+                        .sid = get_sid(schib),
+                        .cc = cc
+                }));
+}
+
+
+#endif
