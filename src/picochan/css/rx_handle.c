@@ -29,6 +29,13 @@ static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_pac
 	int rescount = (int)schib->scsw.count;
         assert((int)count <= rescount);
 
+        // Propagate PROTO_CHOP_FLAG_RESPONSE_REQUIRED to the cu
+        // rx_response_required flag so that, once we get the rx
+        // completion of the data itself, we can see that we need to
+        // do a send of a Room update
+        if (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
+                cu->rx_response_required = true;
+
 	uint32_t addr = schib->mda.data_addr;
 	rescount -= (int)count;
 	if (rescount == 0) {
