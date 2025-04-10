@@ -7,6 +7,7 @@
 
 #include "pico/platform/compiler.h"
 #include "picochan/ids.h"
+#include "picochan/dev_sense.h"
 #include "proto/chop.h"
 #include "proto/payload.h"
 
@@ -25,11 +26,8 @@ typedef uint8_t pch_cbindex_t;
 static_assert(NUM_DEVIB_CALLBACKS <= MAX_DEVIB_CALLBACKS,
         "NUM_DEVIB_CALLBACKS must not exceed MAX_DEVIB_CALLBACKS");
 
-typedef union pch_devdata {
-        uint32_t u32;
-} pch_devdata_t;
-static_assert(sizeof(pch_devdata_t) == 4,
-        "pch_devdata_t must be 4 bytes");
+static_assert(sizeof(pch_dev_sense_t) == 4,
+        "pch_dev_sense_t must be 4 bytes");
 
 // DEVIB  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //        |     next      |    cbindex    |          size                 |
@@ -38,7 +36,7 @@ static_assert(sizeof(pch_devdata_t) == 4,
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //        |                          bufaddr                              |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//        |                          devdata                              |
+//        |                            sense                              |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 typedef struct __aligned(4) pch_devib {
         pch_unit_addr_t next;
@@ -48,7 +46,7 @@ typedef struct __aligned(4) pch_devib {
         uint8_t         flags;
         proto_payload_t payload;
         uint32_t        addr;
-        pch_devdata_t   devdata;
+        pch_dev_sense_t sense;
 } pch_devib_t;
 static_assert(sizeof(pch_devib_t) == 16,
         "pch_devib_t must be 16 bytes");
