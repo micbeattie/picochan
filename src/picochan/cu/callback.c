@@ -33,11 +33,27 @@ pch_cbindex_t __time_critical_func(pch_register_unused_devib_callback)(pch_devib
 }
 
 void __time_critical_func(pch_default_devib_callback)(pch_cu_t *cu, pch_devib_t *devib) {
-        assert(proto_chop_cmd(devib->op) == PROTO_CHOP_START);
-
-	uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END
-                | PCH_DEVS_UNIT_CHECK;
-	pch_devib_prepare_update_status(devib, devs, 0, 0);
         pch_unit_addr_t ua = pch_get_ua(cu, devib);
-	pch_devib_send_or_queue_command(cu, ua);
+        proto_chop_cmd_t cmd = proto_chop_cmd(devib->op);
+        pch_dev_sense_t sense;
+
+        switch (cmd) {
+        case PROTO_CHOP_START:
+                sense = (pch_dev_sense_t){
+                        .flags = PCH_DEV_SENSE_COMMAND_REJECT,
+                        .code = EINVALIDDEV,
+                };
+                pch_dev_update_status_error(cu, ua, sense);
+                break;
+
+        default:
+                sense = (pch_dev_sense_t){
+                        .flags = PCH_DEV_SENSE_PROTO_ERROR,
+                        .code = devib->op,
+                        .asc = devib->payload.p0,
+                        .ascq = devib->payload.p1
+                };
+                pch_dev_update_status_error(cu, ua, sense);
+                break;
+        }
 }

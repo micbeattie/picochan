@@ -18,5 +18,6 @@ typedef struct __attribute__((__packed__,__aligned__(4))) pch_dev_sense {
 #define PCH_DEV_SENSE_EQUIPMENT_CHECK           0x10
 #define PCH_DEV_SENSE_DATA_CHECK                0x08
 #define PCH_DEV_SENSE_OVERRUN                   0x04
+#define PCH_DEV_SENSE_PROTO_ERROR               0x02
 
 #endif
