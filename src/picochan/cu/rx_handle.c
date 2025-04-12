@@ -31,32 +31,41 @@ static void handle_rx_chop_room(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t
 	callback_devib(cu, devib);
 }
 
+static void handle_rx_chop_start_read(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+        devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
+        devib->size = count; // advertised window we can write to
+
+        dmachan_start_dst_cmdbuf(&cu->rx_channel);
+        callback_devib(cu, devib);
+}
+
+static void handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+        devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
+
+        if (count == 0) {
+                dmachan_start_dst_cmdbuf(&cu->rx_channel);
+                callback_devib(cu, devib);
+                return;
+        }
+
+        assert(count <= devib->size);
+        devib->flags |= PCH_DEVIB_FLAG_RX_DATA_REQUIRED;
+        dmachan_start_dst_data(&cu->rx_channel,
+                devib->addr, (uint32_t)count);
+        cu->rx_active = (int16_t)pch_get_ua(cu, devib);
+        // rx completion of incoming data will do Start callback
+}
+
 static void handle_rx_chop_start(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
         assert(!(devib->flags & PCH_DEVIB_FLAG_STARTED));
         devib->flags |= PCH_DEVIB_FLAG_STARTED;
         uint8_t ccwcmd = p.p0;
         uint16_t count = proto_decode_esize_payload(p);
 
-	if (pch_is_ccw_cmd_write(ccwcmd)) {
-		devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
-		if (count > 0) {
-                        assert(count <= devib->size);
-                        devib->flags |= PCH_DEVIB_FLAG_RX_DATA_REQUIRED;
-                        uint32_t dstaddr = devib->addr;
-			dmachan_start_dst_data(&cu->rx_channel,
-			        dstaddr, (uint32_t)count);
-                        cu->rx_active = (int16_t)pch_get_ua(cu, devib);
-			// rx completion of incoming data will do Start callback
-			return;
-		}
-	} else {
-		// CCW command is Read-type (as seen from CSS).
-		devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
-		devib->size = count; // advertised window we can write to
-	}
-
-        dmachan_start_dst_cmdbuf(&cu->rx_channel);
-        callback_devib(cu, devib);
+	if (pch_is_ccw_cmd_write(ccwcmd))
+                handle_rx_chop_start_write(cu, devib, ccwcmd, count);
+        else
+                handle_rx_chop_start_read(cu, devib, ccwcmd, count);
 }
 
 static void handle_rx_command_complete(pch_cu_t *cu) {
