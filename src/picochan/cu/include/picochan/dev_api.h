@@ -46,6 +46,9 @@ int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t 
 //     * PROTO_CHOP_FLAG_END for the _final variant,
 //     * PROTO_CHOP_FLAG_RESPONSE_REQUIRED for the _respond variant
 //     * 0 for the _norespond variant
+// * For pch_dev_update_status_error family, set devib->sense to the
+// sense argument then call the corresponding pch_dev_update_status_
+// function with a device status of DeviceEnd|ChannelEnd|UnitCheck
 int pch_dev_send(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
 int pch_dev_send_final(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
 int pch_dev_send_final_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
@@ -62,5 +65,9 @@ int pch_dev_receive(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t si
 int pch_dev_update_status_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, int cbindex_opt);
 int pch_dev_update_status(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs);
 int pch_dev_update_status_advert(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_error_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, int cbindex_opt);
+int pch_dev_update_status_error_advert(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense);
 
 #endif

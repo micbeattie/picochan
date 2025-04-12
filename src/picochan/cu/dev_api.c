@@ -181,6 +181,32 @@ int __time_critical_func(pch_dev_update_status)(pch_cu_t *cu, pch_unit_addr_t ua
         return pch_dev_update_status_advert_then(cu, ua, devs, NULL, 0, -1);
 }
 
+int __time_critical_func(pch_dev_update_status_error_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt) {
+        pch_devib_t *devib = pch_get_devib(cu, ua);
+        int err = set_callback(devib, cbindex_opt);
+        if (err < 0)
+                return err;
+
+        devib->sense = sense;
+        uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END
+                | PCH_DEVS_UNIT_CHECK;
+        pch_devib_prepare_update_status(devib, devs, dstaddr, size);
+        pch_devib_send_or_queue_command(cu, ua);
+        return 0;
+}
+
+int __time_critical_func(pch_dev_update_status_error_advert)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size) {
+        return pch_dev_update_status_error_advert_then(cu, ua, sense, dstaddr, size, -1);
+}
+
+int __time_critical_func(pch_dev_update_status_error_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, int cbindex_opt) {
+        return pch_dev_update_status_error_advert_then(cu, ua, sense, NULL, 0, cbindex_opt);
+}
+
+int __time_critical_func(pch_dev_update_status_error)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense) {
+        return pch_dev_update_status_error_advert_then(cu, ua, sense, NULL, 0, -1);
+}
+
 int __time_critical_func(pch_dev_send_zeroes_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         if (!pch_devib_is_started(devib))

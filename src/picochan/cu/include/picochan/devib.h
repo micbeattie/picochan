@@ -2,8 +2,8 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#ifndef _PCH_API_DEVIB_H
-#define _PCH_API_DEVIB_H
+#ifndef _PCH_CU_DEVIB_H
+#define _PCH_CU_DEVIB_H
 
 #include "pico/platform/compiler.h"
 #include "picochan/ids.h"
