@@ -10,7 +10,7 @@
 static bool end_channel_program(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
         schib->scsw.ctrl_flags &= ~PCH_AC_DEVICE_ACTIVE;
         // set the advertised window for start-write-immediate data
-	schib->mda.devcount = advcount; 
+	schib->mda.devcount = advcount;
 
 	// If DeviceEnd is present, then ChannelEnd should be too.
 	if (!(devs & PCH_DEVS_CHANNEL_END)) {
@@ -131,6 +131,18 @@ static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_pac
         if (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
                 cu->rx_response_required = true;
 
+        // Propagate PROTO_CHOP_FLAG_END to the cu rx_data_end_ds
+        // as ChannelEnd|DeviceEnd so that, once we get the rx
+        // completion of the data itself, we can see that we need to
+        // do an immediate update_status.
+        // TODO: consider having a variant of the chop DATA command
+        // that sends an esize-counted length of data and a full
+        // device status in the other byte of the payload
+        if (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_END) {
+                uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END;
+                cu->rx_data_end_ds = devs;
+        }
+
 	uint32_t addr = schib->mda.data_addr;
 	rescount -= (int)count;
 	if (rescount == 0) {
@@ -147,6 +159,14 @@ static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_pac
 
 static void handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
 	cu->rx_data_for_ua = -1;
+        uint8_t devs = cu->rx_data_end_ds;
+        if (devs) {
+                // implicit immediate update_status
+                cu->rx_data_end_ds = 0;
+                do_handle_update_status(cu, schib, devs, 0);
+                return;
+        }
+
         uint8_t mask = PCH_CCW_FLAG_PCI|PCH_CCW_FLAG_CD;
         if ((get_stashed_ccw_flags(schib) & mask) == mask) {
 		// PCI flag set in ChainData CCW - notify that transfer to

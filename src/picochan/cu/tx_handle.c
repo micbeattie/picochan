@@ -44,6 +44,13 @@ static void make_data_command(pch_cu_t *cu, pch_devib_t *devib) {
 	 else
 		cu->tx_callback_ua = -1;
 
+        // If the End flag is set then the data we're sending has an
+        // implicit following UpdateStatus with a plain
+        // ChannelEnd|DeviceEnd so unset the Started flag as though
+        // we'd sent an explicit one
+	if (op & PROTO_CHOP_FLAG_END)
+                devib->flags &= ~PCH_DEVIB_FLAG_STARTED;
+
 	if (!(op & PROTO_CHOP_FLAG_SKIP))
                 pch_txsm_set_pending(&cu->tx_pending, devib->addr, count);
 }

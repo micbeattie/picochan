@@ -35,6 +35,9 @@ typedef struct __aligned(4) css_cu {
         uint16_t                num_devices; // [0, 256]
         // rx_data_for_ua: rx dma is active writing to CCW for this ua
         int16_t                 rx_data_for_ua;
+        // rx_data_end_ds: if non-zero then, when rx data complete,
+        // treat as an immediate implicit device status for update_status
+        uint8_t                 rx_data_end_ds;
         // rx_response_required: when rx data complete, peer wants response
         bool                    rx_response_required;
         bool                    trace;
