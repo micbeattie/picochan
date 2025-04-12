@@ -81,7 +81,7 @@ int __time_critical_func(pch_dev_set_callback)(pch_cu_t *cu, pch_unit_addr_t ua,
         return set_callback(devib, (uint)cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
+int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
@@ -97,14 +97,41 @@ int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, vo
         if (n > devib->size)
                 n = devib->size;
 
-        pch_devib_prepare_write_data(devib, srcaddr, n,
-                PROTO_CHOP_FLAG_RESPONSE_REQUIRED);
+        pch_devib_prepare_write_data(devib, srcaddr, n, flags);
         pch_devib_send_or_queue_command(cu, ua);
         return n;
 }
 
-int __time_critical_func(pch_dev_send)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
-        return pch_dev_send_then(cu, ua, srcaddr, n, -1);
+int __time_critical_func(pch_dev_send_final_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_then(cu, ua, srcaddr, n,
+                PROTO_CHOP_FLAG_END, cbindex_opt);
+}
+
+int __time_critical_func(pch_dev_send_final)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
+        return pch_dev_send_then(cu, ua, srcaddr, n,
+                PROTO_CHOP_FLAG_END, -1);
+}
+
+int __time_critical_func(pch_dev_send_respond_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_then(cu, ua, srcaddr, n,
+                PROTO_CHOP_FLAG_RESPONSE_REQUIRED, cbindex_opt);
+}
+
+int __time_critical_func(pch_dev_send_respond)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
+        return pch_dev_send_then(cu, ua, srcaddr, n,
+                PROTO_CHOP_FLAG_RESPONSE_REQUIRED, -1);
+}
+
+int __time_critical_func(pch_dev_send_norespond_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_then(cu, ua, srcaddr, n, 0, cbindex_opt);
+}
+
+int __time_critical_func(pch_dev_send_norespond)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
+        return pch_dev_send_then(cu, ua, srcaddr, n, 0, -1);
+}
+
+int __time_critical_func(pch_dev_send)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags) {
+        return pch_dev_send_then(cu, ua, srcaddr, n, flags, -1);
 }
 
 int __time_critical_func(pch_dev_receive_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
@@ -156,7 +183,7 @@ int __time_critical_func(pch_dev_update_status)(pch_cu_t *cu, pch_unit_addr_t ua
         return pch_dev_update_status_advert_then(cu, ua, devs, NULL, 0, -1);
 }
 
-int __time_critical_func(pch_dev_send_zeroes_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt) {
+int __time_critical_func(pch_dev_send_zeroes_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
@@ -168,12 +195,29 @@ int __time_critical_func(pch_dev_send_zeroes_then)(pch_cu_t *cu, pch_unit_addr_t
         if (err < 0)
                 return err;
 
-        pch_devib_prepare_write_zeroes(devib, n);
+        pch_devib_prepare_write_zeroes(devib, n, flags);
         pch_devib_send_or_queue_command(cu, ua);
         return 0;
 }
 
-int __time_critical_func(pch_dev_send_zeroes)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n) {
-        return pch_dev_send_zeroes_then(cu, ua, n, -1);
+int __time_critical_func(pch_dev_send_zeroes)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags) {
+        return pch_dev_send_zeroes_then(cu, ua, n, flags, -1);
 }
 
+int __time_critical_func(pch_dev_send_zeroes_respond_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_zeroes_then(cu, ua, n,
+                PROTO_CHOP_FLAG_RESPONSE_REQUIRED, cbindex_opt);
+}
+
+int __time_critical_func(pch_dev_send_zeroes_respond)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n) {
+        return pch_dev_send_zeroes_then(cu, ua, n,
+                PROTO_CHOP_FLAG_RESPONSE_REQUIRED, -1);
+}
+
+int __time_critical_func(pch_dev_send_zeroes_norespond_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_zeroes_then(cu, ua, n, 0, cbindex_opt);
+}
+
+int __time_critical_func(pch_dev_send_zeroes_norespond)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n) {
+        return pch_dev_send_zeroes_then(cu, ua, n, 0, -1);
+}
