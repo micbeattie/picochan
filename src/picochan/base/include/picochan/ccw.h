@@ -52,9 +52,16 @@ typedef struct __aligned(4) pch_ccw {
 
 static_assert(sizeof(pch_ccw_t) == 8, "architected pch_ccw_t is 8 bytes");
 
-// Architected values of CCW commands
+// Architected values of CCW commands.
+// These do not match those for traditional CSS and we only divide
+// into "Read/Write" via the low bit instead of into Control/Read/
+// ReadBackward/Sense/Test/Write via various low-bit groups.
+
+#define PCH_CCW_CMD_FIRST_RESERVED 0xf0
 // TIC: Transfer In Channel
-#define PCH_CCW_CMD_TIC 0x08
+#define PCH_CCW_CMD_TIC         0xf0
+// SENSE: Read Sense data from devib
+#define PCH_CCW_CMD_SENSE       0xf2
 
 // Architected bit tests of CCW commands
 static inline bool pch_is_ccw_cmd_write(uint8_t cmd) {
