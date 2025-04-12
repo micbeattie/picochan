@@ -93,13 +93,14 @@ int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, vo
         if (err < 0)
                 return err;
 
+        // Cap write count at CSS-advertised size
         if (n > devib->size)
-                return -EWRITETOOBIG;
+                n = devib->size;
 
         pch_devib_prepare_write_data(devib, srcaddr, n,
                 PROTO_CHOP_FLAG_RESPONSE_REQUIRED);
         pch_devib_send_or_queue_command(cu, ua);
-        return 0;
+        return n;
 }
 
 int __time_critical_func(pch_dev_send)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
