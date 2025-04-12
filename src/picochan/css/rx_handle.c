@@ -6,6 +6,101 @@
 #include "ccw_fetch.h"
 #include "css_trace.h"
 
+// The returned bool is do_notify
+static bool end_channel_program(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
+        schib->scsw.ctrl_flags &= ~PCH_AC_DEVICE_ACTIVE;
+        // set the advertised window for start-write-immediate data
+	schib->mda.devcount = advcount; 
+
+	// If DeviceEnd is present, then ChannelEnd should be too.
+	if (!(devs & PCH_DEVS_CHANNEL_END)) {
+		schib->scsw.schs |= PCH_SCHS_INTERFACE_CONTROL_CHECK;
+                schib->scsw.ctrl_flags |= PCH_SC_ALERT;
+		return true;
+	}
+
+	// don't try command chaining if the CfCc flag isn't set or the
+	//  dev.Status is "unusual"
+	uint8_t mask = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END
+                | PCH_DEVS_STATUS_MODIFIER;
+        bool do_chain = ((get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_CC) != 0)
+                && ((devs & ~mask) == 0);
+	if (!do_chain) {
+                schib->scsw.ctrl_flags |= PCH_SC_SECONDARY;
+		return true;
+	}
+
+	// We need to command-chain so advance the CCW address if
+	// StatusModifier is set in the dev.Status
+	if (devs & PCH_DEVS_STATUS_MODIFIER)
+		schib->scsw.ccw_addr++; // +8 bytes
+
+	if (!cu->tx_active) {
+		// tx engine free - send immediately
+		do_command_chain_and_send_start(cu, schib);
+	} else {
+		// tx busy - queue up response
+                pch_sid_t sid = get_sid(schib);
+                push_ua_response_slist(cu, sid);
+	}
+
+	return false;
+}
+
+// do_handle_update_status handles an incoming UpdateStatus packet
+// from a device or the implicit update_status after a completed rx
+// of data whose Data chop had the END flag set.
+// In the case that the device sends an unsolicited
+// status (i.e. without ChannelEnd set), it doesn't think a channel
+// program has started. Although it's probably right, it's possible
+// we have just sent it a Start that crossed with its incoming
+// UpdateStatus. In that situation, the device will accept (or will
+// have accepted) our Start. We use FC.Start to tell whether we
+// have started a channel program with it and, if so, we discard
+// this unsolicited status. FC.Start can only get cleared after
+// the subchannel becomes StatusPending (or via clear_subchannel)
+// so Fc.Start should be an accurate way to determine this condition.
+static void do_handle_update_status(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
+	bool do_notify = true;
+
+	if (devs & PCH_DEVS_CHANNEL_END) {
+                // ChannelEnd set: primary or primary+secondary status
+                schib->scsw.ctrl_flags |= PCH_SC_PRIMARY;
+                uint16_t unset = PCH_AC_SUBCHANNEL_ACTIVE
+                               | PCH_FC_START;
+                schib->scsw.ctrl_flags &= ~unset;
+                if (devs & PCH_DEVS_DEVICE_END) {
+                        // DeviceEnd: secondary status too
+                        do_notify = end_channel_program(cu, schib,
+                                devs, advcount);
+                }
+        } else {
+		// ChannelEnd not set: unsolicited
+                assert(!(schib->scsw.ctrl_flags & PCH_AC_DEVICE_ACTIVE));
+		if (get_stashed_ccw_flags(schib) & PCH_FC_START) {
+                        // discard unsolicited status for Started schib
+			return;
+		}
+                // set advertised window for start-write-immediate data
+		schib->mda.devcount = advcount;
+                schib->scsw.ctrl_flags |= PCH_SC_ALERT;
+	}
+
+	if (do_notify)
+		css_notify(schib, devs);
+}
+
+// handle_update_status handles an incoming UpdateStatus packet
+// from a device.
+static void handle_update_status(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
+        struct proto_parsed_devstatus_payload de
+                = proto_parse_devstatus_payload(proto_get_payload(p));
+        uint8_t devs = de.devs;
+        uint16_t advcount = de.count;
+
+        do_handle_update_status(cu, schib, devs, advcount);
+}
+
 typedef struct addr_count {
         uint32_t addr;
         uint16_t count;
@@ -124,92 +219,6 @@ static void handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_packe
                                 ac.addr, (uint32_t)ac.count);
 		}
 	}
-}
-
-// The returned bool is do_notify
-static bool end_channel_program(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
-        schib->scsw.ctrl_flags &= ~PCH_AC_DEVICE_ACTIVE;
-        // set the advertised window for start-write-immediate data
-	schib->mda.devcount = advcount; 
-
-	// If DeviceEnd is present, then ChannelEnd should be too.
-	if (!(devs & PCH_DEVS_CHANNEL_END)) {
-		schib->scsw.schs |= PCH_SCHS_INTERFACE_CONTROL_CHECK;
-                schib->scsw.ctrl_flags |= PCH_SC_ALERT;
-		return true;
-	}
-
-	// don't try command chaining if the CfCc flag isn't set or the
-	//  dev.Status is "unusual"
-	uint8_t mask = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END
-                | PCH_DEVS_STATUS_MODIFIER;
-        bool do_chain = ((get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_CC) != 0)
-                && ((devs & ~mask) == 0);
-	if (!do_chain) {
-                schib->scsw.ctrl_flags |= PCH_SC_SECONDARY;
-		return true;
-	}
-
-	// We need to command-chain so advance the CCW address if
-	// StatusModifier is set in the dev.Status
-	if (devs & PCH_DEVS_STATUS_MODIFIER)
-		schib->scsw.ccw_addr++; // +8 bytes
-
-	if (!cu->tx_active) {
-		// tx engine free - send immediately
-		do_command_chain_and_send_start(cu, schib);
-	} else {
-		// tx busy - queue up response
-                pch_sid_t sid = get_sid(schib);
-                push_ua_response_slist(cu, sid);
-	}
-
-	return false;
-}
-
-// handle_update_status handles an incoming UpdateStatus packet
-// from a device. In the case that the device sends an unsolicited
-// status (i.e. without ChannelEnd set), it doesn't think a channel
-// program has started. Although it's probably right, it's possible
-// we have just sent it a Start that crossed with its incoming
-// UpdateStatus. In that situation, the device will accept (or will
-// have accepted) our Start. We use FC.Start to tell whether we
-// have started a channel program with it and, if so, we discard
-// this unsolicited status. FC.Start can only get cleared after
-// the subchannel becomes StatusPending (or via clear_subchannel)
-// so Fc.Start should be an accurate way to determine this condition.
-static void handle_update_status(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
-	bool do_notify = true;
-        struct proto_parsed_devstatus_payload de
-                = proto_parse_devstatus_payload(proto_get_payload(p));
-        uint8_t devs = de.devs;
-	uint16_t advcount = de.count;
-
-	if (devs & PCH_DEVS_CHANNEL_END) {
-                // ChannelEnd set: primary or primary+secondary status
-                schib->scsw.ctrl_flags |= PCH_SC_PRIMARY;
-                uint16_t unset = PCH_AC_SUBCHANNEL_ACTIVE
-                               | PCH_FC_START;
-                schib->scsw.ctrl_flags &= ~unset;
-                if (devs & PCH_DEVS_DEVICE_END) {
-                        // DeviceEnd: secondary status too
-                        do_notify = end_channel_program(cu, schib,
-                                devs, advcount);
-                }
-        } else {
-		// ChannelEnd not set: unsolicited
-                assert(!(schib->scsw.ctrl_flags & PCH_AC_DEVICE_ACTIVE));
-		if (get_stashed_ccw_flags(schib) & PCH_FC_START) {
-                        // discard unsolicited status for Started schib
-			return;
-		}
-                // set advertised window for start-write-immediate data
-		schib->mda.devcount = advcount;
-                schib->scsw.ctrl_flags |= PCH_SC_ALERT;
-	}
-
-	if (do_notify)
-		css_notify(schib, devs);
 }
 
 // handle_request_read handles a RequestRead that a peer device has
