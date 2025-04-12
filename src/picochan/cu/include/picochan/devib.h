@@ -7,6 +7,7 @@
 
 #include "pico/platform/compiler.h"
 #include "picochan/ids.h"
+#include "picochan/dev_status.h"
 #include "picochan/dev_sense.h"
 #include "proto/chop.h"
 #include "proto/payload.h"
@@ -85,7 +86,6 @@ typedef struct pch_cu pch_cu_t;
 
 // Callbacks
 
-
 typedef void (*pch_devib_callback_t)(pch_cu_t *cu, pch_devib_t *devib);
 
 extern pch_devib_callback_t pch_devib_callbacks[];
@@ -141,59 +141,4 @@ static inline void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr
 void pch_devib_prepare_update_status(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size);
 
 void pch_devib_send_or_queue_command(pch_cu_t *cu, pch_unit_addr_t ua);
-
-// Slightly higher-level API for dev implementation.
-// They return negative error values on error (e.g. -EINVAL).
-// They do various parameter checks and return errors instead of
-// asserting like the low-level API does. Those with cbindex_opt
-// arguments leave the devib cbindex field alone if called with a
-// negative value, otherwise they validate it as a callback cbindex
-// and set the field or return a negative error value, as appropriate.
-// For sends (of data or zeroes), the length sent is validated to be
-// under the CSS-advertised window (devib->size) and an error is
-// returned if not.
-
-enum {
-        ENOSUCHERROR	        = 1,
-        EINVALIDCALLBACK	= 2,
-        ENOTSTARTED		= 3,
-        ECMDNOTREAD		= 4,
-        ECMDNOTWRITE		= 5,
-        EWRITETOOBIG		= 6,
-        EINVALIDSTATUS		= 7,
-        EINVALIDDEV             = 8,
-        EINVALIDCMD             = 9,
-};
-
-// dev API with fully general arguments
-int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
-int pch_dev_send_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
-int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
-int pch_dev_receive_then(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt);
-int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
-
-// dev API convenience functions with some fixed arguments:
-// * Omitting _then avoids setting devib callback by hardcoding -1
-// as the cbindex_opt argument of the full _then function.
-// * For send and send_zeroes family, the flags argument is set to
-//     * PROTO_CHOP_FLAG_END for the _final variant,
-//     * PROTO_CHOP_FLAG_RESPONSE_REQUIRED for the _respond variant
-//     * 0 for the _norespond variant
-int pch_dev_send(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
-int pch_dev_send_final(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_final_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_respond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_norespond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags);
-int pch_dev_send_zeroes_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes_respond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
-int pch_dev_send_zeroes_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes_norespond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
-int pch_dev_receive(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
-int pch_dev_update_status_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, int cbindex_opt);
-int pch_dev_update_status(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs);
-int pch_dev_update_status_advert(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size);
-
 #endif

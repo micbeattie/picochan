@@ -3,8 +3,6 @@
  */
 
 #include "cu_internal.h"
-#include "picochan/devib.h"
-#include "picochan/dev_status.h"
 #include "cus_trace.h"
 
 void __time_critical_func(cus_send_command_to_css)(pch_cu_t *cu) {

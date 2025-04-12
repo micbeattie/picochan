@@ -12,7 +12,7 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include "picochan/devib.h"
+#include "picochan/dev_api.h"
 #include "dmachan/dmachan.h"
 #include "txsm/txsm.h"
 #include "trc/trace.h"
