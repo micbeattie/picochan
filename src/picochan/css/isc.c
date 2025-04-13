@@ -55,6 +55,17 @@ void __time_critical_func(pch_css_disable_isc_mask)(uint8_t mask) {
         CSS.isc_enable_mask &= ~mask;
 }
 
+void __time_critical_func(pch_css_set_isc_enabled)(uint8_t iscnum, bool enabled) {
+        valid_params_if(PCH_CSS, iscnum < PCH_NUM_ISCS);
+        if (enabled) {
+                set_isc_enable_bit(iscnum);
+                if (get_isc_status_bit(iscnum))
+                        raise_io_irq();
+        } else {
+                unset_isc_enable_bit(iscnum);
+        }
+}
+
 void __time_critical_func(pch_css_enable_isc)(uint8_t iscnum) {
         valid_params_if(PCH_CSS, iscnum < PCH_NUM_ISCS);
         set_isc_enable_bit(iscnum);

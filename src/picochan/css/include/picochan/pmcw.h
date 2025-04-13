@@ -38,6 +38,7 @@ static inline uint8_t pch_pmcw_isc(pch_pmcw_t *pmcw) {
 }
 
 bool pch_css_is_isc_enabled(uint8_t iscnum);
+void pch_css_set_isc_enabled(uint8_t iscnum, bool enabled);
 void pch_css_disable_isc(uint8_t iscnum);
 void pch_css_disable_isc_mask(uint8_t mask);
 void pch_css_enable_isc(uint8_t iscnum);
