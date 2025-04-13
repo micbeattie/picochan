@@ -31,12 +31,41 @@ static void handle_rx_chop_room(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t
 	callback_devib(cu, devib);
 }
 
+static void handle_rx_chop_start_read_sense(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, uint16_t count) {
+        if (count > sizeof(devib->sense))
+                count = sizeof(devib->sense);
+
+        int rc = pch_dev_send_final(cu, ua, &devib->sense, count);
+        assert(rc >= 0);
+}
+
+static void handle_rx_chop_start_read_reserved(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+        pch_unit_addr_t ua = pch_get_ua(cu, devib);
+
+        switch (ccwcmd) {
+        case PCH_CCW_CMD_SENSE:
+                handle_rx_chop_start_read_sense(cu, devib, ua, count);
+                break;
+
+        default:
+                pch_dev_sense_t sense = {
+                        .flags = PCH_DEV_SENSE_COMMAND_REJECT
+                };
+                pch_dev_update_status_error(cu, ua, sense);
+                break;
+        }
+}
+
 static void handle_rx_chop_start_read(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
         devib->size = count; // advertised window we can write to
 
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
-        callback_devib(cu, devib);
+
+        if (ccwcmd >= PCH_CCW_CMD_FIRST_RESERVED)
+                handle_rx_chop_start_read_reserved(cu, devib, ccwcmd, count);
+        else
+                callback_devib(cu, devib);
 }
 
 static void handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {

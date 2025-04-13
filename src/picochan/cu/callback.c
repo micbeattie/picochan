@@ -2,7 +2,6 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#include "callback.h"
 #include "picochan/devib.h"
 #include "picochan/dev_status.h"
 #include "cus_trace.h"

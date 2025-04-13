@@ -7,6 +7,7 @@
 
 #include "picochan/cu.h"
 #include "picochan/devib.h"
+#include "picochan/dev_status.h"
 #include "cus_trace.h"
 
 static inline void pch_call_devib_callback(pch_cbindex_t cbindex, pch_cu_t *cu, pch_devib_t *devib) {
