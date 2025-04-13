@@ -7,6 +7,8 @@
 
 #include "hardware/irq.h"
 #include "hardware/dma.h"
+#include "hardware/sync.h"
+#include "pico/time.h"
 #include "picochan/schib.h"
 
 #ifndef PCH_NUM_SCHIBS
@@ -71,6 +73,7 @@ void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwa
 void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
 void pch_css_start_channel(pch_cunum_t cunum);
 
+// Architectural API for subchannels and channel programs
 int pch_sch_start(pch_sid_t sid, pch_ccw_t *ccw_addr);
 int pch_sch_resume(pch_sid_t sid);
 int pch_sch_test(pch_sid_t sid, pch_scsw_t *scsw);
@@ -78,5 +81,17 @@ int pch_sch_modify(pch_sid_t sid, pch_pmcw_t *pmcw);
 int pch_sch_store(pch_sid_t sid, pch_schib_t *out_schib);
 int pch_sch_cancel(pch_sid_t sid);
 pch_intcode_t pch_test_pending_interruption(void);
+
+// Convenience API functions that wrap the architectural API
+int pch_sch_modify_intparm(pch_sid_t sid, uint32_t intparm);
+int pch_sch_modify_flags(pch_sid_t sid, uint16_t flags);
+int pch_sch_modify_isc(pch_sid_t sid, uint8_t isc);
+int pch_sch_modify_enabled(pch_sid_t sid, bool enabled);
+int pch_sch_modify_traced(pch_sid_t sid, bool traced);
+
+// These functions should only be called while the ISC for the
+// subchannel has been disabled
+int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw);
+int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp);
 
 #endif
