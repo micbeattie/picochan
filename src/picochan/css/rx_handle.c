@@ -245,13 +245,17 @@ static void handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_packe
 // just sent us which is asking us to read count bytes of data
 // from the current CCW segment (of a Write-type command) and
 // send it down the channel.
-// TODO Following assert should be a proto error, not assert.
-// Should set SCHS ChannelControlCheck (or InterfaceControlCheck?)
-// then send back a DataZeroes with 0 bytes of data with
-// Stop|End opflags set.
 static void handle_request_read(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
         uint16_t count = proto_get_count(p);
-        assert(schib->scsw.ctrl_flags & PCH_SCSW_CCW_WRITE);
+        if (!(schib->scsw.ctrl_flags & PCH_SCSW_CCW_WRITE)) {
+                // CU/device tried to request data when CCW is not
+                // Write-type. TODO: send DataZeroes with Stop flag
+                // instead of ignoring it
+		schib->scsw.schs |= PCH_SCHS_INTERFACE_CONTROL_CHECK;
+                schib->scsw.ctrl_flags |= PCH_SC_ALERT;
+		css_notify(schib, 0);
+                return;
+        }
 
 	uint16_t rescount = schib->scsw.count;
 	// cap the requested count at the current segment size
