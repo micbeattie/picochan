@@ -33,7 +33,7 @@ static void make_data_command(pch_cu_t *cu, pch_devib_t *devib) {
         uint16_t count = proto_parse_count_payload(devib->payload);
 
         assert(!(devib->flags & PCH_DEVIB_FLAG_CMD_WRITE));
-        assert(count <= devib->size);
+        assert(count > 0 && count <= devib->size);
         assert(!pch_txsm_busy(&cu->tx_pending));
 
 	proto_chop_t op = devib->op;

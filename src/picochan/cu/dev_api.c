@@ -87,6 +87,9 @@ int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, vo
         if (pch_devib_is_cmd_write(devib))
                 return -ECMDNOTREAD;
 
+        if (n == 0)
+                return -EDATALENZERO;
+
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
                 return err;
