@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include <assert.h>
+#include "hardware/uart.h"
 #include "picochan/dev_api.h"
 #include "dmachan/dmachan.h"
 #include "txsm/txsm.h"
@@ -97,6 +98,9 @@ void pch_cus_init_mem_channel(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_
 void pch_cus_enable_cu(pch_cunum_t cunum);
 bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace);
 bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace);
+
+// Convenience function for initialising CU
+void pch_cus_init_uart_channel(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
 
 void __isr pch_cus_handle_dma_irq(void);
 
