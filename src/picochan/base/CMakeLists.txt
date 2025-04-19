@@ -10,6 +10,7 @@ target_sources(picochan_base INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/mem_peer.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/rx_channel.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/tx_channel.c
+        ${CMAKE_CURRENT_LIST_DIR}/dmachan/uart.c
         ${CMAKE_CURRENT_LIST_DIR}/proto/payload.c
         ${CMAKE_CURRENT_LIST_DIR}/trc/trace.c
         ${CMAKE_CURRENT_LIST_DIR}/txsm/txsm.c

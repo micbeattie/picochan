@@ -11,6 +11,7 @@
 #include "hardware/uart.h"
 #include "pico/time.h"
 #include "picochan/schib.h"
+#include "dmachan/dmachan.h"
 
 #ifndef PCH_NUM_SCHIBS
 #define PCH_NUM_SCHIBS 32
@@ -74,8 +75,7 @@ void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwa
 void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
 void pch_css_start_channel(pch_cunum_t cunum);
 
-// Convenience functions for configuring CSS
-void pch_css_init_uart(uart_inst_t *uart);
+// Convenience function for configuring CSS
 void pch_css_register_uart_cu(pch_cunum_t cunum, uint16_t num_devices, uart_inst_t *uart, dma_channel_config ctrl);
 
 // Architectural API for subchannels and channel programs

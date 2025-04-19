@@ -12,6 +12,7 @@
 
 #include "hardware/dma.h"
 #include "hardware/structs/dma_debug.h"
+#include "hardware/uart.h"
 #include "pico/platform/compiler.h"
 #include "picochan/ids.h"
 #include "mem_peer.h"
@@ -117,5 +118,9 @@ void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx);
 void dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
 void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);
 void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
+
+// Convenience method for initialising a UART with settings that
+// work for both the CSS and CU side of a uart-connected channel
+void pch_init_uart(uart_inst_t *uart);
 
 #endif
