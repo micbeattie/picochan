@@ -8,6 +8,7 @@
 #include "hardware/irq.h"
 #include "hardware/dma.h"
 #include "hardware/sync.h"
+#include "hardware/uart.h"
 #include "pico/time.h"
 #include "picochan/schib.h"
 
@@ -72,6 +73,10 @@ io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
 void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl);
 void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
 void pch_css_start_channel(pch_cunum_t cunum);
+
+// Convenience functions for configuring CSS
+void pch_css_init_uart(uart_inst_t *uart);
+void pch_css_register_uart_cu(pch_cunum_t cunum, uint16_t num_devices, uart_inst_t *uart, dma_channel_config ctrl);
 
 // Architectural API for subchannels and channel programs
 int pch_sch_start(pch_sid_t sid, pch_ccw_t *ccw_addr);

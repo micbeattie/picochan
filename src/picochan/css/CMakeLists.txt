@@ -19,6 +19,7 @@ target_sources(picochan_css INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/tx_handle.c
         ${CMAKE_CURRENT_LIST_DIR}/ua_dlist.c
         ${CMAKE_CURRENT_LIST_DIR}/ua_slist.c
+        ${CMAKE_CURRENT_LIST_DIR}/uart_cu.c
 )
 
 if (PCH_COMPILE_ENABLE_STRICT_WARNINGS)
