@@ -63,7 +63,11 @@ void __time_critical_func(pch_devib_send_or_queue_command)(pch_cu_t *cu, pch_uni
 // either immediately (if the CU tx is available) or queue it up to
 // be sent after in-progress sends.
 
-static int set_callback(pch_devib_t *devib, uint cbindex) {
+static int set_callback(pch_devib_t *devib, int cbindex_opt) {
+        if (cbindex_opt < 0)
+                return 0;
+
+        uint cbindex = (uint)cbindex_opt;
         if (!pch_cbindex_is_callable(cbindex))
                 return -EINVALIDCALLBACK;
 
@@ -76,7 +80,7 @@ int __time_critical_func(pch_dev_set_callback)(pch_cu_t *cu, pch_unit_addr_t ua,
                 return 0;
 
         pch_devib_t *devib = pch_get_devib(cu, ua);
-        return set_callback(devib, (uint)cbindex_opt);
+        return set_callback(devib, cbindex_opt);
 }
 
 int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
