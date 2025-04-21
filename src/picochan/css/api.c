@@ -11,15 +11,6 @@ static inline void raise_func_irq(void) {
         irq_set_pending((irq_num_t)n);
 }
 
-static inline void reset_subchannel_to_idle(pch_schib_t *schib) {
-        const uint16_t mask = PCH_FC_START|PCH_FC_HALT|PCH_FC_CLEAR
-                | PCH_AC_RESUME_PENDING|PCH_AC_START_PENDING
-                | PCH_AC_HALT_PENDING|PCH_AC_CLEAR_PENDING
-                | PCH_AC_SUSPENDED | PCH_SC_PENDING;
-
-	schib->scsw.ctrl_flags &= ~mask;
-}
-
 // push_func_dlist must be called with schibs_lock held.
 static inline void push_func_dlist(css_cu_t *cu, pch_schib_t *schib) {
         push_ua_dlist_unsafe(&cu->ua_func_dlist, cu, schib);
@@ -45,8 +36,7 @@ static int do_sch_start(pch_schib_t *schib, pch_ccw_t *ccw_addr) {
         if (cc != 0)
                 goto out;
 
-	pch_sid_t sid = get_sid(schib);
-        assert(schib->mda.nextsid == sid); // shouldn't be on a list
+        assert(schib->mda.nextsid == get_sid(schib)); // shouldn't be on a list
 	pch_cunum_t cunum = schib->pmcw.cu_number;
 	css_cu_t *cu = get_cu(cunum);
 	schib->scsw.ccw_addr = ccw_addr;
@@ -169,17 +159,6 @@ int __time_critical_func(pch_sch_cancel)(pch_sid_t sid) {
 	return cc;
 }
 
-void __time_critical_func(css_clear_pending_subchannel)(pch_schib_t *schib) {
-        valid_params_if(PCH_CSS, schib_is_status_pending(schib));
-
-	if (schib->scsw.ctrl_flags & PCH_SC_INTERMEDIATE) {
-		// TODO Don't do clearing unless various flag
-		// combinations are set.
-	}
-
-        reset_subchannel_to_idle(schib);
-}
-
 // caller must ensure *loc_scsw is in fast RAM
 static int do_sch_test(pch_schib_t *schib, pch_scsw_t *loc_scsw) {
         int cc = 1;
@@ -215,7 +194,6 @@ static int do_sch_modify(pch_schib_t *schib, pch_pmcw_t pmcw) {
         int cc;
         uint32_t status = schibs_lock();
 
-        pch_sid_t sid = get_sid(schib);
         if (schib_has_function_in_progress(schib)) {
                 cc = 2;
                 goto out;
@@ -226,7 +204,7 @@ static int do_sch_modify(pch_schib_t *schib, pch_pmcw_t pmcw) {
                 goto out;
         }
 
-        assert(schib->mda.nextsid == sid); // shouldn't be on a list
+        assert(schib->mda.nextsid == get_sid(schib)); // shouldn't be on a list
 	schib->pmcw.intparm = pmcw.intparm;
 	schib->pmcw.flags = pmcw.flags & PCH_PMCW_SCH_MODIFY_MASK;
         cc = 0;
@@ -247,7 +225,7 @@ int __time_critical_func(pch_sch_modify)(pch_sid_t sid, pch_pmcw_t *pmcw) {
 }
 
 // caller must ensure *loc_schib is in fast RAM
-static int do_sch_store(pch_schib_t *schib, pch_schib_t *loc_schib) {
+static inline int do_sch_store(pch_schib_t *schib, pch_schib_t *loc_schib) {
         uint32_t status = schibs_lock();
 	*loc_schib = *schib;
         schibs_unlock(status);

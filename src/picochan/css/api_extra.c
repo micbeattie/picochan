@@ -8,7 +8,7 @@
 
 // pch_sch_modify_intparm does a non-atomic store-then-modify of the
 // schib's PMCW to modify its intparm.
-int pch_sch_modify_intparm(pch_sid_t sid, uint32_t intparm) {
+int __time_critical_func(pch_sch_modify_intparm)(pch_sid_t sid, uint32_t intparm) {
         pch_schib_t schib;
         int cc = pch_sch_store(sid, &schib);
         if (cc)
@@ -22,7 +22,7 @@ int pch_sch_modify_intparm(pch_sid_t sid, uint32_t intparm) {
 // schib's PMCW to modify its flags. As in pch_sch_modify itself,
 // bits in flags outside PCH_PMCW_SCH_MODIFY_MASK are silently
 // ignored.
-int pch_sch_modify_flags(pch_sid_t sid, uint16_t flags) {
+int __time_critical_func(pch_sch_modify_flags)(pch_sid_t sid, uint16_t flags) {
         pch_schib_t schib;
         int cc = pch_sch_store(sid, &schib);
         if (cc)
@@ -38,7 +38,7 @@ int pch_sch_modify_flags(pch_sid_t sid, uint16_t flags) {
 // appropriate place within the flags. If bits in isc outside
 // PCH_PMCW_ISC_BITS are set (i.e. if isc is greater than 7) then
 // cc 3 is returned.
-int pch_sch_modify_isc(pch_sid_t sid, uint8_t isc) {
+int __time_critical_func(pch_sch_modify_isc)(pch_sid_t sid, uint8_t isc) {
         if (isc > PCH_PMCW_ISC_BITS)
                 return 3;
 
@@ -54,7 +54,7 @@ int pch_sch_modify_isc(pch_sid_t sid, uint8_t isc) {
 
 // pch_sch_modify_enabled does a non-atomic store-then-modify of the
 // schib's PMCW to modify the enabled bit in its flags.
-int pch_sch_modify_enabled(pch_sid_t sid, bool enabled) {
+int __time_critical_func(pch_sch_modify_enabled)(pch_sid_t sid, bool enabled) {
         pch_schib_t schib;
         int cc = pch_sch_store(sid, &schib);
         if (cc)
@@ -70,7 +70,7 @@ int pch_sch_modify_enabled(pch_sid_t sid, bool enabled) {
 
 // pch_sch_modify_traced does a non-atomic store-then-modify of the
 // schib's PMCW to modify the traced bit in its flags.
-int pch_sch_modify_traced(pch_sid_t sid, bool traced) {
+int __time_critical_func(pch_sch_modify_traced)(pch_sid_t sid, bool traced) {
         pch_schib_t schib;
         int cc = pch_sch_store(sid, &schib);
         if (cc)
@@ -84,7 +84,7 @@ int pch_sch_modify_traced(pch_sid_t sid, bool traced) {
         return pch_sch_modify(sid, &schib.pmcw);
 }
 
-int pch_sch_wait(pch_sid_t sid, pch_scsw_t *scsw) {
+int __time_critical_func(pch_sch_wait)(pch_sid_t sid, pch_scsw_t *scsw) {
         while (1) {
                 int cc = pch_sch_test(sid, scsw);
                 if (cc != 1)
@@ -96,7 +96,7 @@ int pch_sch_wait(pch_sid_t sid, pch_scsw_t *scsw) {
         // NOTREACHED
 }
 
-int pch_sch_wait_timeout(pch_sid_t sid, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
+int __time_critical_func(pch_sch_wait_timeout)(pch_sid_t sid, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
         while (1) {
                 int cc = pch_sch_test(sid, scsw);
                 if (cc != 1)
@@ -109,7 +109,7 @@ int pch_sch_wait_timeout(pch_sid_t sid, pch_scsw_t *scsw, absolute_time_t timeou
         // NOTREACHED
 }
 
-int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw) {
+int __time_critical_func(pch_sch_run_wait)(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw) {
         int cc = pch_sch_start(sid, ccw_addr);
         if (cc)
                 return cc;
@@ -117,7 +117,7 @@ int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw) {
         return pch_sch_wait(sid, scsw);
 }
 
-int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
+int __time_critical_func(pch_sch_run_wait_timeout)(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
         int cc = pch_sch_start(sid, ccw_addr);
         if (cc)
                 return cc;

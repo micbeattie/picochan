@@ -70,7 +70,25 @@ static inline pch_sid_t get_sid(pch_schib_t *schib) {
         return schib - CSS.schibs;
 }
 
-void css_clear_pending_subchannel(pch_schib_t *schib);
+static inline void reset_subchannel_to_idle(pch_schib_t *schib) {
+        const uint16_t mask = PCH_FC_START|PCH_FC_HALT|PCH_FC_CLEAR
+                | PCH_AC_RESUME_PENDING|PCH_AC_START_PENDING
+                | PCH_AC_HALT_PENDING|PCH_AC_CLEAR_PENDING
+                | PCH_AC_SUSPENDED | PCH_SC_PENDING;
+
+        schib->scsw.ctrl_flags &= ~mask;
+}
+
+static inline void css_clear_pending_subchannel(pch_schib_t *schib) {
+        valid_params_if(PCH_CSS, schib_is_status_pending(schib));
+
+        if (schib->scsw.ctrl_flags & PCH_SC_INTERMEDIATE) {
+                // TODO Don't do clearing unless various flag
+                // combinations are set.
+        }
+
+        reset_subchannel_to_idle(schib);
+}
 
 void __isr css_handle_dma_irq(void);
 
