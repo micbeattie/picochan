@@ -84,13 +84,9 @@ int pch_sch_modify_traced(pch_sid_t sid, bool traced) {
         return pch_sch_modify(sid, &schib.pmcw);
 }
 
-int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw) {
-        int cc = pch_sch_start(sid, ccw_addr);
-        if (cc)
-                return cc;
-
+int pch_sch_wait(pch_sid_t sid, pch_scsw_t *scsw) {
         while (1) {
-                cc = pch_sch_test(sid, scsw);
+                int cc = pch_sch_test(sid, scsw);
                 if (cc != 1)
                         return cc;
 
@@ -100,13 +96,9 @@ int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw) {
         // NOTREACHED
 }
 
-int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
-        int cc = pch_sch_start(sid, ccw_addr);
-        if (cc)
-                return cc;
-
+int pch_sch_wait_timeout(pch_sid_t sid, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
         while (1) {
-                cc = pch_sch_test(sid, scsw);
+                int cc = pch_sch_test(sid, scsw);
                 if (cc != 1)
                         return cc;
 
@@ -115,4 +107,20 @@ int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scs
         }
 
         // NOTREACHED
+}
+
+int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw) {
+        int cc = pch_sch_start(sid, ccw_addr);
+        if (cc)
+                return cc;
+
+        return pch_sch_wait(sid, scsw);
+}
+
+int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp) {
+        int cc = pch_sch_start(sid, ccw_addr);
+        if (cc)
+                return cc;
+
+        return pch_sch_wait_timeout(sid, scsw, timeout_timestamp);
 }

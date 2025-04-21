@@ -96,6 +96,8 @@ int pch_sch_modify_traced(pch_sid_t sid, bool traced);
 
 // These functions should only be called while the ISC for the
 // subchannel has been disabled
+int pch_sch_wait(pch_sid_t sid, pch_scsw_t *scsw);
+int pch_sch_wait_timeout(pch_sid_t sid, pch_scsw_t *scsw, absolute_time_t timeout_timestamp);
 int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw);
 int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp);
 
