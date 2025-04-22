@@ -232,6 +232,16 @@ static inline int do_sch_store(pch_schib_t *schib, pch_schib_t *loc_schib) {
 	return 0;
 }
 
+// caller must ensure size bytes at dst are in fast RAM and that size
+// is at most sizeof(pch_schib_t)-offset
+static inline int do_sch_store_partial(pch_schib_t *schib, void *dst, size_t size, size_t offset) {
+        uint32_t status = schibs_lock();
+        unsigned char *src = (unsigned char *)schib;
+	memcpy(dst, src + offset, size);
+        schibs_unlock(status);
+	return 0;
+}
+
 int __time_critical_func(pch_sch_store)(pch_sid_t sid, pch_schib_t *out_schib) {
 	pch_schib_t loc_schib; // must be on stack (fast RAM)
 	if (sid >= PCH_NUM_SCHIBS)
@@ -239,10 +249,37 @@ int __time_critical_func(pch_sch_store)(pch_sid_t sid, pch_schib_t *out_schib) {
 
         pch_schib_t *schib = get_schib(sid);
 	int cc = do_sch_store(schib, &loc_schib);
-	*out_schib = loc_schib; // may be slow copy to flash
+	*out_schib = loc_schib; // may be slow copy
 
-	// trace uses new value of schib to determine Trace flag
-	trace_schib_byte(PCH_TRC_RT_CSS_SCH_STORE, &loc_schib, cc);
+	trace_schib_byte(PCH_TRC_RT_CSS_SCH_STORE, schib, cc);
+	return cc;
+}
+
+int __time_critical_func(pch_sch_store_pmcw)(pch_sid_t sid, pch_pmcw_t *out_pmcw) {
+	pch_pmcw_t loc_pmcw; // must be on stack (fast RAM)
+	if (sid >= PCH_NUM_SCHIBS)
+		return 3;
+
+        pch_schib_t *schib = get_schib(sid);
+	int cc = do_sch_store_partial(schib, &loc_pmcw,
+                sizeof(pch_pmcw_t), offsetof(pch_schib_t, pmcw));
+	*out_pmcw = loc_pmcw; // may be slow copy
+
+	trace_schib_byte(PCH_TRC_RT_CSS_SCH_STORE, schib, cc);
+	return cc;
+}
+
+int __time_critical_func(pch_sch_store_scsw)(pch_sid_t sid, pch_scsw_t *out_scsw) {
+	pch_scsw_t loc_scsw; // must be on stack (fast RAM)
+	if (sid >= PCH_NUM_SCHIBS)
+		return 3;
+
+        pch_schib_t *schib = get_schib(sid);
+	int cc = do_sch_store_partial(schib, &loc_scsw,
+                sizeof(pch_scsw_t), offsetof(pch_schib_t, scsw));
+	*out_scsw = loc_scsw; // may be slow copy
+
+	trace_schib_byte(PCH_TRC_RT_CSS_SCH_STORE, schib, cc);
 	return cc;
 }
 

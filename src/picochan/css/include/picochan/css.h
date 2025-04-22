@@ -87,6 +87,10 @@ int pch_sch_store(pch_sid_t sid, pch_schib_t *out_schib);
 int pch_sch_cancel(pch_sid_t sid);
 pch_intcode_t pch_test_pending_interruption(void);
 
+// API additions with internal optimisation
+int pch_sch_store_pmcw(pch_sid_t sid, pch_pmcw_t *out_pmcw);
+int pch_sch_store_scsw(pch_sid_t sid, pch_scsw_t *out_scsw);
+
 // Convenience API functions that wrap the architectural API
 int pch_sch_modify_intparm(pch_sid_t sid, uint32_t intparm);
 int pch_sch_modify_flags(pch_sid_t sid, uint16_t flags);
