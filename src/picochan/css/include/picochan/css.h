@@ -71,11 +71,15 @@ void __isr pch_css_schib_func_irq_handler(void);
 void __isr pch_css_io_irq_handler(void);
 void pch_css_set_io_irq(irq_num_t irqnum);
 io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
-void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl);
-void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
 void pch_css_start_channel(pch_cunum_t cunum);
 
-// Convenience function for configuring CSS
+// Low-level API for CSS CU initialisation
+void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
+void pch_css_cu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, uint32_t txhwaddr, dma_channel_config txctrl, pch_dmaid_t rxdmaid, uint32_t rxhwaddr, dma_channel_config rxctrl);
+
+// Convenience functions for initialising and configuring CSS and CUs
+void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl);
+void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
 void pch_css_register_uart_cu(pch_cunum_t cunum, uint16_t num_devices, uart_inst_t *uart, dma_channel_config ctrl);
 
 // Architectural API for subchannels and channel programs
