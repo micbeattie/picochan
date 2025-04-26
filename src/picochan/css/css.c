@@ -175,6 +175,7 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 
 void pch_css_start_channel(pch_cunum_t cunum) {
 	css_cu_t *cu = get_cu(cunum);
+        assert(cu->enabled);
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 }
 

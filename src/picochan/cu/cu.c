@@ -88,19 +88,27 @@ static void cu_dma_rx_init(pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t hwaddr
                 hwaddr, ctrl);
 }
 
-void pch_cus_init_channel(pch_cunum_t cunum, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
-        pch_dmaid_t txdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        cu_dma_tx_init(cunum, txdmaid, txhwaddr, txctrl);
+void pch_cus_cu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, uint32_t txhwaddr, dma_channel_config txctrl, pch_dmaid_t rxdmaid, uint32_t rxhwaddr, dma_channel_config rxctrl) {
+        pch_cu_t *cu = pch_get_cu(cunum);
+        assert(!cu->enabled);
 
-        pch_dmaid_t rxdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
+        cu_dma_tx_init(cunum, txdmaid, txhwaddr, txctrl);
         cu_dma_rx_init(cunum, rxdmaid, rxhwaddr, rxctrl);
+}
+
+void pch_cus_cu_dma_claim_and_configure(pch_cunum_t cunum, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
+        pch_dmaid_t txdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
+        pch_dmaid_t rxdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
+
+        pch_cus_cu_dma_configure(cunum, txdmaid, txhwaddr, txctrl,
+                rxdmaid, rxhwaddr, rxctrl);
 }
 
 void pch_cus_init_mem_channel(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
         dma_channel_config czero = {0}; // zero, *not* default config
 
-        cu_dma_tx_init(cunum, txdmaid, 0, czero);
-        cu_dma_rx_init(cunum, rxdmaid, 0, czero);
+        pch_cus_cu_dma_configure(cunum, txdmaid, 0, czero,
+                rxdmaid, 0, czero);
 }
 
 void pch_cus_enable_cu(pch_cunum_t cunum) {
