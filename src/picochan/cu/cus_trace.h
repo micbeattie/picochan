@@ -25,13 +25,6 @@ struct pch_cus_trdata_init_mem_channel {
         pch_dmaid_t     rxdmaid;
 };
 
-struct pch_cus_trdata_init_channel {
-        uint32_t        hwaddr;
-        uint32_t        ctrl;
-        pch_cunum_t     cunum;
-        pch_dmaid_t     dmaid;
-};
-
 struct pch_cus_trdata_cunum_traceold_tracenew {
         pch_cunum_t     cunum;
         bool            old_trace;
@@ -77,23 +70,6 @@ static inline void trace_dev_byte(pch_trc_record_type_t rt, pch_cu_t *cu, pch_de
                         .ua = pch_get_ua(cu, devib),
                         .byte = byte
                 }));
-}
-
-static inline void trace_init_channel(pch_trc_record_type_t rt, pch_cunum_t cunum, uint32_t hwaddr, dma_channel_config ctrl, pch_dmaid_t dmaid) {
-        PCH_CUS_TRACE(rt, ((struct pch_cus_trdata_init_channel){
-                .hwaddr = hwaddr,
-                .ctrl = channel_config_get_ctrl_value(&ctrl),
-                .cunum = cunum,
-                .dmaid = dmaid
-        }));
-}
-
-static inline void trace_init_mem_channel(pch_trc_record_type_t rt, pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
-        PCH_CUS_TRACE(rt, ((struct pch_cus_trdata_init_mem_channel){
-                .cunum = cunum,
-                .txdmaid = txdmaid,
-                .rxdmaid = rxdmaid
-        }));
 }
 
 static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
