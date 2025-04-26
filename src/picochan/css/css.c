@@ -107,59 +107,57 @@ void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
         css_cu_claim(cunum, num_devices);
 }
 
-static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl) {
+static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         PCH_CSS_TRACE(rt, ((struct pch_trc_trdata_cu_dma){
-                .addr = addr,
-                .ctrl = channel_config_get_ctrl_value(&ctrl),
+                .addr = d1c->addr,
+                .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
                 .cunum = cunum,
-                .dmaid = dmaid
+                .dmaid = d1c->dmaid
         }));
 }
 
-static void css_cu_dma_tx_init(pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t hwaddr, dma_channel_config ctrl) {
+static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->enabled);
 
-        dmachan_init_tx_channel(&cu->tx_channel, dmaid, hwaddr, ctrl);
-        dma_irqn_set_channel_enabled(css_dmairqix(), dmaid, true);
-        trace_cu_dma(PCH_TRC_RT_CSS_CU_TX_DMA_INIT, cunum, dmaid,
-                hwaddr, ctrl);
+        dmachan_init_tx_channel(&cu->tx_channel, d1c);
+        dma_irqn_set_channel_enabled(css_dmairqix(), d1c->dmaid, true);
+        trace_cu_dma(PCH_TRC_RT_CSS_CU_TX_DMA_INIT, cunum, d1c);
 }
 
-static void css_cu_dma_rx_init(pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t hwaddr, dma_channel_config ctrl) {
+static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->enabled);
 
-        dmachan_init_rx_channel(&cu->rx_channel, dmaid, hwaddr, ctrl);
-        dma_irqn_set_channel_enabled(css_dmairqix(), dmaid, true);
-        trace_cu_dma(PCH_TRC_RT_CSS_CU_RX_DMA_INIT, cunum, dmaid,
-                hwaddr, ctrl);
+        dmachan_init_rx_channel(&cu->rx_channel, d1c);
+        dma_irqn_set_channel_enabled(css_dmairqix(), d1c->dmaid, true);
+        trace_cu_dma(PCH_TRC_RT_CSS_CU_RX_DMA_INIT, cunum, d1c);
 }
 
-void pch_css_cu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, uint32_t txhwaddr, dma_channel_config txctrl, pch_dmaid_t rxdmaid, uint32_t rxhwaddr, dma_channel_config rxctrl) {
+void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->enabled);
 
-        css_cu_dma_tx_init(cunum, txdmaid, txhwaddr, txctrl);
-        css_cu_dma_rx_init(cunum, rxdmaid, rxhwaddr, rxctrl);
+        css_cu_dma_tx_init(cunum, &dc->tx);
+        css_cu_dma_rx_init(cunum, &dc->rx);
 	cu->enabled = true;
 }
 
 void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
 	pch_css_cu_claim(cunum, num_devices);
-
-	int txdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-	int rxdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-
-        pch_css_cu_dma_configure(cunum, txdmaid, txhwaddr, txctrl,
-                rxdmaid, rxhwaddr, rxctrl);
+        dmachan_config_t dc = dmachan_config_claim(txhwaddr, txctrl,
+                rxhwaddr, rxctrl);
+        pch_css_cu_dma_configure(cunum, &dc);
 }
 
 void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
 	pch_css_cu_claim(cunum, num_devices);
         dma_channel_config czero = {0}; // zero, *not* default config
-        pch_css_cu_dma_configure(cunum, txdmaid, 0, czero,
-                rxdmaid, 0, czero);
+        dmachan_config_t dc = {
+                .tx = { txdmaid, 0, czero },
+                .rx = { rxdmaid, 0, czero }
+        };
+        pch_css_cu_dma_configure(cunum, &dc);
 }
 
 bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {

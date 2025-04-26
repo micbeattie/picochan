@@ -75,7 +75,7 @@ void pch_css_start_channel(pch_cunum_t cunum);
 
 // Low-level API for CSS CU initialisation
 void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
-void pch_css_cu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, uint32_t txhwaddr, dma_channel_config txctrl, pch_dmaid_t rxdmaid, uint32_t rxhwaddr, dma_channel_config rxctrl);
+void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
 
 // Convenience functions for initialising and configuring CSS and CUs
 void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl);

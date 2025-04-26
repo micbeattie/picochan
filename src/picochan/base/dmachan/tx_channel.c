@@ -89,7 +89,11 @@ static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *r
         mem_peer_unlock(saved_irq);
 }
 
-void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, pch_dmaid_t dmaid, uint32_t dstaddr, dma_channel_config ctrl) {
+void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c) {
+        pch_dmaid_t dmaid = d1c->dmaid;
+        uint32_t dstaddr = d1c->addr;
+        dma_channel_config ctrl = d1c->ctrl;
+
         valid_params_if(PCH_DMACHAN,
                 !channel_config_get_incr_write(ctrl));
         valid_params_if(PCH_DMACHAN,

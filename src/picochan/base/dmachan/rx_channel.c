@@ -116,18 +116,22 @@ static void start_dst_discard_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t
     mem_peer_unlock(status);
 }
 
-void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, pch_dmaid_t dmaid, uint32_t srcaddr, dma_channel_config ctrl) {
-    valid_params_if(PCH_DMACHAN,
-        !channel_config_get_incr_read(ctrl));
-    valid_params_if(PCH_DMACHAN,
-        channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
+void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
+        pch_dmaid_t dmaid = d1c->dmaid;
+        uint32_t srcaddr = d1c->addr;
+        dma_channel_config ctrl = d1c->ctrl;
 
-    memset(&rx->cmdbuf, 0, 4);
-    rx->srcaddr = srcaddr;
-    channel_config_set_chain_to(&ctrl, dmaid);
-    rx->ctrl = ctrl;
-    rx->dmaid = dmaid;
-    dma_channel_set_config(dmaid, &ctrl, false);
+        valid_params_if(PCH_DMACHAN,
+                        !channel_config_get_incr_read(ctrl));
+        valid_params_if(PCH_DMACHAN,
+                        channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
+
+        memset(&rx->cmdbuf, 0, 4);
+        rx->srcaddr = srcaddr;
+        channel_config_set_chain_to(&ctrl, dmaid);
+        rx->ctrl = ctrl;
+        rx->dmaid = dmaid;
+        dma_channel_set_config(dmaid, &ctrl, false);
 }
 
 void __time_critical_func(dmachan_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {

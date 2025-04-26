@@ -33,6 +33,24 @@ enum __packed dmachan_mem_dst_state {
         DMACHAN_MEM_DST_SRC_ZEROES
 };
 
+typedef struct dmachan_1way_config {
+        pch_dmaid_t             dmaid;
+        uint32_t                addr;
+        dma_channel_config      ctrl;
+} dmachan_1way_config_t;
+
+typedef struct dmachan_config {
+        dmachan_1way_config_t   tx;
+        dmachan_1way_config_t   rx;
+} dmachan_config_t;
+
+dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl);
+dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl);
+
+static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl) {
+        return ((dmachan_1way_config_t){dmaid, addr, ctrl});
+}
+
 typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
 typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
@@ -109,11 +127,11 @@ static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx, pch_dma_irq_inde
         dma_irqn_acknowledge_channel(dmairqix, rx->dmaid);
 }
 
-void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, pch_dmaid_t dmaid, uint32_t dstaddr, dma_channel_config ctrl);
+void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);
 void dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx);
 void dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
 
-void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, pch_dmaid_t dmaid, uint32_t srcaddr, dma_channel_config ctrl);
+void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *cfg);
 void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx);
 void dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
 void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);
