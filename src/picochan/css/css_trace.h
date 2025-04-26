@@ -9,18 +9,10 @@
 
 #include "trc/trace.h"
 
-struct trdata_register_cu {
-        pch_cunum_t     cunum;
+struct trdata_css_cu_claim {
         pch_sid_t       first_sid;
         uint16_t        num_devices;
-};
-
-struct trdata_register_mem_cu {
         pch_cunum_t     cunum;
-        pch_sid_t       first_sid;
-        uint16_t        num_devices;
-        pch_dmaid_t     txdmaid;
-        pch_dmaid_t     rxdmaid;
 };
 
 struct trdata_cunum_traceold_tracenew {
@@ -83,6 +75,5 @@ static inline void trace_schib_scsw_cc(pch_trc_record_type_t rt, pch_schib_t *sc
                         .cc = cc
                 }));
 }
-
 
 #endif

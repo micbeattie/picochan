@@ -41,6 +41,7 @@ typedef struct __aligned(4) css_cu {
         // rx_response_required: when rx data complete, peer wants response
         bool                    rx_response_required;
         bool                    trace;
+        bool                    claimed;
         bool                    enabled;
         // tx_active: tx dma is active
         bool                    tx_active;

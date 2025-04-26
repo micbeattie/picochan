@@ -70,4 +70,11 @@ struct pch_trc_trdata_scsw_sid_cc {
         uint8_t         cc;
 };
 
+struct pch_trc_trdata_cu_dma {
+        uint32_t        addr;
+        uint32_t        ctrl;
+        pch_cunum_t     cunum;
+        pch_dmaid_t     dmaid;
+};
+
 #endif

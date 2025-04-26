@@ -58,13 +58,20 @@ void pch_css_start(uint8_t dmairqix) {
         CSS.dmairqix = (int8_t)dmairqix; // non-negative from assert
 }
 
-static void init_cu(css_cu_t *cu, pch_cunum_t cunum, pch_sid_t first_sid, uint16_t num_devices) {
+static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
+        assert(css_is_started());
+	css_cu_t *cu = get_cu(cunum);
+        assert(!cu->claimed);
+
+	pch_sid_t first_sid = CSS.next_sid;
 	valid_params_if(PCH_CSS,
                 first_sid < PCH_NUM_SCHIBS);
         valid_params_if(PCH_CSS,
                 num_devices >= 1 && num_devices <= 256);
         valid_params_if(PCH_CSS,
                 (int)first_sid+(int)num_devices <= PCH_NUM_SCHIBS);
+
+	CSS.next_sid += (pch_sid_t)num_devices;
 
         memset(cu, 0, sizeof *cu);
 	cu->cunum = cunum;
@@ -74,6 +81,7 @@ static void init_cu(css_cu_t *cu, pch_cunum_t cunum, pch_sid_t first_sid, uint16
 	cu->ua_func_dlist = -1;
         cu->ua_response_slist.head = -1;
         cu->ua_response_slist.tail = -1;
+        cu->claimed = true;
 
 	for (int i = 0; i < num_devices; i++) {
 		pch_unit_addr_t ua = (pch_unit_addr_t)i;
@@ -83,44 +91,65 @@ static void init_cu(css_cu_t *cu, pch_cunum_t cunum, pch_sid_t first_sid, uint16
 		schib->pmcw.unit_addr = ua;
 	}
 
-	cu->enabled = true;
+        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CLAIM,
+                ((struct trdata_css_cu_claim){
+                        .first_sid = first_sid,
+                        .num_devices = num_devices,
+                        .cunum = cunum
+                }));
+
+        return cu;
+}
+
+static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl) {
+        PCH_CSS_TRACE(rt, ((struct pch_trc_trdata_cu_dma){
+                .addr = addr,
+                .ctrl = channel_config_get_ctrl_value(&ctrl),
+                .cunum = cunum,
+                .dmaid = dmaid
+        }));
+}
+
+static void css_cu_dma_tx_init(pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t hwaddr, dma_channel_config ctrl) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->enabled);
+
+        dmachan_init_tx_channel(&cu->tx_channel, dmaid, hwaddr, ctrl);
+        dma_irqn_set_channel_enabled(css_dmairqix(), dmaid, true);
+        trace_cu_dma(PCH_TRC_RT_CSS_CU_TX_DMA_INIT, cunum, dmaid,
+                hwaddr, ctrl);
+}
+
+static void css_cu_dma_rx_init(pch_cunum_t cunum, pch_dmaid_t dmaid, uint32_t hwaddr, dma_channel_config ctrl) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->enabled);
+
+        dmachan_init_rx_channel(&cu->rx_channel, dmaid, hwaddr, ctrl);
+        dma_irqn_set_channel_enabled(css_dmairqix(), dmaid, true);
+        trace_cu_dma(PCH_TRC_RT_CSS_CU_RX_DMA_INIT, cunum, dmaid,
+                hwaddr, ctrl);
 }
 
 void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
-        assert(css_is_started());
-	css_cu_t *cu = get_cu(cunum);
-	pch_sid_t first_sid = CSS.next_sid;
-	init_cu(cu, cunum, first_sid, num_devices);
-	CSS.next_sid += (pch_sid_t)num_devices;
+	css_cu_t *cu = css_cu_claim(cunum, num_devices);
 
 	pch_dmaid_t txdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        dmachan_init_tx_channel(&cu->tx_channel, txdmaid, txhwaddr, txctrl);
-        dma_irqn_set_channel_enabled(css_dmairqix(), txdmaid, true);
+        css_cu_dma_tx_init(cunum, txdmaid, txhwaddr, txctrl);
 
 	pch_dmaid_t rxdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        dmachan_init_rx_channel(&cu->rx_channel, rxdmaid, rxhwaddr, rxctrl);
-        dma_irqn_set_channel_enabled(css_dmairqix(), rxdmaid, true);
+        css_cu_dma_tx_init(cunum, rxdmaid, rxhwaddr, rxctrl);
 
-        PCH_CSS_TRACE(PCH_TRC_RT_CSS_REGISTER_CU,
-                ((struct trdata_register_cu){cunum, first_sid, num_devices}));
+	cu->enabled = true;
 }
 
 void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
-        assert(css_is_started());
-	css_cu_t *cu = get_cu(cunum);
-	pch_sid_t first_sid = CSS.next_sid;
-	init_cu(cu, cunum, first_sid, num_devices);
-	CSS.next_sid += (pch_sid_t)num_devices;
+	css_cu_t *cu = css_cu_claim(cunum, num_devices);
 
         dma_channel_config czero = {0};
-        dmachan_init_tx_channel(&cu->tx_channel, txdmaid, 0, czero);
-        dmachan_init_rx_channel(&cu->rx_channel, rxdmaid, 0, czero);
+        css_cu_dma_tx_init(cunum, txdmaid, 0, czero);
+        css_cu_dma_rx_init(cunum, rxdmaid, 0, czero);
 
-        dma_irqn_set_channel_enabled(css_dmairqix(), txdmaid, true);
-        dma_irqn_set_channel_enabled(css_dmairqix(), rxdmaid, true);
-
-        PCH_CSS_TRACE(PCH_TRC_RT_CSS_REGISTER_MEM_CU,
-		((struct trdata_register_mem_cu){cunum, first_sid, num_devices, txdmaid, rxdmaid}));
+	cu->enabled = true;
 }
 
 bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
