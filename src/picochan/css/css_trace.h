@@ -15,12 +15,6 @@ struct trdata_css_cu_claim {
         pch_cunum_t     cunum;
 };
 
-struct trdata_cunum_traceold_tracenew {
-        pch_cunum_t     cunum;
-        bool            old_trace;
-        bool            new_trace;
-};
-
 struct trdata_irqnum_opt {
         int16_t         irqnum_opt;
 };

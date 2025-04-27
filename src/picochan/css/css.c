@@ -141,6 +141,11 @@ void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         css_cu_dma_tx_init(cunum, &dc->tx);
         css_cu_dma_rx_init(cunum, &dc->rx);
 	cu->enabled = true;
+        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_ENABLED, 
+                ((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = 1
+                }));
 }
 
 void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
@@ -164,9 +169,12 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 	css_cu_t *cu = get_cu(cunum);
 	bool old_trace = cu->trace;
 	cu->trace = trace;
-	PCH_TRC_WRITE(&CSS.trace_bs, trace || old_trace,
-		PCH_TRC_RT_CSS_SET_TRACE_CU,
-		((struct trdata_cunum_traceold_tracenew){cunum, old_trace, trace}));
+	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,
+                trace || old_trace,
+		((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = (uint8_t)trace
+        }));
 
 	return old_trace;
 }
@@ -174,6 +182,14 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 void pch_css_start_channel(pch_cunum_t cunum) {
 	css_cu_t *cu = get_cu(cunum);
         assert(cu->enabled);
+
+	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
+                cu->trace,
+		((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = 1
+        }));
+
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 }
 

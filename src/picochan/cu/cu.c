@@ -122,8 +122,11 @@ void pch_cus_enable_cu(pch_cunum_t cunum) {
                 return;
 
         cu->enabled = true;
-        PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_ENABLE_CU,
-                cu->traced, ((struct{}){}));
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_ENABLED,
+                ((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = 1
+                }));
 
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 }
@@ -136,12 +139,11 @@ bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace) {
         pch_cu_t *cu = pch_get_cu(cunum);
         bool old_trace = cu->traced;
         cu->traced = trace;
-        PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_SET_TRACE_CU,
+        PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,
                 trace || old_trace,
-                ((struct pch_cus_trdata_cunum_traceold_tracenew){
+                ((struct pch_trc_trdata_cu_byte){
                         .cunum = cunum,
-                        .old_trace = old_trace,
-                        .new_trace = trace
+                        .byte = (uint8_t)trace
                 }));
 
         return old_trace;
@@ -152,13 +154,12 @@ bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         bool old_trace = pch_devib_set_traced(devib, trace);
 
-        PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_SET_TRACE_CU,
+        PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_DEV_TRACED,
                 cu->traced || trace || old_trace,
-                ((struct pch_cus_trdata_dev_traceold_tracenew){
+                ((struct pch_trc_trdata_dev_byte){
                         .cunum = cunum,
                         .ua = ua,
-                        .old_trace = old_trace,
-                        .new_trace = trace
+                        .byte = (uint8_t)trace
                 }));
 
         return old_trace;

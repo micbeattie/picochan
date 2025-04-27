@@ -20,6 +20,11 @@ struct pch_trc_trdata_dev {
         pch_unit_addr_t ua;
 };
 
+struct pch_trc_trdata_cu_byte {
+        pch_cunum_t     cunum;
+        uint8_t         byte;
+};
+
 struct pch_trc_trdata_dev_byte {
         pch_cunum_t     cunum;
         pch_unit_addr_t ua;

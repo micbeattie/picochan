@@ -25,19 +25,6 @@ struct pch_cus_trdata_init_mem_channel {
         pch_dmaid_t     rxdmaid;
 };
 
-struct pch_cus_trdata_cunum_traceold_tracenew {
-        pch_cunum_t     cunum;
-        bool            old_trace;
-        bool            new_trace;
-};
-
-struct pch_cus_trdata_dev_traceold_tracenew {
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
-        bool            old_trace;
-        bool            new_trace;
-};
-
 struct pch_cus_trdata_tx_complete {
         int16_t         uaopt;
         pch_cunum_t     cunum;
