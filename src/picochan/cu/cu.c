@@ -22,6 +22,8 @@ void pch_cus_init() {
                 pch_cus_trace_buffer_space);
 }
 
+// CU interrupts and callbacks will be handled on the core that calls
+// this function
 void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
         irq_num_t irqnum = dma_get_irq_num(dmairqix);
         irq_add_shared_handler(irqnum, pch_cus_handle_dma_irq,

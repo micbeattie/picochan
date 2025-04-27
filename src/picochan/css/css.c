@@ -43,6 +43,8 @@ void pch_css_init(void) {
         }
 }
 
+// CSS interrupts and callbacks will be handled on the core that calls
+// this function
 void pch_css_start(uint8_t dmairqix) {
         valid_params_if(PCH_CSS, dmairqix <= 127);
         irq_num_t irqnum = dma_get_irq_num(dmairqix);
