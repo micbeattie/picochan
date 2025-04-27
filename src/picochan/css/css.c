@@ -167,8 +167,8 @@ void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_
 
 bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 	css_cu_t *cu = get_cu(cunum);
-	bool old_trace = cu->trace;
-	cu->trace = trace;
+	bool old_trace = cu->traced;
+	cu->traced = trace;
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,
                 trace || old_trace,
 		((struct pch_trc_trdata_cu_byte){
@@ -184,7 +184,7 @@ void pch_css_start_channel(pch_cunum_t cunum) {
         assert(cu->enabled);
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
-                cu->trace,
+                cu->traced,
 		((struct pch_trc_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = 1
