@@ -3,7 +3,7 @@
  */
 
 #include <string.h>
-#include "dmachan.h"
+#include "picochan/dmachan.h"
 #include "mem_peer.h"
 
 static inline void set_mem_src_state(dmachan_tx_channel_t *tx, enum dmachan_mem_src_state new_state) {

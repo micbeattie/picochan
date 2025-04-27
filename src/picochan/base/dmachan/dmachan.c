@@ -1,4 +1,4 @@
-#include "dmachan.h"
+#include "picochan/dmachan.h"
 
 dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl) {
         pch_dmaid_t dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);

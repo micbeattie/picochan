@@ -1,4 +1,8 @@
-#include "dmachan.h"
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ */
+
+#include "picochan/dmachan.h"
 
 // pch_init_uart is a simple convenience function to initialise uart
 // as needed for CSS<->CU:

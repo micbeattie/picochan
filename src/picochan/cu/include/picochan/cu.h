@@ -14,7 +14,7 @@
 #include <assert.h>
 #include "hardware/uart.h"
 #include "picochan/dev_api.h"
-#include "dmachan/dmachan.h"
+#include "picochan/dmachan.h"
 #include "txsm/txsm.h"
 #include "trc/trace.h"
 

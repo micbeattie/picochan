@@ -2,8 +2,8 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#ifndef _PCH_DMACHAN_DMACHAN_H
-#define _PCH_DMACHAN_DMACHAN_H
+#ifndef _PCH_API_DMACHAN_H
+#define _PCH_API_DMACHAN_H
 
 // PICO_CONFIG: PARAM_ASSERTIONS_ENABLED_PCH_DMACHAN, Enable/disable assertions in the pch_dmachan module, type=bool, default=0, group=pch_dmachan
 #ifndef PARAM_ASSERTIONS_ENABLED_PCH_DMACHAN
@@ -15,7 +15,6 @@
 #include "hardware/uart.h"
 #include "pico/platform/compiler.h"
 #include "picochan/ids.h"
-#include "mem_peer.h"
 
 #define CMDBUF_SIZE 4
 

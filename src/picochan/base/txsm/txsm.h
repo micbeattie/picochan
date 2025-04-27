@@ -11,7 +11,7 @@
 #endif
 
 #include <stdint.h>
-#include "dmachan/dmachan.h"
+#include "picochan/dmachan.h"
 
 // txsm provides a state machine that manages using a
 // dmachan_tx_channel to transmit a data buffer, driven by

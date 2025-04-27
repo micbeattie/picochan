@@ -11,7 +11,7 @@
 #include "hardware/uart.h"
 #include "pico/time.h"
 #include "picochan/schib.h"
-#include "dmachan/dmachan.h"
+#include "picochan/dmachan.h"
 
 #ifndef PCH_NUM_SCHIBS
 #define PCH_NUM_SCHIBS 32

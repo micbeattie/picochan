@@ -2,7 +2,8 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#include "dmachan.h"
+#include "picochan/dmachan.h"
+#include "mem_peer.h"
 
 // mem_peer_spin_lock must be initialised with init_mem_peer_lock
 spin_lock_t *mem_peer_spin_lock;

@@ -19,7 +19,7 @@
 #include "schib_internal.h"
 #include "schib_dlist.h"
 #include "css_cu.h"
-#include "dmachan/dmachan.h"
+#include "picochan/dmachan.h"
 #include "trc/trace.h"
 
 // struct css is a channel subsystem (CSS). It is intended to be a

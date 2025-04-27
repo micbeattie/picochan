@@ -3,7 +3,8 @@
  */
 
 #include <string.h>
-#include "dmachan.h"
+#include "picochan/dmachan.h"
+#include "mem_peer.h"
 
 static inline void set_mem_dst_state(dmachan_rx_channel_t *rx, enum dmachan_mem_dst_state new_state) {
     valid_params_if(PCH_DMACHAN,
