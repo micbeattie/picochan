@@ -7,7 +7,6 @@ target_include_directories(picochan_base INTERFACE
 
 target_sources(picochan_base INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/bsize/bsize.c
-        ${CMAKE_CURRENT_LIST_DIR}/dmachan/dmachan.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/mem_peer.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/rx_channel.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/tx_channel.c

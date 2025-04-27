@@ -12,7 +12,7 @@ target_sources(picochan_cu INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/rx_handle.c
         ${CMAKE_CURRENT_LIST_DIR}/tx_commands.c
         ${CMAKE_CURRENT_LIST_DIR}/tx_handle.c
-        ${CMAKE_CURRENT_LIST_DIR}/uart_cu.c
+        ${CMAKE_CURRENT_LIST_DIR}/uartcu.c
 ) 
 
 if (PCH_COMPILE_ENABLE_STRICT_WARNINGS)

@@ -33,7 +33,7 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
                         (uint32_t)pch_cus_handle_dma_irq, irqnum}));
 }
 
-void pch_cus_register_cu(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs) {
+void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, cunum < NUM_CUS);
         valid_params_if(PCH_CUS, dmairqix < NUM_DMA_IRQS);
         valid_params_if(PCH_CUS, num_devibs < NUM_DEVIBS);
@@ -53,8 +53,8 @@ void pch_cus_register_cu(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint
 
         pch_cus[cunum] = cu;
 
-        PCH_CUS_TRACE(PCH_TRC_RT_CUS_REGISTER_CU,
-                ((struct pch_cus_trdata_register_cu){
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_INIT,
+                ((struct pch_trc_trdata_cu_init){
                         .num_devices = num_devibs,
                         .cunum = cunum,
                         .dmairqix = dmairqix
@@ -94,25 +94,8 @@ void pch_cus_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         cu_dma_rx_init(cunum, &dc->rx);
 }
 
-void pch_cus_cu_dma_claim_and_configure(pch_cunum_t cunum, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
-        pch_dmaid_t txdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        pch_dmaid_t rxdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-
-        dmachan_config_t dc = {
-                .tx = {txdmaid, txhwaddr, txctrl},
-                .rx = {rxdmaid, rxhwaddr, rxctrl}
-        };
-
-        pch_cus_cu_dma_configure(cunum, &dc);
-}
-
-void pch_cus_init_mem_channel(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
-        dma_channel_config czero = {0}; // zero, *not* default config
-        dmachan_config_t dc = {
-                .tx = {txdmaid, 0, czero},
-                .rx = {rxdmaid, 0, czero}
-        };
-
+void pch_cus_memcu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
+        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid, rxdmaid);
         pch_cus_cu_dma_configure(cunum, &dc);
 }
 

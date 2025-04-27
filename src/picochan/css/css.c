@@ -148,20 +148,8 @@ void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
                 }));
 }
 
-void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl) {
-	pch_css_cu_claim(cunum, num_devices);
-        dmachan_config_t dc = dmachan_config_claim(txhwaddr, txctrl,
-                rxhwaddr, rxctrl);
-        pch_css_cu_dma_configure(cunum, &dc);
-}
-
-void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
-	pch_css_cu_claim(cunum, num_devices);
-        dma_channel_config czero = {0}; // zero, *not* default config
-        dmachan_config_t dc = {
-                .tx = { txdmaid, 0, czero },
-                .rx = { rxdmaid, 0, czero }
-        };
+void pch_css_memcu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
+        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid, rxdmaid);
         pch_css_cu_dma_configure(cunum, &dc);
 }
 

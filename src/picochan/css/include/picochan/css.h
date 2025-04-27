@@ -73,14 +73,13 @@ void pch_css_set_io_irq(irq_num_t irqnum);
 io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
 void pch_css_start_channel(pch_cunum_t cunum);
 
-// Low-level API for CSS CU initialisation
+// CSS CU initialisation
 void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
 void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
-
-// Convenience functions for initialising and configuring CSS and CUs
-void pch_css_register_cu(pch_cunum_t cunum, uint16_t num_devices, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl);
-void pch_css_register_mem_cu(pch_cunum_t cunum, uint16_t num_devices, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
-void pch_css_register_uart_cu(pch_cunum_t cunum, uint16_t num_devices, uart_inst_t *uart, dma_channel_config ctrl);
+void pch_css_uartcu_dma_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+// CSS CU initialisation low-level helpers
+dma_channel_config pch_css_uartcu_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl);
+dma_channel_config pch_css_uartcu_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl);
 
 // Architectural API for subchannels and channel programs
 int pch_sch_start(pch_sid_t sid, pch_ccw_t *ccw_addr);

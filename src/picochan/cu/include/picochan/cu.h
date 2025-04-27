@@ -92,17 +92,16 @@ static inline pch_cu_t *pch_get_cu(pch_cunum_t cunum) {
 void pch_cus_init(void);
 bool pch_cus_set_trace(bool trace);
 void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
-void pch_cus_register_cu(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs);
+
+// CU initialisation and configuration
+void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs);
 void pch_cus_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
-void pch_cus_cu_dma_claim_and_configure(pch_cunum_t cunum, uint32_t txhwaddr, dma_channel_config txctrl, uint32_t rxhwaddr, dma_channel_config rxctrl);
+void pch_cus_uartcu_dma_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
 void pch_cus_init_mem_channel(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid);
 void pch_cus_enable_cu(pch_cunum_t cunum);
+
 bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace);
 bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace);
-
-// Convenience function for initialising CU
-void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dma_channel_config ctrl);
-void pch_cus_uartcu_claim_and_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
 
 void __isr pch_cus_handle_dma_irq(void);
 

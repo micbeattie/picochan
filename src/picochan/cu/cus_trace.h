@@ -13,12 +13,6 @@
 
 extern pch_trc_bufferset_t pch_cus_trace_bs;
 
-struct pch_cus_trdata_register_cu {
-        uint16_t        num_devices;
-        pch_cunum_t     cunum;
-        uint8_t         dmairqix;
-};
-
 struct pch_cus_trdata_init_mem_channel {
         pch_cunum_t     cunum;
         pch_dmaid_t     txdmaid;
