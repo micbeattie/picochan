@@ -5,6 +5,20 @@
 #include "css_internal.h"
 #include "css_trace.h"
 
+dmachan_tx_channel_t *pch_css_cu_get_tx_channel(pch_cunum_t cunum) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed);
+
+        return &cu->tx_channel;
+}
+
+dmachan_rx_channel_t *pch_css_cu_get_rx_channel(pch_cunum_t cunum) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed);
+
+        return &cu->rx_channel;
+}
+
 static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
         assert(css_is_started());
 	css_cu_t *cu = get_cu(cunum);

@@ -80,6 +80,8 @@ void pch_css_uartcu_dma_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_chan
 // CSS CU initialisation low-level helpers
 dma_channel_config pch_css_uartcu_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl);
 dma_channel_config pch_css_uartcu_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl);
+dmachan_tx_channel_t *pch_css_cu_get_tx_channel(pch_cunum_t cunum);
+dmachan_rx_channel_t *pch_css_cu_get_rx_channel(pch_cunum_t cunum);
 
 // Architectural API for subchannels and channel programs
 int pch_sch_start(pch_sid_t sid, pch_ccw_t *ccw_addr);
