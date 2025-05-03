@@ -69,6 +69,14 @@ static inline pch_unit_addr_t pch_get_ua(pch_cu_t *cu, pch_devib_t *devib) {
         return devib - cu->devibs;
 }
 
+static inline dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cu_t *cu) {
+        return &cu->tx_channel;
+}
+
+static inline dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cu_t *cu) {
+        return &cu->rx_channel;
+}
+
 static inline bool cu_or_devib_is_traced(pch_cu_t *cu, pch_devib_t *devib) {
         return cu->traced || pch_devib_is_traced(devib);
 }
