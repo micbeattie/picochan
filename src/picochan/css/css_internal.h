@@ -70,6 +70,15 @@ static inline pch_sid_t get_sid(pch_schib_t *schib) {
         return schib - CSS.schibs;
 }
 
+static inline bool css_is_started(void) {
+        return CSS.dmairqix >= 0;
+}
+
+static inline uint8_t css_get_configured_dmairqix(void) {
+        assert(css_is_started());
+        return (uint8_t)CSS.dmairqix;
+}
+
 static inline void reset_subchannel_to_idle(pch_schib_t *schib) {
         const uint16_t mask = PCH_FC_START|PCH_FC_HALT|PCH_FC_CLEAR
                 | PCH_AC_RESUME_PENDING|PCH_AC_START_PENDING

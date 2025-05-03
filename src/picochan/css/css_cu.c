@@ -1,0 +1,131 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ */
+
+#include "css_internal.h"
+#include "css_trace.h"
+
+static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
+        assert(css_is_started());
+	css_cu_t *cu = get_cu(cunum);
+        assert(!cu->claimed);
+
+	pch_sid_t first_sid = CSS.next_sid;
+	valid_params_if(PCH_CSS,
+                first_sid < PCH_NUM_SCHIBS);
+        valid_params_if(PCH_CSS,
+                num_devices >= 1 && num_devices <= 256);
+        valid_params_if(PCH_CSS,
+                (int)first_sid+(int)num_devices <= PCH_NUM_SCHIBS);
+
+	CSS.next_sid += (pch_sid_t)num_devices;
+
+        memset(cu, 0, sizeof *cu);
+	cu->cunum = cunum;
+	cu->first_sid = first_sid;
+	cu->num_devices = num_devices;
+	cu->rx_data_for_ua = -1;
+	cu->ua_func_dlist = -1;
+        cu->ua_response_slist.head = -1;
+        cu->ua_response_slist.tail = -1;
+        cu->claimed = true;
+
+	for (int i = 0; i < num_devices; i++) {
+		pch_unit_addr_t ua = (pch_unit_addr_t)i;
+		pch_sid_t sid = first_sid + (pch_sid_t)i;
+		pch_schib_t *schib = get_schib(sid);
+		schib->pmcw.cu_number = cunum;
+		schib->pmcw.unit_addr = ua;
+	}
+
+        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CLAIM,
+                ((struct trdata_css_cu_claim){
+                        .first_sid = first_sid,
+                        .num_devices = num_devices,
+                        .cunum = cunum
+                }));
+
+        return cu;
+}
+
+void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
+        // Same as css_cu_claim but drop the return value since
+        // the public API only uses cunum not the css_cu_t*.
+        css_cu_claim(cunum, num_devices);
+}
+
+static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
+        PCH_CSS_TRACE(rt, ((struct pch_trc_trdata_cu_dma){
+                .addr = d1c->addr,
+                .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
+                .cunum = cunum,
+                .dmaid = d1c->dmaid
+        }));
+}
+
+static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->enabled);
+
+        dmachan_init_tx_channel(&cu->tx_channel, d1c);
+        uint8_t dmairqix = css_get_configured_dmairqix();
+        dma_irqn_set_channel_enabled(dmairqix, d1c->dmaid, true);
+        trace_cu_dma(PCH_TRC_RT_CSS_CU_TX_DMA_INIT, cunum, d1c);
+}
+
+static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->enabled);
+
+        dmachan_init_rx_channel(&cu->rx_channel, d1c);
+        uint8_t dmairqix = css_get_configured_dmairqix();
+        dma_irqn_set_channel_enabled(dmairqix, d1c->dmaid, true);
+        trace_cu_dma(PCH_TRC_RT_CSS_CU_RX_DMA_INIT, cunum, d1c);
+}
+
+void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->enabled);
+
+        css_cu_dma_tx_init(cunum, &dc->tx);
+        css_cu_dma_rx_init(cunum, &dc->rx);
+	cu->enabled = true;
+        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_ENABLED,
+                ((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = 1
+                }));
+}
+
+void pch_css_memcu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
+        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid, rxdmaid);
+        pch_css_cu_dma_configure(cunum, &dc);
+}
+
+bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
+	css_cu_t *cu = get_cu(cunum);
+	bool old_trace = cu->traced;
+	cu->traced = trace;
+	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,
+                trace || old_trace,
+		((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = (uint8_t)trace
+        }));
+
+	return old_trace;
+}
+
+void pch_css_start_channel(pch_cunum_t cunum) {
+	css_cu_t *cu = get_cu(cunum);
+        assert(cu->enabled);
+
+	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
+                cu->traced,
+		((struct pch_trc_trdata_cu_byte){
+                        .cunum = cunum,
+                        .byte = 1
+        }));
+
+        dmachan_start_dst_cmdbuf(&cu->rx_channel);
+}
