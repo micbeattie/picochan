@@ -55,7 +55,7 @@ void __isr __time_critical_func(pch_css_schib_func_irq_handler)(void) {
 
         for (int i = 0; i < PCH_NUM_CSS_CUS; i++) {
 		css_cu_t *cu = &CSS.cus[i];
-		if (!cu->enabled)
+		if (!cu->started)
 			continue;
 
 		if (cu->tx_active)
@@ -72,7 +72,7 @@ void __isr __time_critical_func(css_handle_dma_irq)() {
         pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)(irqnum - DMA_IRQ_0);
         for (int i = 0; i < PCH_NUM_CSS_CUS; i++) {
 		css_cu_t *cu = &CSS.cus[i];
-                if (!cu->enabled)
+                if (!cu->started)
 			continue;
 
 		handle_dma_irq_cu(dmairqix, cu);

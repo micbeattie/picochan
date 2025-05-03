@@ -124,11 +124,9 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
         dma_channel_config ctrl = d1c->ctrl;
 
         valid_params_if(PCH_DMACHAN,
-                !channel_config_get_incr_read(ctrl));
-        valid_params_if(PCH_DMACHAN,
                 channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
 
-        memset(&rx->cmdbuf, 0, 4);
+        memset(&rx->cmdbuf, 0, CMDBUF_SIZE);
         rx->srcaddr = srcaddr;
         channel_config_set_chain_to(&ctrl, dmaid);
         rx->ctrl = ctrl;

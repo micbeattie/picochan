@@ -79,7 +79,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dma
 
 static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->enabled);
+        assert(cu->claimed && !cu->started);
 
         dmachan_init_tx_channel(&cu->tx_channel, d1c);
         uint8_t dmairqix = css_get_configured_dmairqix();
@@ -89,7 +89,7 @@ static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
 
 static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->enabled);
+        assert(cu->claimed && !cu->started);
 
         dmachan_init_rx_channel(&cu->rx_channel, d1c);
         uint8_t dmairqix = css_get_configured_dmairqix();
@@ -99,21 +99,50 @@ static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
 
 void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->enabled);
+        assert(cu->claimed && !cu->started);
 
         css_cu_dma_tx_init(cunum, &dc->tx);
         css_cu_dma_rx_init(cunum, &dc->rx);
-	cu->enabled = true;
-        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_ENABLED,
+}
+
+void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed);
+
+        cu->configured = configured;
+
+        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CONFIGURED,
                 ((struct pch_trc_trdata_cu_byte){
                         .cunum = cunum,
-                        .byte = 1
+                        .byte = (uint8_t)configured
                 }));
 }
 
-void pch_css_memcu_dma_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
+void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->started);
+
+        pch_init_uart(uart);
+
+        dma_channel_config txctrl = dmachan_uartcu_make_txctrl(uart, ctrl);
+        dma_channel_config rxctrl = dmachan_uartcu_make_rxctrl(uart, ctrl);
+        uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
+        dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
+                hwaddr, rxctrl);
+        pch_css_cu_dma_configure(cunum, &dc);
+        pch_css_cu_set_configured(cunum, true);
+}
+
+void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer) {
+        css_cu_t *cu = get_cu(cunum);
+        assert(cu->claimed && !cu->started);
+
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid, rxdmaid);
         pch_css_cu_dma_configure(cunum, &dc);
+        dmachan_rx_channel_t *rx = &cu->rx_channel;
+        txpeer->mem_rx_peer = rx;
+        rx->mem_tx_peer = txpeer;
+        pch_css_cu_set_configured(cunum, true);
 }
 
 bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
@@ -130,9 +159,9 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 	return old_trace;
 }
 
-void pch_css_start_channel(pch_cunum_t cunum) {
+void pch_css_cu_start(pch_cunum_t cunum) {
 	css_cu_t *cu = get_cu(cunum);
-        assert(cu->enabled);
+        assert(cu->configured);
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
                 cu->traced,
@@ -141,5 +170,6 @@ void pch_css_start_channel(pch_cunum_t cunum) {
                         .byte = 1
         }));
 
+        cu->started = true;
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 }

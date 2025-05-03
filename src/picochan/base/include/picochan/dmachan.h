@@ -49,8 +49,11 @@ static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma
 }
 
 static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid) {
-        dma_channel_config czero = {0}; // zero, *not* default config
-        return ((dmachan_1way_config_t){dmaid, 0, czero});
+        dma_channel_config ctrl = dma_channel_get_default_config(dmaid);
+        channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
+        channel_config_set_read_increment(&ctrl, true);
+        channel_config_set_write_increment(&ctrl, true);
+        return ((dmachan_1way_config_t){dmaid, 0, ctrl});
 }
 
 // DMA configuration for both directions (tx and rx) of a dmachan

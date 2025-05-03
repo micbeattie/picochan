@@ -42,7 +42,8 @@ typedef struct __aligned(4) css_cu {
         bool                    rx_response_required;
         bool                    traced;
         bool                    claimed;
-        bool                    enabled;
+        bool                    configured;
+        bool                    started;
         // tx_active: tx dma is active
         bool                    tx_active;
         // ua_func_dlist: links via schib.prevua and .nextua

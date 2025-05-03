@@ -71,15 +71,15 @@ void __isr pch_css_schib_func_irq_handler(void);
 void __isr pch_css_io_irq_handler(void);
 void pch_css_set_io_irq(irq_num_t irqnum);
 io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
-void pch_css_start_channel(pch_cunum_t cunum);
+void pch_css_cu_start(pch_cunum_t cunum);
 
 // CSS CU initialisation
 void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
-void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
-void pch_css_uartcu_dma_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
 // CSS CU initialisation low-level helpers
-dma_channel_config pch_css_uartcu_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl);
-dma_channel_config pch_css_uartcu_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl);
+void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
+void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured);
 dmachan_tx_channel_t *pch_css_cu_get_tx_channel(pch_cunum_t cunum);
 dmachan_rx_channel_t *pch_css_cu_get_rx_channel(pch_cunum_t cunum);
 
