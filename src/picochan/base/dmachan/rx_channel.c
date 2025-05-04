@@ -6,14 +6,6 @@
 #include "picochan/dmachan.h"
 #include "mem_peer.h"
 
-static inline void set_mem_dst_state(dmachan_rx_channel_t *rx, enum dmachan_mem_dst_state new_state) {
-        valid_params_if(PCH_DMACHAN,
-                new_state == DMACHAN_MEM_DST_IDLE
-                || rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
-
-        rx->mem_dst_state = new_state;
-}
-
 static void start_dst_cmdbuf_remote(dmachan_rx_channel_t *rx) {
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, true);
@@ -30,7 +22,7 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
         switch (txpeer->mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
         case DMACHAN_MEM_SRC_DATA:
-                set_mem_dst_state(rx, DMACHAN_MEM_DST_CMDBUF);
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_CMDBUF);
                 break;
         case DMACHAN_MEM_SRC_CMDBUF:
                 memcpy(rx->cmdbuf, txpeer->cmdbuf, CMDBUF_SIZE);
@@ -60,13 +52,13 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
 
         switch (txpeer->mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
-                set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
                 dma_channel_set_write_addr(rx->dmaid, (void*)dstaddr, false);
                 dma_channel_set_trans_count(rx->dmaid, count, false);
                 trigger_irq(rx->dmaid); // trigger for txpeer (same dmaid) too
                 break;
         case DMACHAN_MEM_SRC_DATA:
-                set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
                 assert(dma_channel_get_reload_count(rx->dmaid) == count);
                 // Peer has set its side but in order to raise the IRQ to
                 // notify us, it had to write a zero control register so we
@@ -104,7 +96,7 @@ static void start_dst_discard_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t
 
         switch (txpeer->mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
-                set_mem_dst_state(rx, DMACHAN_MEM_DST_DISCARD);
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DISCARD);
                 break;
         case DMACHAN_MEM_SRC_DATA:
                 trigger_irq(rx->dmaid); // trigger for txpeer (same dmaid) too
@@ -160,7 +152,7 @@ void __time_critical_func(dmachan_start_dst_discard)(dmachan_rx_channel_t *rx, u
 
 void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
         if (rx->mem_tx_peer != NULL)
-                set_mem_dst_state(rx, DMACHAN_MEM_DST_SRC_ZEROES); // for verification only
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_SRC_ZEROES); // for verification only
 
         // We set 4 bytes of zeroes to use as DMA source. At the moment,
         // everything uses DataSize8 but if we plumb through choice of

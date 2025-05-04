@@ -63,6 +63,16 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t
                 }));
 }
 
+dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cunum_t cunum) {
+        pch_cu_t *cu = pch_get_cu(cunum);
+        return &cu->tx_channel;
+}
+
+dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum) {
+        pch_cu_t *cu = pch_get_cu(cunum);
+        return &cu->rx_channel;
+}
+
 static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         PCH_CUS_TRACE(rt, ((struct pch_trc_trdata_cu_dma){
                 .addr = d1c->addr,

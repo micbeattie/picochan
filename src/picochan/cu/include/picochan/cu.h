@@ -70,20 +70,11 @@ static inline pch_unit_addr_t pch_get_ua(pch_cu_t *cu, pch_devib_t *devib) {
         return devib - cu->devibs;
 }
 
-static inline dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cu_t *cu) {
-        return &cu->tx_channel;
-}
-
-static inline dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cu_t *cu) {
-        return &cu->rx_channel;
-}
-
 static inline bool cu_or_devib_is_traced(pch_cu_t *cu, pch_devib_t *devib) {
         return cu->traced || pch_devib_is_traced(devib);
 }
 
 int16_t push_tx_list(pch_cu_t *cu, pch_unit_addr_t ua);
-void send_command_to_css(pch_cu_t *cu);
 
 //
 // Global array of CUs
@@ -113,6 +104,8 @@ bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace);
 // CU initialisation low-level helpers
 void pch_cus_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
 void pch_cus_cu_set_configured(pch_cunum_t cunum, bool configured);
+dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cunum_t cunum);
+dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum);
 
 void __isr pch_cus_handle_dma_irq(void);
 

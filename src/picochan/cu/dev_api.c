@@ -5,15 +5,6 @@
 #include "cu_internal.h"
 #include "cus_trace.h"
 
-void __time_critical_func(cus_send_command_to_css)(pch_cu_t *cu) {
-        int16_t tx_head = cu->tx_head;
-        assert(tx_head >= 0);
-        pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
-        proto_packet_t p = cus_make_packet(cu, ua);
-        memcpy(cu->tx_channel.cmdbuf, &p, sizeof p);
-        dmachan_start_src_cmdbuf(&cu->tx_channel);
-}
-
 // Low-level "pch_devib_" API for dev implementations. These take a
 // devib and simply update its fields.
 

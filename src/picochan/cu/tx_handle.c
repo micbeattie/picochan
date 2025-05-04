@@ -81,9 +81,7 @@ proto_packet_t __time_critical_func(cus_make_packet)(pch_cu_t *cu, pch_unit_addr
                 // fallthrough
 	}
 
-        proto_packet_t p = proto_make_packet(op, ua, devib->payload);
-	trace_dev_packet(PCH_TRC_RT_CUS_MAKE_PACKET, cu, devib, p);
-	return p;
+        return proto_make_packet(op, ua, devib->payload);
 }
 
 void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {

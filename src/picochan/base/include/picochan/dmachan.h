@@ -144,12 +144,30 @@ static inline void trigger_irq(pch_dmaid_t dmaid) {
         dma_channel_set_config(dmaid, &czero, true);
 }
 
+static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, enum dmachan_mem_src_state new_state) {
+        valid_params_if(PCH_DMACHAN,
+                new_state == DMACHAN_MEM_SRC_IDLE
+                || tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
+
+        tx->mem_src_state = new_state;
+}
+
 static inline bool dmachan_tx_irq_raised(dmachan_tx_channel_t *tx, pch_dma_irq_index_t dmairqix) {
         return dma_irqn_get_channel_status(dmairqix, tx->dmaid);
 };
 
 static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx, pch_dma_irq_index_t dmairqix) {
         dma_irqn_acknowledge_channel(dmairqix, tx->dmaid);
+        if (tx->mem_rx_peer)
+                dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
+}
+
+static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, enum dmachan_mem_dst_state new_state) {
+        valid_params_if(PCH_DMACHAN,
+                new_state == DMACHAN_MEM_DST_IDLE
+                || rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
+
+        rx->mem_dst_state = new_state;
 }
 
 static inline bool dmachan_rx_irq_raised(dmachan_rx_channel_t *rx, pch_dma_irq_index_t dmairqix) {
@@ -158,6 +176,8 @@ static inline bool dmachan_rx_irq_raised(dmachan_rx_channel_t *rx, pch_dma_irq_i
 
 static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx, pch_dma_irq_index_t dmairqix) {
         dma_irqn_acknowledge_channel(dmairqix, rx->dmaid);
+        if (rx->mem_tx_peer)
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
 }
 
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);
