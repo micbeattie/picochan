@@ -3,6 +3,7 @@
  */
 
 #include "css_internal.h"
+#include "css_trace.h"
 #include "txsm/txsm.h"
 #include "proto/packet.h"
 
@@ -77,9 +78,15 @@ static void handle_tx_command_complete(css_cu_t *cu) {
 // css_handle_tx_complete handles a tx completion interrupt for
 // cu->tx_channel.
 void __time_critical_func(css_handle_tx_complete)(css_cu_t *cu) {
+        pch_txsm_t *txpend = &cu->tx_pending;
+        PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_TX_COMPLETE,
+                cu->traced, ((struct pch_trc_trdata_cu_byte){
+                        .cunum = cu->cunum,
+                        .byte = (uint8_t)txpend->state
+                }));
+
         assert(cu->tx_active);
-        enum pch_txsm_run_result tr = pch_txsm_run(&cu->tx_pending,
-                &cu->tx_channel);
+        enum pch_txsm_run_result tr = pch_txsm_run(txpend, &cu->tx_channel);
 	if (tr == PCH_TXSM_ACTED)
 		return; // tx dma not free - still sending pending data
 
