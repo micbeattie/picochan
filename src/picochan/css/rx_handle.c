@@ -106,12 +106,12 @@ typedef struct addr_count {
         uint16_t count;
 } addr_count_t;
 
-// begin_data_write is called from handle_rx_data_command to prepare
-// the schib for the incoming data that's about to arrive as the peer
-// device sends us data for us to receive into the current CCW
-// segment of an active CCW Read-type command. As soon as we return
-// with (addr, count), handle_rx_data_command is going to point the
-// CU's rx dma engine at that destination and start it up.
+// begin_data_write is called from css_handle_rx_data_command to
+// prepare the schib for the incoming data that's about to arrive as
+// the peer device sends us data for us to receive into the current
+// CCW segment of an active CCW Read-type command. As soon as we
+// return with (addr, count), css_handle_rx_data_command is going to
+// point the CU's rx dma engine at that destination and start it up.
 // TODO If count > rescount for an incoming Data command, we could
 // redirect all the about-to-be-received data to discard it, set
 // ChainingCheck in Schs and then tell the device about its error
@@ -157,7 +157,7 @@ static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_pac
 	return ((addr_count_t){addr, count});
 }
 
-static void handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
+static void css_handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
 	cu->rx_data_for_ua = -1;
         uint8_t devs = cu->rx_data_end_ds;
         if (devs) {
@@ -193,7 +193,7 @@ static void handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
 	}
 }
 
-// handle_rx_data_command handles a received _data command.
+// css_handle_rx_data_command handles a received _data command.
 // If PROTO_CHOP_FLAG_SKIP is set then the device wants us to write
 // zero bytes and will not be sending any real data itself.
 // If PROTO_CHOP_FLAG_SKIP is not set then the device is going to send
@@ -204,7 +204,7 @@ static void handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
 // seen the Discard flag in our room announcement and used the
 // PROTO_CHOP_FLAG_SKIP flag in its command instead which would have
 // avoided it needing to send us all this data just for us to discard.
-static void handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
+static void css_handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
 	// if PROTO_CHOP_FLAG_SKIP is set in the incoming op, we write
 	// (or ignore/discard) zeroes and no data is about to be sent
 	// to us
@@ -222,7 +222,7 @@ static void handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_packe
 			// isn't sending data so we can bypass any
 			// need to receive anything from the channel
 			// and handle rx-data-complete right now
-			handle_rx_data_complete(cu, schib);
+			css_handle_rx_data_complete(cu, schib);
 		} else {
 			// Device has gone to the trouble of sending
 			// us data but so we hace to explicitly
@@ -277,7 +277,7 @@ static void handle_request_read(css_cu_t *cu, pch_schib_t *schib, proto_packet_t
 	}
 }
 
-static void handle_rx_command_complete(css_cu_t *cu) {
+static void css_handle_rx_command_complete(css_cu_t *cu) {
 	// DMA has received a command packet from cu into RxBuf
 	proto_packet_t p = get_rx_packet(cu);
         pch_unit_addr_t ua = p.unit_addr;
@@ -286,7 +286,7 @@ static void handle_rx_command_complete(css_cu_t *cu) {
 
 	switch (proto_chop_cmd(p.chop)) {
 	case PROTO_CHOP_DATA:
-		handle_rx_data_command(cu, schib, p);
+		css_handle_rx_data_command(cu, schib, p);
                 break;
 	case PROTO_CHOP_UPDATE_STATUS:
 		handle_update_status(cu, schib, p);
@@ -307,10 +307,10 @@ void __time_critical_func(css_handle_rx_complete)(css_cu_t *cu) {
                 pch_schib_t *schib = get_schib_by_cu(cu, ua);
 		// Completion is for data that's just been received into
 		// memory belonging to CCW address of this schib
-		handle_rx_data_complete(cu, schib);
+		css_handle_rx_data_complete(cu, schib);
 	} else {
 		// Completion is for a command that has arrived in RxBuf.
-		handle_rx_command_complete(cu);
+		css_handle_rx_command_complete(cu);
 	}
 
         rx_data_for_ua = cu->rx_data_for_ua;

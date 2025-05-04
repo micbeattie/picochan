@@ -7,11 +7,11 @@
 #include "txsm/txsm.h"
 #include "proto/packet.h"
 
-// handle_tx_start_complete handles the completion of sending either a
-// Start command with no immediate data or the combination of a
-// (Write-type) Start command followed immediately by some immediate
+// css_handle_tx_start_complete handles the completion of sending
+// either a Start command with no immediate data or the combination of
+// a (Write-type) Start command followed immediately by some immediate
 // data.
-static void handle_tx_start_complete(pch_schib_t *schib) {
+static void css_handle_tx_start_complete(pch_schib_t *schib) {
 	schib->scsw.ctrl_flags |= (PCH_AC_SUBCHANNEL_ACTIVE
                 | PCH_AC_DEVICE_ACTIVE);
 
@@ -23,9 +23,9 @@ static void handle_tx_start_complete(pch_schib_t *schib) {
 	}
 }
 
-// handle_tx_data_after_data_complete handles the completion of
+// css_handle_tx_data_after_data_complete handles the completion of
 // sending data following a Data command.
-static void handle_tx_data_after_data_complete(pch_schib_t *schib) {
+static void css_handle_tx_data_after_data_complete(pch_schib_t *schib) {
         uint8_t mask = PCH_CCW_FLAG_PCI|PCH_CCW_FLAG_CD;
 	if ((get_stashed_ccw_flags(schib) & mask) == mask) {
 		// PCI flag set in ChainData CCW - notify that transfer from
@@ -36,7 +36,7 @@ static void handle_tx_data_after_data_complete(pch_schib_t *schib) {
 	}
 }
 
-static void handle_tx_data_complete(css_cu_t *cu) {
+static void css_handle_tx_data_complete(css_cu_t *cu) {
 	// We've just completed sending data (not a command) to the CU
 	// for a device. Reread the packet to find out where we sent it.
         proto_packet_t p = get_tx_packet(cu);
@@ -48,11 +48,11 @@ static void handle_tx_data_complete(css_cu_t *cu) {
 	switch (proto_chop_cmd(p.chop)) {
 	case PROTO_CHOP_START:
 		// Start command sent with immediate data
-		handle_tx_start_complete(schib);
+		css_handle_tx_start_complete(schib);
                 break;
 
 	case PROTO_CHOP_DATA:
-		handle_tx_data_after_data_complete(schib);
+		css_handle_tx_data_after_data_complete(schib);
                 break;
 
 	default:
@@ -61,7 +61,7 @@ static void handle_tx_data_complete(css_cu_t *cu) {
 	}
 }
 
-static void handle_tx_command_complete(css_cu_t *cu) {
+static void css_handle_tx_command_complete(css_cu_t *cu) {
 	// We've just sent a command (without any following data)
 	// from TxBuf to a device on cu. Reread the packet to find out
 	// where we sent it and whether we need to do anything.
@@ -71,7 +71,7 @@ static void handle_tx_command_complete(css_cu_t *cu) {
 
 	if (p.chop == PROTO_CHOP_START)  {
 		// Start command sent with no immediate data
-		handle_tx_start_complete(schib);
+		css_handle_tx_start_complete(schib);
 	}
 }
 
@@ -93,7 +93,7 @@ void __time_critical_func(css_handle_tx_complete)(css_cu_t *cu) {
 	cu->tx_active = false; // tx dma is now free again
 
 	if (tr == PCH_TXSM_FINISHED)
-		handle_tx_data_complete(cu);
+		css_handle_tx_data_complete(cu);
 	else
-		handle_tx_command_complete(cu);
+		css_handle_tx_command_complete(cu);
 }

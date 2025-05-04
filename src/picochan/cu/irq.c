@@ -4,7 +4,7 @@
 
 #include "cu_internal.h"
 
-static void handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, pch_cu_t *cu) {
+static void cus_handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, pch_cu_t *cu) {
         dmachan_rx_channel_t *rx = &cu->rx_channel;
         if (dmachan_rx_irq_raised(rx, dmairqix)) {
                 dmachan_ack_rx_irq(rx, dmairqix);
@@ -28,6 +28,6 @@ void __isr __time_critical_func(pch_cus_handle_dma_irq)() {
                 if (cu == NULL || !cu->started || cu->dmairqix != dmairqix)
                         continue;
 
-                handle_dma_irq_cu(dmairqix, cu);
+                cus_handle_dma_irq_cu(dmairqix, cu);
         }
 }

@@ -7,7 +7,7 @@
 #include "callback.h"
 #include "cus_trace.h"
 
-static void handle_rx_chop_data(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
+static void cus_handle_rx_chop_data(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
         pch_unit_addr_t ua = pch_get_ua(cu, devib);
 	assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
 	assert(devib->flags & PCH_DEVIB_FLAG_RX_DATA_REQUIRED);
@@ -24,14 +24,14 @@ static void handle_rx_chop_data(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t
 	cu->rx_active = (int16_t)ua;
 }
 
-static void handle_rx_chop_room(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
+static void cus_handle_rx_chop_room(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
         assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
         devib->size = proto_get_count(p);
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 	callback_devib(cu, devib);
 }
 
-static void handle_rx_chop_start_read_sense(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, uint16_t count) {
+static void cus_handle_rx_chop_start_read_sense(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, uint16_t count) {
         if (count > sizeof(devib->sense))
                 count = sizeof(devib->sense);
 
@@ -39,12 +39,13 @@ static void handle_rx_chop_start_read_sense(pch_cu_t *cu, pch_devib_t *devib, pc
         assert(rc >= 0);
 }
 
-static void handle_rx_chop_start_read_reserved(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void cus_handle_rx_chop_start_read_reserved(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         pch_unit_addr_t ua = pch_get_ua(cu, devib);
 
         switch (ccwcmd) {
         case PCH_CCW_CMD_SENSE:
-                handle_rx_chop_start_read_sense(cu, devib, ua, count);
+                cus_handle_rx_chop_start_read_sense(cu, devib, ua,
+                        count);
                 break;
 
         default:
@@ -56,19 +57,20 @@ static void handle_rx_chop_start_read_reserved(pch_cu_t *cu, pch_devib_t *devib,
         }
 }
 
-static void handle_rx_chop_start_read(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void cus_handle_rx_chop_start_read(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
         devib->size = count; // advertised window we can write to
 
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 
         if (ccwcmd >= PCH_CCW_CMD_FIRST_RESERVED)
-                handle_rx_chop_start_read_reserved(cu, devib, ccwcmd, count);
+                cus_handle_rx_chop_start_read_reserved(cu, devib,
+                        ccwcmd, count);
         else
                 callback_devib(cu, devib);
 }
 
-static void handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void cus_handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
 
         if (count == 0) {
@@ -85,19 +87,22 @@ static void handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uint8_t
         // rx completion of incoming data will do Start callback
 }
 
-static void handle_rx_chop_start(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
+static void cus_handle_rx_chop_start(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
         assert(!(devib->flags & PCH_DEVIB_FLAG_STARTED));
         devib->flags |= PCH_DEVIB_FLAG_STARTED;
         uint8_t ccwcmd = p.p0;
         uint16_t count = proto_decode_esize_payload(p);
 
-	if (pch_is_ccw_cmd_write(ccwcmd))
-                handle_rx_chop_start_write(cu, devib, ccwcmd, count);
-        else
-                handle_rx_chop_start_read(cu, devib, ccwcmd, count);
+	if (pch_is_ccw_cmd_write(ccwcmd)) {
+                cus_handle_rx_chop_start_write(cu, devib, ccwcmd,
+                        count);
+        } else {
+                cus_handle_rx_chop_start_read(cu, devib, ccwcmd,
+                        count);
+        }
 }
 
-static void handle_rx_command_complete(pch_cu_t *cu) {
+static void cus_handle_rx_command_complete(pch_cu_t *cu) {
 	// DMA has received a command packet from CSS into RxBuf
         proto_packet_t p = get_rx_packet(cu);
         pch_unit_addr_t ua = p.unit_addr;
@@ -108,15 +113,15 @@ static void handle_rx_command_complete(pch_cu_t *cu) {
         devib->payload = proto_get_payload(p);
 	switch (proto_chop_cmd(p.chop)) {
 	case PROTO_CHOP_START:
-		handle_rx_chop_start(cu, devib, p);
+		cus_handle_rx_chop_start(cu, devib, p);
                 break;
 
 	case PROTO_CHOP_DATA:
-		handle_rx_chop_data(cu, devib, p);
+		cus_handle_rx_chop_data(cu, devib, p);
                 break;
 
 	case PROTO_CHOP_ROOM:
-		handle_rx_chop_room(cu, devib, p);
+		cus_handle_rx_chop_room(cu, devib, p);
                 break;
 
 	default:
@@ -125,7 +130,7 @@ static void handle_rx_command_complete(pch_cu_t *cu) {
 	}
 }
 
-static void handle_rx_data_complete(pch_cu_t *cu, pch_unit_addr_t ua) {
+static void cus_handle_rx_data_complete(pch_cu_t *cu, pch_unit_addr_t ua) {
 	cu->rx_active = -1;
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
         pch_devib_t *devib = pch_get_devib(cu, ua);
@@ -139,9 +144,9 @@ void __time_critical_func(cus_handle_rx_complete)(pch_cu_t *cu) {
         int16_t rx_active = cu->rx_active;
 	if (rx_active >= 0) {
 		pch_unit_addr_t ua = (pch_unit_addr_t)rx_active;
-		handle_rx_data_complete(cu, ua);
+		cus_handle_rx_data_complete(cu, ua);
 	} else {
-		handle_rx_command_complete(cu);
+		cus_handle_rx_command_complete(cu);
 	}
 }
 
