@@ -3,6 +3,7 @@
  */
 
 #include "css_internal.h"
+#include "css_trace.h"
 
 void process_schib_func(pch_schib_t *schib);
 void process_schib_response(css_cu_t *cu, pch_schib_t *schib);
@@ -12,14 +13,26 @@ static inline pch_schib_t *pop_ua_func_dlist(css_cu_t *cu) {
 }
 
 static void css_handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, css_cu_t *cu) {
+        dmachan_tx_channel_t *tx = &cu->tx_channel;
+        bool tx_irq_raised = dmachan_tx_irq_raised(tx, dmairqix);
+
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        if (dmachan_rx_irq_raised(rx, dmairqix)) {
+        bool rx_irq_raised = dmachan_rx_irq_raised(rx, dmairqix);
+
+        PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_IRQ,
+                cu->traced, ((struct pch_trc_trdata_cu_irq){
+                .cunum = cu->cunum,
+                .dmairqix = dmairqix,
+                .tx_irq_raised = tx_irq_raised,
+                .rx_irq_raised = rx_irq_raised
+                }));
+
+        if (rx_irq_raised) {
                 dmachan_ack_rx_irq(rx, dmairqix);
 		css_handle_rx_complete(cu);
 	}
 
-        dmachan_tx_channel_t *tx = &cu->tx_channel;
-        if (dmachan_tx_irq_raised(tx, dmairqix)) {
+        if (tx_irq_raised) {
                 dmachan_ack_tx_irq(tx, dmairqix);
 		css_handle_tx_complete(cu);
 	}

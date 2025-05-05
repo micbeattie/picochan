@@ -37,11 +37,12 @@ static void send_start_packet(css_cu_t *cu, pch_schib_t *schib, uint8_t ccwcmd) 
         pch_bsize_t esize = pch_bsize_encode(count);
         proto_packet_t p = proto_make_esize_packet(PROTO_CHOP_START,
                 ua, ccwcmd, esize);
-        trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET, schib, p);
 	if (write && count > 0) {
 		count = pch_bsize_decode(esize);
 		send_command_with_data(cu, schib, p, count);
 	} else {
+                trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET,
+                        schib, p);
 		send_tx_packet(cu, p);
 	}
 }

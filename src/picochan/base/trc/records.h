@@ -26,6 +26,13 @@ struct pch_trc_trdata_cu_init {
         uint8_t         dmairqix;
 };
 
+struct pch_trc_trdata_cu_irq {
+        pch_cunum_t     cunum;
+        uint8_t         dmairqix;
+        uint8_t         tx_irq_raised;
+        uint8_t         rx_irq_raised;
+};
+
 struct pch_trc_trdata_cu_byte {
         pch_cunum_t     cunum;
         uint8_t         byte;
