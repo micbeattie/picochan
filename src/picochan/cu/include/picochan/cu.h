@@ -16,7 +16,6 @@
 #include "picochan/dev_api.h"
 #include "picochan/dmachan.h"
 #include "txsm/txsm.h"
-#include "trc/trace.h"
 
 #ifndef NUM_CUS
 #define NUM_CUS 4
