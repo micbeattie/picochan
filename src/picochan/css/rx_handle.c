@@ -160,6 +160,7 @@ static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_pac
 static void css_handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
 	cu->rx_data_for_ua = -1;
         uint8_t devs = cu->rx_data_end_ds;
+	trace_schib_byte(PCH_TRC_RT_CSS_RX_DATA_COMPLETE, schib, devs);
         if (devs) {
                 // implicit immediate update_status
                 cu->rx_data_end_ds = 0;
