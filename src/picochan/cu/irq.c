@@ -16,8 +16,10 @@ static void cus_handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, pch_cu_t *cu) {
                 cu->traced, ((struct pch_trc_trdata_cu_irq){
                 .cunum = cu->cunum,
                 .dmairqix = dmairqix,
-                .tx_irq_raised = tx_irq_raised,
-                .rx_irq_raised = rx_irq_raised
+                .tx_state = ((uint8_t)tx_irq_raised << 7)
+                        | tx->mem_src_state,
+                .rx_state = ((uint8_t)rx_irq_raised << 7)
+                        | rx->mem_dst_state
                 }));
 
         if (rx_irq_raised) {

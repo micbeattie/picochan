@@ -29,8 +29,8 @@ struct pch_trc_trdata_cu_init {
 struct pch_trc_trdata_cu_irq {
         pch_cunum_t     cunum;
         uint8_t         dmairqix;
-        uint8_t         tx_irq_raised;
-        uint8_t         rx_irq_raised;
+        uint8_t         tx_state;
+        uint8_t         rx_state;
 };
 
 struct pch_trc_trdata_cu_byte {
