@@ -24,6 +24,12 @@ struct trdata_address_change {
         uint32_t        new_addr;
 };
 
+struct trdata_func_irq {
+        int16_t         ua_opt;
+        pch_cunum_t     cunum;
+        uint8_t         tx_active;
+};
+
 #define PCH_CSS_TRACE_COND(rt, cond, data) \
         PCH_TRC_WRITE(&CSS.trace_bs, (cond), (rt), (data))
 
