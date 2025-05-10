@@ -134,6 +134,11 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
 }
 
 void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer) {
+        // Check that spin_lock is initialised even when not a Debug
+        // release because silently ignoring it produces such
+        // nasty-to-troubleshoot race conditions
+        dmachan_panic_unless_memchan_initialised();
+
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->started);
 
