@@ -88,32 +88,24 @@ typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
 typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
 typedef struct __aligned(4) dmachan_tx_channel {
-        unsigned char cmdbuf[4]; // struct __aligned(4) ensures 4-byte aligned
-        dmachan_rx_channel_t *mem_rx_peer; // only set for a core-to-core memory channel
-        pch_dmaid_t dmaid;
-        enum dmachan_mem_src_state mem_src_state; // only used if mem_rx_peer set
+        unsigned char                   cmdbuf[4];      // __aligned(4)
+        dmachan_rx_channel_t            *mem_rx_peer;   // only for memchan
+        pch_dmaid_t                     dmaid;
+        enum dmachan_mem_src_state      mem_src_state;  // only for memchan
 } dmachan_tx_channel_t;
 
 typedef struct __aligned(4) dmachan_rx_channel {
-        unsigned char cmdbuf[4]; // struct __aligned(4) ensures 4-byte aligned
-        dmachan_tx_channel_t *mem_tx_peer; // only set for a core-to-core memory channel
-        uint32_t srcaddr;
-        dma_channel_config ctrl;
-        pch_dmaid_t dmaid;
-        enum dmachan_mem_dst_state mem_dst_state; // only used if mem_rx_peer set
+        unsigned char                   cmdbuf[4];      // __aligned(4)
+        dmachan_tx_channel_t            *mem_tx_peer;   // only for memchan
+        uint32_t                        srcaddr;
+        dma_channel_config              ctrl;
+        pch_dmaid_t                     dmaid;
+        enum dmachan_mem_dst_state      mem_dst_state; // only for memchan
 } dmachan_rx_channel_t;
 
 static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
         uint size = (config.ctrl & DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS) >> DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
         return (enum dma_channel_transfer_size)size;
-}
-
-static inline bool channel_config_get_incr_write(dma_channel_config config) {
-        return (config.ctrl & DMA_CH0_CTRL_TRIG_INCR_WRITE_BITS) != 0;
-}
-
-static inline bool channel_config_get_incr_read(dma_channel_config config) {
-        return (config.ctrl & DMA_CH0_CTRL_TRIG_INCR_READ_BITS) != 0;
 }
 
 static inline uint32_t dma_channel_get_transfer_count(uint channel) {
@@ -129,21 +121,7 @@ static inline uint32_t dma_channel_get_reload_count(uint channel) {
         return dma_debug_channel_hw_addr(channel)->dbg_tcr;
 }
 
-// trigger_irq sets the control register for dmaid with just the
-// minimal bits (Enabled and Quiet) and then writes a 0 to the
-// register so that it raises the IRQ from this channel without
-// actual doing the DMA copy. The write of zero leaves the
-// control register as zero so we rely on the next use of the
-// DMA writing the whole control register correctly again.
-static inline void trigger_irq(pch_dmaid_t dmaid) {
-        dma_channel_config czero = {0}; // zero, *not* default config
-        dma_channel_config c = czero;
-        channel_config_set_irq_quiet(&c, true);
-        channel_config_set_enable(&c, true);
-        dma_channel_set_config(dmaid, &c, false);
-        dma_channel_set_config(dmaid, &czero, true);
-}
-
+// tx channel irq and memory source state handling
 static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, enum dmachan_mem_src_state new_state) {
         valid_params_if(PCH_DMACHAN,
                 new_state == DMACHAN_MEM_SRC_IDLE
@@ -162,6 +140,7 @@ static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx, pch_dma_irq_inde
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
 }
 
+// rx channel irq and memory destination state handling
 static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, enum dmachan_mem_dst_state new_state) {
         valid_params_if(PCH_DMACHAN,
                 new_state == DMACHAN_MEM_DST_IDLE
@@ -172,7 +151,7 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, enum dmac
 
 static inline bool dmachan_rx_irq_raised(dmachan_rx_channel_t *rx, pch_dma_irq_index_t dmairqix) {
         return dma_irqn_get_channel_status(dmairqix, rx->dmaid);
-};
+}
 
 static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx, pch_dma_irq_index_t dmairqix) {
         dma_irqn_acknowledge_channel(dmairqix, rx->dmaid);

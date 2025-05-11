@@ -4,7 +4,7 @@
 
 #include <string.h>
 #include "picochan/dmachan.h"
-#include "mem_peer.h"
+#include "dmachan_internal.h"
 
 static void start_src_cmdbuf_remote(dmachan_tx_channel_t *tx) {
         dma_channel_transfer_from_buffer_now(tx->dmaid,

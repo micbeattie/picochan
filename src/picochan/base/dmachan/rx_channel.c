@@ -4,7 +4,7 @@
 
 #include <string.h>
 #include "picochan/dmachan.h"
-#include "mem_peer.h"
+#include "dmachan_internal.h"
 
 static void start_dst_cmdbuf_remote(dmachan_rx_channel_t *rx) {
         dma_channel_config ctrl = rx->ctrl;
