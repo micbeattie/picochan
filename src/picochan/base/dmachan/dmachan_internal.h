@@ -6,6 +6,7 @@
 #define _PCH_DMACHAN_DMACHAN_INTERNAL_H
 
 #include "hardware/sync.h"
+#include "dmachan_trace.h"
 
 // dmachan_mem_peer_spin_lock protects against test/update of
 // tx_channel.mem_src_state and rx_channel.mem_dst_state both

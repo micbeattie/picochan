@@ -76,4 +76,16 @@ static inline void trace_schib_scsw_cc(pch_trc_record_type_t rt, pch_schib_t *sc
                 }));
 }
 
+static inline void trace_css_cu_irq(pch_trc_record_type_t rt, css_cu_t *cu, uint8_t dmairqix, bool tx_irq_raised, bool rx_irq_raised) {
+        PCH_CSS_TRACE_COND(rt,
+                cu->traced, ((struct pch_trc_trdata_cu_irq){
+                        .cunum = cu->cunum,
+                        .dmairqix = dmairqix,
+                        .tx_state = ((uint8_t)tx_irq_raised << 7)
+                                | cu->tx_channel.mem_src_state,
+                        .rx_state = ((uint8_t)rx_irq_raised << 7)
+                                | cu->rx_channel.mem_dst_state
+                }));
+}
+
 #endif

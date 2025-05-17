@@ -172,6 +172,14 @@ bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace) {
         pch_cu_t *cu = pch_get_cu(cunum);
         bool old_trace = cu->traced;
         cu->traced = trace;
+        if (trace) {
+                cu->tx_channel.bs = &pch_cus_trace_bs;
+                cu->rx_channel.bs = &pch_cus_trace_bs;
+        } else {
+                cu->tx_channel.bs = 0;
+                cu->rx_channel.bs = 0;
+        }
+
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,
                 trace || old_trace,
                 ((struct pch_trc_trdata_cu_byte){

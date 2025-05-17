@@ -154,6 +154,14 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 	css_cu_t *cu = get_cu(cunum);
 	bool old_trace = cu->traced;
 	cu->traced = trace;
+        if (trace) {
+                cu->tx_channel.bs = &CSS.trace_bs;
+                cu->rx_channel.bs = &CSS.trace_bs;
+        } else {
+                cu->tx_channel.bs = 0;
+                cu->rx_channel.bs = 0;
+        }
+
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,
                 trace || old_trace,
 		((struct pch_trc_trdata_cu_byte){

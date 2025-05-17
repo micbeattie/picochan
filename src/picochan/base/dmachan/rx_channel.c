@@ -7,6 +7,8 @@
 #include "dmachan_internal.h"
 
 static void start_dst_cmdbuf_remote(dmachan_rx_channel_t *rx) {
+        PCH_DMACHAN_RX_TRACE(PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE,
+                rx, rx->dmaid);
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, true);
         dma_channel_configure(rx->dmaid, &ctrl, rx->cmdbuf,
@@ -19,7 +21,11 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
 
         uint32_t status = mem_peer_lock();
 
-        switch (txpeer->mem_src_state) {
+        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
+        trace_dmachan_rx_memstate(PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM,
+                rx, txpeer_mem_src_state);
+
+        switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
         case DMACHAN_MEM_SRC_DATA:
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_CMDBUF);
@@ -38,6 +44,8 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
 }
 
 static void start_dst_data_remote(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
+        trace_dmachan_rx_segment(PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE,
+                rx, dstaddr, count);
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, true);
         dma_channel_configure(rx->dmaid, &ctrl, (void*)dstaddr,
@@ -50,7 +58,11 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
 
         uint32_t status = mem_peer_lock();
 
-        switch (txpeer->mem_src_state) {
+        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
+        trace_dmachan_rx_segment_memstate(PCH_TRC_RT_DMACHAN_DST_DATA_MEM,
+                rx, dstaddr, count, txpeer_mem_src_state);
+
+        switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
                 dma_channel_set_write_addr(rx->dmaid, (void*)dstaddr, false);
@@ -77,6 +89,8 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
 }
 
 static void start_dst_discard_remote(dmachan_rx_channel_t *rx, uint32_t count) {
+        trace_dmachan_rx_segment(PCH_TRC_RT_DMACHAN_DST_DISCARD_REMOTE,
+                rx, 0, count);
         // We discard data by copying it into the 4-byte command buffer
         // (without incrementing the destination address). At the moment,
         // everything uses DataSize8 but if we plumb through choice of
@@ -94,7 +108,11 @@ static void start_dst_discard_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t
         (void)count; // ignore count - we bypass doing any DMA transfer
         uint32_t status = mem_peer_lock();
 
-        switch (txpeer->mem_src_state) {
+        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
+        trace_dmachan_rx_segment_memstate(PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM,
+                rx, 0, count, txpeer_mem_src_state);
+
+        switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DISCARD);
                 break;

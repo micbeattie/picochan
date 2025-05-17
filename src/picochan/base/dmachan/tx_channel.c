@@ -5,8 +5,11 @@
 #include <string.h>
 #include "picochan/dmachan.h"
 #include "dmachan_internal.h"
+#include "dmachan_trace.h"
 
 static void start_src_cmdbuf_remote(dmachan_tx_channel_t *tx) {
+        PCH_DMACHAN_TX_TRACE(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE,
+                tx, tx->dmaid);
         dma_channel_transfer_from_buffer_now(tx->dmaid,
                 tx->cmdbuf, CMDBUF_SIZE);
 }
@@ -17,7 +20,11 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
 
         uint32_t saved_irq = mem_peer_lock();
 
-        switch (rxpeer->mem_dst_state) {
+        dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->mem_dst_state;
+        trace_dmachan_tx_memstate(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM,
+                tx, rxpeer_mem_dst_state);
+
+        switch (rxpeer_mem_dst_state) {
         case DMACHAN_MEM_DST_IDLE:
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_CMDBUF);
                 trigger_irq(rxpeer->dmaid); // triggers for us (same dmaid) too
@@ -38,6 +45,8 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
 }
 
 static void start_src_data_remote(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
+        trace_dmachan_tx_segment(PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE,
+                tx, srcaddr, count);
         dma_channel_transfer_from_buffer_now(tx->dmaid,
                 (void*)srcaddr, count);
 }
@@ -48,7 +57,11 @@ static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *r
 
         uint32_t saved_irq = mem_peer_lock();
 
-        switch (rxpeer->mem_dst_state) {
+        dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->mem_dst_state;
+        trace_dmachan_tx_segment_memstate(PCH_TRC_RT_DMACHAN_SRC_DATA_MEM,
+                tx, srcaddr, count, rxpeer_mem_dst_state);
+
+        switch (rxpeer_mem_dst_state) {
         case DMACHAN_MEM_DST_IDLE:
         case DMACHAN_MEM_DST_CMDBUF:
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_DATA);

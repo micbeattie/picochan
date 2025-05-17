@@ -19,15 +19,8 @@ static void css_handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, css_cu_t *cu) {
         dmachan_rx_channel_t *rx = &cu->rx_channel;
         bool rx_irq_raised = dmachan_rx_irq_raised(rx, dmairqix);
 
-        PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_IRQ,
-                cu->traced, ((struct pch_trc_trdata_cu_irq){
-                .cunum = cu->cunum,
-                .dmairqix = dmairqix,
-                .tx_state = ((uint8_t)tx_irq_raised << 7)
-                        | tx->mem_src_state,
-                .rx_state = ((uint8_t)rx_irq_raised << 7)
-                        | rx->mem_dst_state
-                }));
+        trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, dmairqix,
+                tx_irq_raised, rx_irq_raised);
 
         if (rx_irq_raised) {
                 dmachan_ack_rx_irq(rx, dmairqix);

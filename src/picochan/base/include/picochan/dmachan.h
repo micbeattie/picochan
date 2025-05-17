@@ -15,6 +15,7 @@
 #include "hardware/uart.h"
 #include "pico/platform/compiler.h"
 #include "picochan/ids.h"
+#include "picochan/trc.h"
 
 #define CMDBUF_SIZE 4
 
@@ -88,19 +89,21 @@ typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
 typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
 typedef struct __aligned(4) dmachan_tx_channel {
-        unsigned char           cmdbuf[4];      // __aligned(4)
+        unsigned char           cmdbuf[4];      // __aligned(4) since struct is
         dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
+        pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
         dmachan_mem_src_state_t mem_src_state;  // only for memchan
 } dmachan_tx_channel_t;
 
 typedef struct __aligned(4) dmachan_rx_channel {
-        unsigned char           cmdbuf[4];      // __aligned(4)
+        unsigned char           cmdbuf[4];      // __aligned(4) since struct is
         dmachan_tx_channel_t    *mem_tx_peer;   // only for memchan
         uint32_t                srcaddr;
         dma_channel_config      ctrl;
+        pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
-        dmachan_mem_dst_state_t mem_dst_state; // only for memchan
+        dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
 
 static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
