@@ -18,19 +18,19 @@
 
 #define CMDBUF_SIZE 4
 
-enum __packed dmachan_mem_src_state {
+typedef enum __packed dmachan_mem_src_state {
         DMACHAN_MEM_SRC_IDLE = 0,
         DMACHAN_MEM_SRC_CMDBUF,
         DMACHAN_MEM_SRC_DATA
-};
+} dmachan_mem_src_state_t;
 
-enum __packed dmachan_mem_dst_state {
+typedef enum __packed dmachan_mem_dst_state {
         DMACHAN_MEM_DST_IDLE = 0,
         DMACHAN_MEM_DST_CMDBUF,
         DMACHAN_MEM_DST_DATA,
         DMACHAN_MEM_DST_DISCARD,
         DMACHAN_MEM_DST_SRC_ZEROES
-};
+} dmachan_mem_dst_state_t;
 
 // DMA configuration for one direction (tx or rx) of a dmachan channel
 typedef struct dmachan_1way_config {
@@ -88,19 +88,19 @@ typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
 typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
 typedef struct __aligned(4) dmachan_tx_channel {
-        unsigned char                   cmdbuf[4];      // __aligned(4)
-        dmachan_rx_channel_t            *mem_rx_peer;   // only for memchan
-        pch_dmaid_t                     dmaid;
-        enum dmachan_mem_src_state      mem_src_state;  // only for memchan
+        unsigned char           cmdbuf[4];      // __aligned(4)
+        dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
+        pch_dmaid_t             dmaid;
+        dmachan_mem_src_state_t mem_src_state;  // only for memchan
 } dmachan_tx_channel_t;
 
 typedef struct __aligned(4) dmachan_rx_channel {
-        unsigned char                   cmdbuf[4];      // __aligned(4)
-        dmachan_tx_channel_t            *mem_tx_peer;   // only for memchan
-        uint32_t                        srcaddr;
-        dma_channel_config              ctrl;
-        pch_dmaid_t                     dmaid;
-        enum dmachan_mem_dst_state      mem_dst_state; // only for memchan
+        unsigned char           cmdbuf[4];      // __aligned(4)
+        dmachan_tx_channel_t    *mem_tx_peer;   // only for memchan
+        uint32_t                srcaddr;
+        dma_channel_config      ctrl;
+        pch_dmaid_t             dmaid;
+        dmachan_mem_dst_state_t mem_dst_state; // only for memchan
 } dmachan_rx_channel_t;
 
 static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
@@ -122,7 +122,7 @@ static inline uint32_t dma_channel_get_reload_count(uint channel) {
 }
 
 // tx channel irq and memory source state handling
-static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, enum dmachan_mem_src_state new_state) {
+static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {
         valid_params_if(PCH_DMACHAN,
                 new_state == DMACHAN_MEM_SRC_IDLE
                 || tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
@@ -141,7 +141,7 @@ static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx, pch_dma_irq_inde
 }
 
 // rx channel irq and memory destination state handling
-static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, enum dmachan_mem_dst_state new_state) {
+static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {
         valid_params_if(PCH_DMACHAN,
                 new_state == DMACHAN_MEM_DST_IDLE
                 || rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
