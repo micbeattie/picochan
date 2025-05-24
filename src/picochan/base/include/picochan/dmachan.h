@@ -19,12 +19,49 @@
 
 #define CMDBUF_SIZE 4
 
+// General Pico SDK-like DMA-related functions that aren't in the SDK
+static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
+        uint size = (config.ctrl & DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS) >> DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
+        return (enum dma_channel_transfer_size)size;
+}
+
+static inline uint32_t dma_channel_get_transfer_count(uint channel) {
+        return dma_channel_hw_addr(channel)->transfer_count;
+}
+
+static inline dma_debug_channel_hw_t *dma_debug_channel_hw_addr(uint channel) {
+        check_dma_channel_param(channel);
+        return &dma_debug_hw->ch[channel];
+}
+
+static inline uint32_t dma_channel_get_reload_count(uint channel) {
+        return dma_debug_channel_hw_addr(channel)->dbg_tcr;
+}
+
+static inline bool dma_irqn_get_channel_forced(uint irq_index, uint channel) {
+        invalid_params_if(HARDWARE_DMA, irq_index >= NUM_DMA_IRQS);
+        check_dma_channel_param(channel);
+
+        return dma_hw->irq_ctrl[irq_index].intf & (1u << channel);
+}
+
+static inline void dma_irqn_set_channel_forced(uint irq_index, uint channel, bool forced) {
+        invalid_params_if(HARDWARE_DMA, irq_index >= NUM_DMA_IRQS);
+
+        if (forced)
+                hw_set_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
+        else
+                hw_clear_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
+}
+
+// dmachan_mem_src_state_t is the DMA state of a tx channel
 typedef enum __packed dmachan_mem_src_state {
         DMACHAN_MEM_SRC_IDLE = 0,
         DMACHAN_MEM_SRC_CMDBUF,
         DMACHAN_MEM_SRC_DATA
 } dmachan_mem_src_state_t;
 
+// dmachan_mem_dst_state_t is the DMA state of an rx channel
 typedef enum __packed dmachan_mem_dst_state {
         DMACHAN_MEM_DST_IDLE = 0,
         DMACHAN_MEM_DST_CMDBUF,
@@ -89,15 +126,39 @@ static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, 
         });
 }
 
-typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
-typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
-
+// dmachan_link_t collects the common fields in tx and rx channels
 typedef struct __aligned(4) dmachan_link {
         unsigned char           cmdbuf[4];      // __aligned(4) since struct is
         pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
+        bool                    complete;
 } dmachan_link_t;
+
+static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
+        dma_irqn_set_channel_enabled(l->dmairqix, l->dmaid, enabled);
+}
+
+static inline bool dmachan_link_irq_raised(dmachan_link_t *l) {
+        return dma_irqn_get_channel_status(l->dmairqix, l->dmaid);
+};
+
+static inline bool dmachan_get_link_irq_forced(dmachan_link_t *l) {
+        return dma_irqn_get_channel_forced(l->dmairqix, l->dmaid);
+}
+
+static inline void dmachan_set_link_irq_forced(dmachan_link_t *l, bool forced) {
+        dma_irqn_set_channel_forced(l->dmairqix, l->dmaid, forced);
+}
+
+static inline void dmachan_ack_link_irq(dmachan_link_t *l) {
+        dma_irqn_acknowledge_channel(l->dmairqix, l->dmaid);
+}
+
+// tx and rx channels, starting with forward declarations because
+// for memchans there is a field pointing at the peer channel
+typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
+typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
 typedef struct __aligned(4) dmachan_tx_channel {
         dmachan_link_t          link;
@@ -113,23 +174,9 @@ typedef struct __aligned(4) dmachan_rx_channel {
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
 
-static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
-        uint size = (config.ctrl & DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS) >> DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
-        return (enum dma_channel_transfer_size)size;
-}
-
-static inline uint32_t dma_channel_get_transfer_count(uint channel) {
-        return dma_channel_hw_addr(channel)->transfer_count;
-}
-
-static inline dma_debug_channel_hw_t *dma_debug_channel_hw_addr(uint channel) {
-        check_dma_channel_param(channel);
-        return &dma_debug_hw->ch[channel];
-}
-
-static inline uint32_t dma_channel_get_reload_count(uint channel) {
-        return dma_debug_channel_hw_addr(channel)->dbg_tcr;
-}
+typedef uint8_t dmachan_irq_reason_t;
+#define DMACHAN_IRQ_REASON_TRIGGERED    0x1
+#define DMACHAN_IRQ_REASON_FORCED       0x2
 
 // tx channel irq and memory source state handling
 static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {
@@ -140,19 +187,7 @@ static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_m
         tx->mem_src_state = new_state;
 }
 
-static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
-        dma_irqn_set_channel_enabled(l->dmairqix, l->dmaid, enabled);
-}
-
-static inline bool dmachan_link_irq_raised(dmachan_link_t *l) {
-        return dma_irqn_get_channel_status(l->dmairqix, l->dmaid);
-};
-
-static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx) {
-        dma_irqn_acknowledge_channel(tx->link.dmairqix, tx->link.dmaid);
-        if (tx->mem_rx_peer)
-                dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
-}
+dmachan_irq_reason_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx);
 
 // rx channel irq and memory destination state handling
 static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {
@@ -163,11 +198,7 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_m
         rx->mem_dst_state = new_state;
 }
 
-static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx) {
-        dma_irqn_acknowledge_channel(rx->link.dmairqix, rx->link.dmaid);
-        if (rx->mem_tx_peer)
-                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
-}
+dmachan_irq_reason_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx);
 
 void dmachan_panic_unless_memchan_initialised();
 

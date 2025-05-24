@@ -12,36 +12,54 @@ static inline pch_schib_t *pop_ua_func_dlist(css_cu_t *cu) {
         return pop_ua_dlist(&cu->ua_func_dlist, cu);
 }
 
+// process_a_schib_waiting_for_tx return value is progress,
+// true when progress has been made and there may be another
+// schib waiting for tx
+static bool process_a_schib_waiting_for_tx(css_cu_t *cu) {
+        if (cu->tx_active)
+                return false; // tx busy
+
+        pch_schib_t *schib = pop_ua_response_slist(cu);
+        if (schib) {
+                process_schib_response(cu, schib);
+                return true;
+        }
+
+        schib = pop_ua_func_dlist(cu);
+        if (schib) {
+                process_schib_func(schib);
+                return true;
+        }
+
+        return false;
+}
+
 static void css_handle_dma_irq_cu(css_cu_t *cu) {
         dmachan_tx_channel_t *tx = &cu->tx_channel;
-        bool tx_irq_raised = dmachan_link_irq_raised(&tx->link);
-
+        dmachan_irq_reason_t tx_irq_reason = dmachan_handle_tx_irq(tx);
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        bool rx_irq_raised = dmachan_link_irq_raised(&rx->link);
+        dmachan_irq_reason_t rx_irq_reason = dmachan_handle_rx_irq(rx);
 
         trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, CSS.dmairqix,
-                tx_irq_raised, rx_irq_raised);
+                tx_irq_reason, rx_irq_reason);
 
-        if (rx_irq_raised) {
-                dmachan_ack_rx_irq(rx);
-		css_handle_rx_complete(cu);
-	}
+        dmachan_link_t *txl = &tx->link;
+        dmachan_link_t *rxl = &rx->link;
+        bool progress = true;
 
-        if (tx_irq_raised) {
-                dmachan_ack_tx_irq(tx);
-		css_handle_tx_complete(cu);
-	}
+        while (rxl->complete || txl->complete || progress) {
+                if (rxl->complete) {
+                        rxl->complete = false;
+                        css_handle_rx_complete(cu);
+                }
 
-	// While/if tx dma engine is still free, we can send some
-	// responses or user-initiated Start/Clear/Halt commands if
-	// there any pending.
-	while (!cu->tx_active) {
-                pch_schib_t *schib = pop_ua_response_slist(cu);
-                if (!schib)
-			break;
+                if (txl->complete) {
+                        txl->complete = false;
+                        css_handle_tx_complete(cu);
+                }
 
-                process_schib_response(cu, schib);
-	}
+                progress = process_a_schib_waiting_for_tx(cu);
+        }
 }
 
 void __time_critical_func(handle_func_irq_cu)(css_cu_t *cu) {

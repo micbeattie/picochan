@@ -18,11 +18,12 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
         valid_params_if(PCH_DMACHAN,
                 rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
 
+        dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
 
         dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
         trace_dmachan_memstate(PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM,
-                &rx->link, txpeer_mem_src_state);
+                rxl, txpeer_mem_src_state);
 
         switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
@@ -30,8 +31,10 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_CMDBUF);
                 break;
         case DMACHAN_MEM_SRC_CMDBUF:
-                memcpy(rx->link.cmdbuf, txpeer->link.cmdbuf, CMDBUF_SIZE);
-                trigger_irq(rx->link.dmaid); // trigger for txpeer (same dmaid) too
+                dmachan_link_t *txl = &txpeer->link;
+                memcpy(rxl->cmdbuf, txl->cmdbuf, CMDBUF_SIZE);
+                rxl->complete = true;
+                dmachan_set_link_irq_forced(txl, true);
                 break;
         default:
                 panic("start_dst_cmdbuf_mem unexpected txpeer->mem_src_state");
@@ -43,11 +46,12 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
 }
 
 static void start_dst_data_remote(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
+        dmachan_link_t *rxl = &rx->link;
         trace_dmachan_segment(PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE,
-                &rx->link, dstaddr, count);
+                rxl, dstaddr, count);
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, true);
-        dma_channel_configure(rx->link.dmaid, &ctrl, (void*)dstaddr,
+        dma_channel_configure(rxl->dmaid, &ctrl, (void*)dstaddr,
                 (void*)rx->srcaddr, count, true);
 }
 
@@ -55,6 +59,7 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
         valid_params_if(PCH_DMACHAN,
                 rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
 
+        dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
 
         dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
@@ -64,18 +69,13 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
         switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
-                dma_channel_set_write_addr(rx->link.dmaid, (void*)dstaddr, false);
-                dma_channel_set_trans_count(rx->link.dmaid, count, false);
-                trigger_irq(rx->link.dmaid); // trigger for txpeer (same dmaid) too
+                dma_channel_set_write_addr(rxl->dmaid, (void*)dstaddr, false);
+                dma_channel_set_trans_count(rxl->dmaid, count, false);
                 break;
         case DMACHAN_MEM_SRC_DATA:
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
-                assert(dma_channel_get_reload_count(rx->link.dmaid) == count);
-                // Peer has set its side but in order to raise the IRQ to
-                // notify us, it had to write a zero control register so we
-                // need to write a full one now to do the copy properly.
-                dma_channel_set_config(rx->link.dmaid, &rx->ctrl, false);
-                dma_channel_transfer_to_buffer_now(rx->link.dmaid,
+                assert(dma_channel_get_reload_count(rxl->dmaid) == count);
+                dma_channel_transfer_to_buffer_now(rxl->dmaid,
                         (void*)dstaddr, count);
                 break;
         default:
@@ -88,15 +88,16 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
 }
 
 static void start_dst_discard_remote(dmachan_rx_channel_t *rx, uint32_t count) {
+        dmachan_link_t *rxl = &rx->link;
         trace_dmachan_segment(PCH_TRC_RT_DMACHAN_DST_DISCARD_REMOTE,
-                &rx->link, 0, count);
+                rxl, 0, count);
         // We discard data by copying it into the 4-byte command buffer
         // (without incrementing the destination address). At the moment,
         // everything uses DataSize8 but if we plumb through choice of
         // DMA size then we can discard 4 bytes of data at a time.
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, false);
-        dma_channel_configure(rx->link.dmaid, &ctrl, rx->link.cmdbuf,
+        dma_channel_configure(rxl->dmaid, &ctrl, rxl->cmdbuf,
                 (void*)rx->srcaddr, count, true);
 }
 
@@ -105,18 +106,21 @@ static void start_dst_discard_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t
                 rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
 
         (void)count; // ignore count - we bypass doing any DMA transfer
+        dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
 
         dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
         trace_dmachan_segment_memstate(PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM,
-                &rx->link, 0, count, txpeer_mem_src_state);
+                rxl, 0, count, txpeer_mem_src_state);
 
         switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DISCARD);
                 break;
         case DMACHAN_MEM_SRC_DATA:
-                trigger_irq(rx->link.dmaid); // trigger for txpeer (same dmaid) too
+                dmachan_link_t *txl = &txpeer->link;
+                rxl->complete = true;
+                dmachan_set_link_irq_forced(txl, true);
                 break;
         default:
                 panic("start_dst_discard unexpected txpeer->mem_src_state");
@@ -135,11 +139,12 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
         valid_params_if(PCH_DMACHAN,
                 channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
 
-        memset(&rx->link.cmdbuf, 0, CMDBUF_SIZE);
+        dmachan_link_t *rxl = &rx->link;
+        memset(rxl->cmdbuf, 0, CMDBUF_SIZE);
         rx->srcaddr = srcaddr;
         channel_config_set_chain_to(&ctrl, dmaid);
         rx->ctrl = ctrl;
-        rx->link.dmaid = dmaid;
+        rxl->dmaid = dmaid;
         dma_channel_set_config(dmaid, &ctrl, false);
 }
 
@@ -174,10 +179,37 @@ void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_
         // We set 4 bytes of zeroes to use as DMA source. At the moment,
         // everything uses DataSize8 but if we plumb through choice of
         // DMA size then we can write 4 bytes of zeroes at a time.
-        memset(rx->link.cmdbuf, 0, 4);
+        dmachan_link_t *rxl = &rx->link;
+        memset(rxl->cmdbuf, 0, 4);
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_read_increment(&ctrl, false);
         channel_config_set_write_increment(&ctrl, true);
-        dma_channel_configure(rx->link.dmaid, &ctrl, (void*)dstaddr,
-                rx->link.cmdbuf, count, true);
+        dma_channel_configure(rxl->dmaid, &ctrl, (void*)dstaddr,
+                rxl->cmdbuf, count, true);
+}
+
+dmachan_irq_reason_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_channel_t *rx) {
+        dmachan_link_t *rxl = &rx->link;
+        bool rx_irq_raised = dmachan_link_irq_raised(rxl);
+        if (rx_irq_raised) {
+                dmachan_ack_link_irq(rxl);
+                rxl->complete = true;
+                // If memchan, propagate to peer tx channel
+                // (asymmetric: no corresponding tx -> rx trigger)
+                dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+                if (txpeer)
+                        dmachan_set_link_irq_forced(&txpeer->link, true);
+        }
+
+        bool rx_irq_forced = dmachan_get_link_irq_forced(rxl);
+        if (rx_irq_forced) {
+                dmachan_set_link_irq_forced(rxl, false);
+                rxl->complete = true;
+        }
+
+        if (rxl->complete)
+                dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
+
+        return (rx_irq_raised << DMACHAN_IRQ_REASON_TRIGGERED)
+                | (rx_irq_forced << DMACHAN_IRQ_REASON_FORCED);
 }
