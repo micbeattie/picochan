@@ -79,7 +79,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dma
                 .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
                 .cunum = cunum,
                 .dmaid = d1c->dmaid,
-                .dmairqix_opt = d1c->dmairqix_opt
+                .dmairqix = d1c->dmairqix
         }));
 }
 
@@ -126,6 +126,8 @@ void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
                 hwaddr, rxctrl, cu->dmairqix);
 
         pch_cus_cu_dma_configure(cunum, &dc);
+        dmachan_set_tx_channel_irq_enabled(&cu->tx_channel, true);
+        dmachan_set_rx_channel_irq_enabled(&cu->rx_channel, true);
         pch_cus_cu_set_configured(cunum, true);
 }
 
@@ -142,7 +144,9 @@ void pch_cus_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
                 rxdmaid, cu->dmairqix);
         pch_cus_cu_dma_configure(cunum, &dc);
 
+        dmachan_set_tx_channel_irq_enabled(&cu->tx_channel, true);
         dmachan_rx_channel_t *rx = &cu->rx_channel;
+        dmachan_set_rx_channel_irq_enabled(rx, true);
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;
         pch_cus_cu_set_configured(cunum, true);

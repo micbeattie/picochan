@@ -38,24 +38,24 @@ typedef struct dmachan_1way_config {
         uint32_t                addr;
         dma_channel_config      ctrl;
         pch_dmaid_t             dmaid;
-        int8_t                  dmairqix_opt;
+        pch_dma_irq_index_t     dmairqix;
 } dmachan_1way_config_t;
 
-static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl, int8_t dmairqix_opt) {
+static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl, pch_dma_irq_index_t dmairqix) {
         return ((dmachan_1way_config_t){
                 .addr = addr,
                 .ctrl = ctrl,
                 .dmaid = dmaid,
-                .dmairqix_opt = dmairqix_opt
+                .dmairqix = dmairqix
         });
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, int8_t dmairqix_opt) {
+static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, pch_dma_irq_index_t dmairqix) {
         pch_dmaid_t dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        return dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix_opt);
+        return dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix);
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, int8_t dmairqix_opt) {
+static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, pch_dma_irq_index_t dmairqix) {
         dma_channel_config ctrl = dma_channel_get_default_config(dmaid);
         channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
         channel_config_set_read_increment(&ctrl, true);
@@ -64,7 +64,7 @@ static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t
                 .addr = 0,
                 .ctrl = ctrl,
                 .dmaid = dmaid,
-                .dmairqix_opt = dmairqix_opt
+                .dmairqix = dmairqix
         });
 }
 
@@ -75,17 +75,17 @@ typedef struct dmachan_config {
         dmachan_1way_config_t   rx;
 } dmachan_config_t;
 
-static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, int8_t dmairqix_opt) {
+static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, pch_dma_irq_index_t dmairqix) {
         return ((dmachan_config_t){
-                .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix_opt),
-                .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix_opt)
+                .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix),
+                .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix)
         });
 }
 
-static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, int8_t dmairqix_opt) {
+static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_dma_irq_index_t dmairqix) {
         return ((dmachan_config_t){
-                .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix_opt),
-                .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix_opt)
+                .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix),
+                .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix)
         });
 }
 
@@ -97,6 +97,7 @@ typedef struct __aligned(4) dmachan_tx_channel {
         dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
         pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
+        pch_dma_irq_index_t     dmairqix;
         dmachan_mem_src_state_t mem_src_state;  // only for memchan
 } dmachan_tx_channel_t;
 
@@ -107,6 +108,7 @@ typedef struct __aligned(4) dmachan_rx_channel {
         dma_channel_config      ctrl;
         pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
+        pch_dma_irq_index_t     dmairqix;
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
 
@@ -137,12 +139,16 @@ static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_m
         tx->mem_src_state = new_state;
 }
 
-static inline bool dmachan_tx_irq_raised(dmachan_tx_channel_t *tx, pch_dma_irq_index_t dmairqix) {
-        return dma_irqn_get_channel_status(dmairqix, tx->dmaid);
+static inline void dmachan_set_tx_channel_irq_enabled(dmachan_tx_channel_t *tx, bool enabled) {
+        dma_irqn_set_channel_enabled(tx->dmairqix, tx->dmaid, enabled);
+}
+
+static inline bool dmachan_tx_irq_raised(dmachan_tx_channel_t *tx) {
+        return dma_irqn_get_channel_status(tx->dmairqix, tx->dmaid);
 };
 
-static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx, pch_dma_irq_index_t dmairqix) {
-        dma_irqn_acknowledge_channel(dmairqix, tx->dmaid);
+static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx) {
+        dma_irqn_acknowledge_channel(tx->dmairqix, tx->dmaid);
         if (tx->mem_rx_peer)
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
 }
@@ -156,12 +162,16 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_m
         rx->mem_dst_state = new_state;
 }
 
-static inline bool dmachan_rx_irq_raised(dmachan_rx_channel_t *rx, pch_dma_irq_index_t dmairqix) {
-        return dma_irqn_get_channel_status(dmairqix, rx->dmaid);
+static inline void dmachan_set_rx_channel_irq_enabled(dmachan_rx_channel_t *rx, bool enabled) {
+        dma_irqn_set_channel_enabled(rx->dmairqix, rx->dmaid, enabled);
 }
 
-static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx, pch_dma_irq_index_t dmairqix) {
-        dma_irqn_acknowledge_channel(dmairqix, rx->dmaid);
+static inline bool dmachan_rx_irq_raised(dmachan_rx_channel_t *rx) {
+        return dma_irqn_get_channel_status(rx->dmairqix, rx->dmaid);
+}
+
+static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx) {
+        dma_irqn_acknowledge_channel(rx->dmairqix, rx->dmaid);
         if (rx->mem_tx_peer)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
 }

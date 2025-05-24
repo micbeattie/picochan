@@ -142,10 +142,6 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
         rx->ctrl = ctrl;
         rx->dmaid = dmaid;
         dma_channel_set_config(dmaid, &ctrl, false);
-        if (d1c->dmairqix_opt >= 0) {
-                uint dmairqix = (uint)d1c->dmairqix_opt;
-                dma_irqn_set_channel_enabled(dmairqix, d1c->dmaid, true);
-        }
 }
 
 void __time_critical_func(dmachan_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {

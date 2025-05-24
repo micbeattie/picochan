@@ -89,11 +89,11 @@ struct pch_trc_trdata_scsw_sid_cc {
 };
 
 struct pch_trc_trdata_cu_dma {
-        uint32_t        addr;
-        uint32_t        ctrl;
-        pch_cunum_t     cunum;
-        pch_dmaid_t     dmaid;
-        int8_t          dmairqix_opt;
+        uint32_t                addr;
+        uint32_t                ctrl;
+        pch_cunum_t             cunum;
+        pch_dmaid_t             dmaid;
+        pch_dma_irq_index_t     dmairqix;
 };
 
 #endif

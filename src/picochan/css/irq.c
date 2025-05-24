@@ -12,23 +12,23 @@ static inline pch_schib_t *pop_ua_func_dlist(css_cu_t *cu) {
         return pop_ua_dlist(&cu->ua_func_dlist, cu);
 }
 
-static void css_handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, css_cu_t *cu) {
+static void css_handle_dma_irq_cu(css_cu_t *cu) {
         dmachan_tx_channel_t *tx = &cu->tx_channel;
-        bool tx_irq_raised = dmachan_tx_irq_raised(tx, dmairqix);
+        bool tx_irq_raised = dmachan_tx_irq_raised(tx);
 
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        bool rx_irq_raised = dmachan_rx_irq_raised(rx, dmairqix);
+        bool rx_irq_raised = dmachan_rx_irq_raised(rx);
 
-        trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, dmairqix,
+        trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, CSS.dmairqix,
                 tx_irq_raised, rx_irq_raised);
 
         if (rx_irq_raised) {
-                dmachan_ack_rx_irq(rx, dmairqix);
+                dmachan_ack_rx_irq(rx);
 		css_handle_rx_complete(cu);
 	}
 
         if (tx_irq_raised) {
-                dmachan_ack_tx_irq(tx, dmairqix);
+                dmachan_ack_tx_irq(tx);
 		css_handle_tx_complete(cu);
 	}
 
@@ -85,11 +85,14 @@ void __isr __time_critical_func(css_handle_dma_irq)() {
 	// TODO deal with getting the Irq information and acking
 	// them in a batch instead of individually
         pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)(irqnum - DMA_IRQ_0);
+        if (dmairqix != CSS.dmairqix)
+                return;
+
         for (int i = 0; i < PCH_NUM_CSS_CUS; i++) {
 		css_cu_t *cu = &CSS.cus[i];
                 if (!cu->started)
 			continue;
 
-		css_handle_dma_irq_cu(dmairqix, cu);
+		css_handle_dma_irq_cu(cu);
 	}
 }

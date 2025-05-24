@@ -5,23 +5,23 @@
 #include "cu_internal.h"
 #include "cus_trace.h"
 
-static void cus_handle_dma_irq_cu(pch_dma_irq_index_t dmairqix, pch_cu_t *cu) {
+static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
         dmachan_tx_channel_t *tx = &cu->tx_channel;
-        bool tx_irq_raised = dmachan_tx_irq_raised(tx, dmairqix);
+        bool tx_irq_raised = dmachan_tx_irq_raised(tx);
 
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        bool rx_irq_raised = dmachan_rx_irq_raised(rx, dmairqix);
+        bool rx_irq_raised = dmachan_rx_irq_raised(rx);
 
-        trace_cus_cu_irq(PCH_TRC_RT_CUS_CU_IRQ, cu, dmairqix,
+        trace_cus_cu_irq(PCH_TRC_RT_CUS_CU_IRQ, cu, cu->dmairqix,
                 tx_irq_raised, rx_irq_raised);
 
         if (rx_irq_raised) {
-                dmachan_ack_rx_irq(rx, dmairqix);
+                dmachan_ack_rx_irq(rx);
                 cus_handle_rx_complete(cu);
         }
 
         if (tx_irq_raised) {
-                dmachan_ack_tx_irq(tx, dmairqix);
+                dmachan_ack_tx_irq(tx);
                 cus_handle_tx_complete(cu);
         }
 }
@@ -36,6 +36,6 @@ void __isr __time_critical_func(pch_cus_handle_dma_irq)() {
                 if (cu == NULL || !cu->started || cu->dmairqix != dmairqix)
                         continue;
 
-                cus_handle_dma_irq_cu(dmairqix, cu);
+                cus_handle_dma_irq_cu(cu);
         }
 }

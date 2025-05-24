@@ -108,10 +108,6 @@ void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1
         channel_config_set_chain_to(&ctrl, dmaid);
         dma_channel_set_write_addr(dmaid, (void*)dstaddr, false);
         dma_channel_set_config(dmaid, &ctrl, false);
-        if (d1c->dmairqix_opt >= 0) {
-                uint dmairqix = (uint)d1c->dmairqix_opt;
-                dma_irqn_set_channel_enabled(dmairqix, d1c->dmaid, true);
-        }
 }
 
 void __time_critical_func(dmachan_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
