@@ -10,7 +10,7 @@
 static void start_src_cmdbuf_remote(dmachan_tx_channel_t *tx) {
         trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE, &tx->link);
         dma_channel_transfer_from_buffer_now(tx->link.dmaid,
-                tx->link.cmdbuf, CMDBUF_SIZE);
+                &tx->link.cmd, DMACHAN_CMD_SIZE);
 }
 
 static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *rxpeer) {
@@ -31,7 +31,7 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
 
         case DMACHAN_MEM_DST_CMDBUF:
                 dmachan_link_t *rxl = &rxpeer->link;
-                memcpy(rxl->cmdbuf, txl->cmdbuf, CMDBUF_SIZE);
+                dmachan_link_cmd_copy(rxl, txl);
                 txl->complete = true;
                 dmachan_set_link_irq_forced(rxl, true);
                 break;
@@ -102,7 +102,7 @@ void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1
                 channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
 
         dmachan_link_t *txl = &tx->link;
-        memset(&txl->cmdbuf, 0, CMDBUF_SIZE);
+        dmachan_link_cmd_set_zero(txl);
         txl->dmaid = dmaid;
         channel_config_set_read_increment(&ctrl, true);
         channel_config_set_chain_to(&ctrl, dmaid);

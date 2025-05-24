@@ -10,7 +10,7 @@ void __time_critical_func(cus_send_command_to_css)(pch_cu_t *cu) {
         assert(tx_head >= 0);
 	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
         proto_packet_t p = cus_make_packet(cu, ua);
-        memcpy(cu->tx_channel.link.cmdbuf, &p, sizeof p);
+        DMACHAN_LINK_CMD_COPY(&cu->tx_channel.link, &p);
         trace_dev_packet(PCH_TRC_RT_CUS_SEND_TX_PACKET, cu,
                 pch_get_devib(cu, ua), p);
         dmachan_start_src_cmdbuf(&cu->tx_channel);

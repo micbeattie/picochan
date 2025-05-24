@@ -17,8 +17,6 @@
 #include "picochan/ids.h"
 #include "picochan/trc.h"
 
-#define CMDBUF_SIZE 4
-
 // General Pico SDK-like DMA-related functions that aren't in the SDK
 static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
         uint size = (config.ctrl & DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS) >> DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
@@ -126,14 +124,50 @@ static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, 
         });
 }
 
+typedef union __aligned(4) dmachan_cmd {
+        unsigned char   buf[4];
+        uint32_t        raw;        
+} dmachan_cmd_t;
+
+#define DMACHAN_CMD_SIZE sizeof(dmachan_cmd_t)
+static_assert(DMACHAN_CMD_SIZE == 4, "dmachan_cmd_t must be 4 bytes");
+
+static inline void dmachan_cmd_set_zero(dmachan_cmd_t *cmd) {
+        cmd->raw = 0;
+}
+
+static inline void dmachan_cmd_copy(dmachan_cmd_t *dst, dmachan_cmd_t *src) {
+        dst->raw = src->raw;
+}
+
+#define DMACHAN_CMD_COPY(cmdp, p) do { \
+        dmachan_cmd_t *__cmdp = (cmdp); \
+        static_assert(sizeof(*(p)) == DMACHAN_CMD_SIZE, \
+                "DMACHAN_CMD_COPY sizeof(*p) must be DMACHAN_CMD_SIZE"); \
+        __cmdp->raw = *(uint32_t*)(p); \
+} while (0)
+
 // dmachan_link_t collects the common fields in tx and rx channels
 typedef struct __aligned(4) dmachan_link {
-        unsigned char           cmdbuf[4];      // __aligned(4) since struct is
+        dmachan_cmd_t           cmd;
         pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
         bool                    complete;
 } dmachan_link_t;
+
+#define DMACHAN_LINK_CMD_COPY(l, p) do { \
+        dmachan_link_t *__l = (l); \
+        DMACHAN_CMD_COPY(&__l->cmd, p); \
+} while (0)
+
+static inline void dmachan_link_cmd_set_zero(dmachan_link_t *l) {
+        dmachan_cmd_set_zero(&l->cmd);
+}
+
+static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *src) {
+        dmachan_cmd_copy(&dst->cmd, &src->cmd);
+}
 
 static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
         dma_irqn_set_channel_enabled(l->dmairqix, l->dmaid, enabled);

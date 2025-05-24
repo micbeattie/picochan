@@ -10,8 +10,8 @@ static void start_dst_cmdbuf_remote(dmachan_rx_channel_t *rx) {
         trace_dmachan(PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE, &rx->link);
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, true);
-        dma_channel_configure(rx->link.dmaid, &ctrl, rx->link.cmdbuf,
-                (void*)rx->srcaddr, CMDBUF_SIZE, true);
+        dma_channel_configure(rx->link.dmaid, &ctrl, &rx->link.cmd,
+                (void*)rx->srcaddr, DMACHAN_CMD_SIZE, true);
 }
 
 static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *txpeer) {
@@ -32,7 +32,7 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
                 break;
         case DMACHAN_MEM_SRC_CMDBUF:
                 dmachan_link_t *txl = &txpeer->link;
-                memcpy(rxl->cmdbuf, txl->cmdbuf, CMDBUF_SIZE);
+                dmachan_link_cmd_copy(rxl, txl);
                 rxl->complete = true;
                 dmachan_set_link_irq_forced(txl, true);
                 break;
@@ -97,7 +97,7 @@ static void start_dst_discard_remote(dmachan_rx_channel_t *rx, uint32_t count) {
         // DMA size then we can discard 4 bytes of data at a time.
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, false);
-        dma_channel_configure(rxl->dmaid, &ctrl, rxl->cmdbuf,
+        dma_channel_configure(rxl->dmaid, &ctrl, &rxl->cmd,
                 (void*)rx->srcaddr, count, true);
 }
 
@@ -140,7 +140,7 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
                 channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
 
         dmachan_link_t *rxl = &rx->link;
-        memset(rxl->cmdbuf, 0, CMDBUF_SIZE);
+        dmachan_link_cmd_set_zero(rxl);
         rx->srcaddr = srcaddr;
         channel_config_set_chain_to(&ctrl, dmaid);
         rx->ctrl = ctrl;
@@ -180,12 +180,12 @@ void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_
         // everything uses DataSize8 but if we plumb through choice of
         // DMA size then we can write 4 bytes of zeroes at a time.
         dmachan_link_t *rxl = &rx->link;
-        memset(rxl->cmdbuf, 0, 4);
+        dmachan_link_cmd_set_zero(rxl);
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_read_increment(&ctrl, false);
         channel_config_set_write_increment(&ctrl, true);
         dma_channel_configure(rxl->dmaid, &ctrl, (void*)dstaddr,
-                rxl->cmdbuf, count, true);
+                &rxl->cmd, count, true);
 }
 
 dmachan_irq_reason_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_channel_t *rx) {
