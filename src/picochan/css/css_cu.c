@@ -73,7 +73,8 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dma
                 .addr = d1c->addr,
                 .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
                 .cunum = cunum,
-                .dmaid = d1c->dmaid
+                .dmaid = d1c->dmaid,
+                .dmairqix_opt = d1c->dmairqix_opt
         }));
 }
 
@@ -82,8 +83,6 @@ static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         assert(cu->claimed && !cu->started);
 
         dmachan_init_tx_channel(&cu->tx_channel, d1c);
-        uint8_t dmairqix = css_get_configured_dmairqix();
-        dma_irqn_set_channel_enabled(dmairqix, d1c->dmaid, true);
         trace_cu_dma(PCH_TRC_RT_CSS_CU_TX_DMA_INIT, cunum, d1c);
 }
 
@@ -92,8 +91,6 @@ static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         assert(cu->claimed && !cu->started);
 
         dmachan_init_rx_channel(&cu->rx_channel, d1c);
-        uint8_t dmairqix = css_get_configured_dmairqix();
-        dma_irqn_set_channel_enabled(dmairqix, d1c->dmaid, true);
         trace_cu_dma(PCH_TRC_RT_CSS_CU_RX_DMA_INIT, cunum, d1c);
 }
 
@@ -128,7 +125,7 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         dma_channel_config rxctrl = dmachan_uartcu_make_rxctrl(uart, ctrl);
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
-                hwaddr, rxctrl);
+                hwaddr, rxctrl, CSS.dmairqix);
         pch_css_cu_dma_configure(cunum, &dc);
         pch_css_cu_set_configured(cunum, true);
 }
@@ -142,7 +139,8 @@ void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->started);
 
-        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid, rxdmaid);
+        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
+                rxdmaid, CSS.dmairqix);
         pch_css_cu_dma_configure(cunum, &dc);
         dmachan_rx_channel_t *rx = &cu->rx_channel;
         txpeer->mem_rx_peer = rx;

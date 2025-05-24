@@ -93,6 +93,7 @@ struct pch_trc_trdata_cu_dma {
         uint32_t        ctrl;
         pch_cunum_t     cunum;
         pch_dmaid_t     dmaid;
+        int8_t          dmairqix_opt;
 };
 
 #endif

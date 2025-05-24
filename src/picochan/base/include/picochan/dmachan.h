@@ -35,26 +35,37 @@ typedef enum __packed dmachan_mem_dst_state {
 
 // DMA configuration for one direction (tx or rx) of a dmachan channel
 typedef struct dmachan_1way_config {
-        pch_dmaid_t             dmaid;
         uint32_t                addr;
         dma_channel_config      ctrl;
+        pch_dmaid_t             dmaid;
+        int8_t                  dmairqix_opt;
 } dmachan_1way_config_t;
 
-static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl) {
-        return ((dmachan_1way_config_t){dmaid, addr, ctrl});
+static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl, int8_t dmairqix_opt) {
+        return ((dmachan_1way_config_t){
+                .addr = addr,
+                .ctrl = ctrl,
+                .dmaid = dmaid,
+                .dmairqix_opt = dmairqix_opt
+        });
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl) {
+static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, int8_t dmairqix_opt) {
         pch_dmaid_t dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        return dmachan_1way_config_make(dmaid, addr, ctrl);
+        return dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix_opt);
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid) {
+static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, int8_t dmairqix_opt) {
         dma_channel_config ctrl = dma_channel_get_default_config(dmaid);
         channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
         channel_config_set_read_increment(&ctrl, true);
         channel_config_set_write_increment(&ctrl, true);
-        return ((dmachan_1way_config_t){dmaid, 0, ctrl});
+        return ((dmachan_1way_config_t){
+                .addr = 0,
+                .ctrl = ctrl,
+                .dmaid = dmaid,
+                .dmairqix_opt = dmairqix_opt
+        });
 }
 
 // DMA configuration for both directions (tx and rx) of a dmachan
@@ -64,24 +75,17 @@ typedef struct dmachan_config {
         dmachan_1way_config_t   rx;
 } dmachan_config_t;
 
-static inline dmachan_config_t dmachan_config_make(pch_dmaid_t txdmaid, uint32_t txaddr, dma_channel_config txctrl, pch_dmaid_t rxdmaid, uint32_t rxaddr, dma_channel_config rxctrl) {
+static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, int8_t dmairqix_opt) {
         return ((dmachan_config_t){
-                .tx = dmachan_1way_config_make(txdmaid, txaddr, txctrl),
-                .rx = dmachan_1way_config_make(rxdmaid, rxaddr, rxctrl)
+                .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix_opt),
+                .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix_opt)
         });
 }
 
-static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl) {
+static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, int8_t dmairqix_opt) {
         return ((dmachan_config_t){
-                .tx = dmachan_1way_config_claim(txaddr, txctrl),
-                .rx = dmachan_1way_config_claim(rxaddr, rxctrl)
-        });
-}
-
-static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid) {
-        return ((dmachan_config_t){
-                .tx = dmachan_1way_config_memchan_make(txdmaid),
-                .rx = dmachan_1way_config_memchan_make(rxdmaid)
+                .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix_opt),
+                .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix_opt)
         });
 }
 

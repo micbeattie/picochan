@@ -78,21 +78,20 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dma
                 .addr = d1c->addr,
                 .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
                 .cunum = cunum,
-                .dmaid = d1c->dmaid
+                .dmaid = d1c->dmaid,
+                .dmairqix_opt = d1c->dmairqix_opt
         }));
 }
 
 static void cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         pch_cu_t *cu = pch_get_cu(cunum);
         dmachan_init_tx_channel(&cu->tx_channel, d1c);
-        dma_irqn_set_channel_enabled(cu->dmairqix, d1c->dmaid, true);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cunum, d1c);
 }
 
 static void cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         pch_cu_t *cu = pch_get_cu(cunum);
         dmachan_init_rx_channel(&cu->rx_channel, d1c);
-        dma_irqn_set_channel_enabled(cu->dmairqix, d1c->dmaid, true);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cunum, d1c);
 }
 
@@ -122,8 +121,9 @@ void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         dma_channel_config txctrl = dmachan_uartcu_make_txctrl(uart, ctrl);
         dma_channel_config rxctrl = dmachan_uartcu_make_rxctrl(uart, ctrl);
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
+        pch_cu_t *cu = pch_get_cu(cunum);
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
-                hwaddr, rxctrl);
+                hwaddr, rxctrl, cu->dmairqix);
 
         pch_cus_cu_dma_configure(cunum, &dc);
         pch_cus_cu_set_configured(cunum, true);
@@ -138,7 +138,8 @@ void pch_cus_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
         pch_cu_t *cu = pch_get_cu(cunum);
         assert(!cu->started);
 
-        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid, rxdmaid);
+        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
+                rxdmaid, cu->dmairqix);
         pch_cus_cu_dma_configure(cunum, &dc);
 
         dmachan_rx_channel_t *rx = &cu->rx_channel;
