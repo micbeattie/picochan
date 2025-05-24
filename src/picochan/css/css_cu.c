@@ -127,8 +127,8 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, CSS.dmairqix);
         pch_css_cu_dma_configure(cunum, &dc);
-        dmachan_set_tx_channel_irq_enabled(&cu->tx_channel, true);
-        dmachan_set_rx_channel_irq_enabled(&cu->rx_channel, true);
+        dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
+        dmachan_set_link_irq_enabled(&cu->rx_channel.link, true);
         pch_css_cu_set_configured(cunum, true);
 }
 
@@ -144,9 +144,9 @@ void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
         pch_css_cu_dma_configure(cunum, &dc);
-        dmachan_set_tx_channel_irq_enabled(&cu->tx_channel, true);
+        dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        dmachan_set_rx_channel_irq_enabled(rx, true);
+        dmachan_set_link_irq_enabled(&rx->link, true);
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;
         pch_css_cu_set_configured(cunum, true);
@@ -157,11 +157,11 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 	bool old_trace = cu->traced;
 	cu->traced = trace;
         if (trace) {
-                cu->tx_channel.bs = &CSS.trace_bs;
-                cu->rx_channel.bs = &CSS.trace_bs;
+                cu->tx_channel.link.bs = &CSS.trace_bs;
+                cu->rx_channel.link.bs = &CSS.trace_bs;
         } else {
-                cu->tx_channel.bs = 0;
-                cu->rx_channel.bs = 0;
+                cu->tx_channel.link.bs = 0;
+                cu->rx_channel.link.bs = 0;
         }
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,

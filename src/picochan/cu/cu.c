@@ -126,8 +126,8 @@ void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
                 hwaddr, rxctrl, cu->dmairqix);
 
         pch_cus_cu_dma_configure(cunum, &dc);
-        dmachan_set_tx_channel_irq_enabled(&cu->tx_channel, true);
-        dmachan_set_rx_channel_irq_enabled(&cu->rx_channel, true);
+        dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
+        dmachan_set_link_irq_enabled(&cu->rx_channel.link, true);
         pch_cus_cu_set_configured(cunum, true);
 }
 
@@ -144,9 +144,9 @@ void pch_cus_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
                 rxdmaid, cu->dmairqix);
         pch_cus_cu_dma_configure(cunum, &dc);
 
-        dmachan_set_tx_channel_irq_enabled(&cu->tx_channel, true);
+        dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        dmachan_set_rx_channel_irq_enabled(rx, true);
+        dmachan_set_link_irq_enabled(&rx->link, true);
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;
         pch_cus_cu_set_configured(cunum, true);
@@ -178,11 +178,11 @@ bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace) {
         bool old_trace = cu->traced;
         cu->traced = trace;
         if (trace) {
-                cu->tx_channel.bs = &pch_cus_trace_bs;
-                cu->rx_channel.bs = &pch_cus_trace_bs;
+                cu->tx_channel.link.bs = &pch_cus_trace_bs;
+                cu->rx_channel.link.bs = &pch_cus_trace_bs;
         } else {
-                cu->tx_channel.bs = 0;
-                cu->rx_channel.bs = 0;
+                cu->tx_channel.link.bs = 0;
+                cu->rx_channel.link.bs = 0;
         }
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,

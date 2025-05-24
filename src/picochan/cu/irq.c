@@ -7,10 +7,10 @@
 
 static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
         dmachan_tx_channel_t *tx = &cu->tx_channel;
-        bool tx_irq_raised = dmachan_tx_irq_raised(tx);
+        bool tx_irq_raised = dmachan_link_irq_raised(&tx->link);
 
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        bool rx_irq_raised = dmachan_rx_irq_raised(rx);
+        bool rx_irq_raised = dmachan_link_irq_raised(&rx->link);
 
         trace_cus_cu_irq(PCH_TRC_RT_CUS_CU_IRQ, cu, cu->dmairqix,
                 tx_irq_raised, rx_irq_raised);

@@ -8,10 +8,9 @@
 #include "dmachan_trace.h"
 
 static void start_src_cmdbuf_remote(dmachan_tx_channel_t *tx) {
-        PCH_DMACHAN_TX_TRACE(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE,
-                tx, tx->dmaid);
-        dma_channel_transfer_from_buffer_now(tx->dmaid,
-                tx->cmdbuf, CMDBUF_SIZE);
+        trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE, &tx->link);
+        dma_channel_transfer_from_buffer_now(tx->link.dmaid,
+                tx->link.cmdbuf, CMDBUF_SIZE);
 }
 
 static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *rxpeer) {
@@ -21,18 +20,18 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
         uint32_t saved_irq = mem_peer_lock();
 
         dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->mem_dst_state;
-        trace_dmachan_tx_memstate(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM,
-                tx, rxpeer_mem_dst_state);
+        trace_dmachan_memstate(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM,
+                &tx->link, rxpeer_mem_dst_state);
 
         switch (rxpeer_mem_dst_state) {
         case DMACHAN_MEM_DST_IDLE:
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_CMDBUF);
-                trigger_irq(rxpeer->dmaid); // triggers for us (same dmaid) too
+                trigger_irq(rxpeer->link.dmaid); // triggers for us (same dmaid) too
                 break;
 
         case DMACHAN_MEM_DST_CMDBUF:
-                memcpy(rxpeer->cmdbuf, tx->cmdbuf, CMDBUF_SIZE);
-                trigger_irq(rxpeer->dmaid); // triggers for us (same dmaid) too
+                memcpy(rxpeer->link.cmdbuf, tx->link.cmdbuf, CMDBUF_SIZE);
+                trigger_irq(rxpeer->link.dmaid); // triggers for us (same dmaid) too
                 break;
 
         default:
@@ -45,9 +44,9 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
 }
 
 static void start_src_data_remote(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
-        trace_dmachan_tx_segment(PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE,
-                tx, srcaddr, count);
-        dma_channel_transfer_from_buffer_now(tx->dmaid,
+        trace_dmachan_segment(PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE,
+                &tx->link, srcaddr, count);
+        dma_channel_transfer_from_buffer_now(tx->link.dmaid,
                 (void*)srcaddr, count);
 }
 
@@ -58,31 +57,31 @@ static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *r
         uint32_t saved_irq = mem_peer_lock();
 
         dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->mem_dst_state;
-        trace_dmachan_tx_segment_memstate(PCH_TRC_RT_DMACHAN_SRC_DATA_MEM,
-                tx, srcaddr, count, rxpeer_mem_dst_state);
+        trace_dmachan_segment_memstate(PCH_TRC_RT_DMACHAN_SRC_DATA_MEM,
+                &tx->link, srcaddr, count, rxpeer_mem_dst_state);
 
         switch (rxpeer_mem_dst_state) {
         case DMACHAN_MEM_DST_IDLE:
         case DMACHAN_MEM_DST_CMDBUF:
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_DATA);
-                dma_channel_set_read_addr(tx->dmaid,
+                dma_channel_set_read_addr(tx->link.dmaid,
                         (void*)srcaddr, false);
-                dma_channel_set_trans_count(tx->dmaid, count, false);
+                dma_channel_set_trans_count(tx->link.dmaid, count, false);
                 break;
 
         case DMACHAN_MEM_DST_DATA:
-                assert(dma_channel_get_transfer_count(tx->dmaid) == count);
+                assert(dma_channel_get_transfer_count(tx->link.dmaid) == count);
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_DATA);
                 // Peer has set its side but in order to raise the IRQ to
                 // notify us, it had to write a zero control register so we
                 // need to write a full one now to do the copy properly.
-                dma_channel_set_config(tx->dmaid, &rxpeer->ctrl, false);
-                dma_channel_transfer_from_buffer_now(tx->dmaid,
+                dma_channel_set_config(tx->link.dmaid, &rxpeer->ctrl, false);
+                dma_channel_transfer_from_buffer_now(tx->link.dmaid,
                         (void*)srcaddr, count);
                 break;
 
         case DMACHAN_MEM_DST_DISCARD:
-                trigger_irq(rxpeer->dmaid); // triggers for us (same dmaid) too
+                trigger_irq(rxpeer->link.dmaid); // triggers for us (same dmaid) too
                 break;
 
         default:
@@ -102,8 +101,8 @@ void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1
         valid_params_if(PCH_DMACHAN,
                 channel_config_get_transfer_data_size(ctrl) == DMA_SIZE_8);
 
-        memset(&tx->cmdbuf, 0, CMDBUF_SIZE);
-        tx->dmaid = dmaid;
+        memset(&tx->link.cmdbuf, 0, CMDBUF_SIZE);
+        tx->link.dmaid = dmaid;
         channel_config_set_read_increment(&ctrl, true);
         channel_config_set_chain_to(&ctrl, dmaid);
         dma_channel_set_write_addr(dmaid, (void*)dstaddr, false);

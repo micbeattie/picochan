@@ -92,23 +92,24 @@ static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, 
 typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
 typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
-typedef struct __aligned(4) dmachan_tx_channel {
+typedef struct __aligned(4) dmachan_link {
         unsigned char           cmdbuf[4];      // __aligned(4) since struct is
-        dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
         pch_trc_bufferset_t     *bs;            // only when tracing
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
+} dmachan_link_t;
+
+typedef struct __aligned(4) dmachan_tx_channel {
+        dmachan_link_t          link;
+        dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
         dmachan_mem_src_state_t mem_src_state;  // only for memchan
 } dmachan_tx_channel_t;
 
 typedef struct __aligned(4) dmachan_rx_channel {
-        unsigned char           cmdbuf[4];      // __aligned(4) since struct is
+        dmachan_link_t          link;
         dmachan_tx_channel_t    *mem_tx_peer;   // only for memchan
         uint32_t                srcaddr;
         dma_channel_config      ctrl;
-        pch_trc_bufferset_t     *bs;            // only when tracing
-        pch_dmaid_t             dmaid;
-        pch_dma_irq_index_t     dmairqix;
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
 
@@ -139,16 +140,16 @@ static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_m
         tx->mem_src_state = new_state;
 }
 
-static inline void dmachan_set_tx_channel_irq_enabled(dmachan_tx_channel_t *tx, bool enabled) {
-        dma_irqn_set_channel_enabled(tx->dmairqix, tx->dmaid, enabled);
+static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
+        dma_irqn_set_channel_enabled(l->dmairqix, l->dmaid, enabled);
 }
 
-static inline bool dmachan_tx_irq_raised(dmachan_tx_channel_t *tx) {
-        return dma_irqn_get_channel_status(tx->dmairqix, tx->dmaid);
+static inline bool dmachan_link_irq_raised(dmachan_link_t *l) {
+        return dma_irqn_get_channel_status(l->dmairqix, l->dmaid);
 };
 
 static inline void dmachan_ack_tx_irq(dmachan_tx_channel_t *tx) {
-        dma_irqn_acknowledge_channel(tx->dmairqix, tx->dmaid);
+        dma_irqn_acknowledge_channel(tx->link.dmairqix, tx->link.dmaid);
         if (tx->mem_rx_peer)
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
 }
@@ -162,16 +163,8 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_m
         rx->mem_dst_state = new_state;
 }
 
-static inline void dmachan_set_rx_channel_irq_enabled(dmachan_rx_channel_t *rx, bool enabled) {
-        dma_irqn_set_channel_enabled(rx->dmairqix, rx->dmaid, enabled);
-}
-
-static inline bool dmachan_rx_irq_raised(dmachan_rx_channel_t *rx) {
-        return dma_irqn_get_channel_status(rx->dmairqix, rx->dmaid);
-}
-
 static inline void dmachan_ack_rx_irq(dmachan_rx_channel_t *rx) {
-        dma_irqn_acknowledge_channel(rx->dmairqix, rx->dmaid);
+        dma_irqn_acknowledge_channel(rx->link.dmairqix, rx->link.dmaid);
         if (rx->mem_tx_peer)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
 }

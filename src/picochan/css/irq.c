@@ -14,10 +14,10 @@ static inline pch_schib_t *pop_ua_func_dlist(css_cu_t *cu) {
 
 static void css_handle_dma_irq_cu(css_cu_t *cu) {
         dmachan_tx_channel_t *tx = &cu->tx_channel;
-        bool tx_irq_raised = dmachan_tx_irq_raised(tx);
+        bool tx_irq_raised = dmachan_link_irq_raised(&tx->link);
 
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        bool rx_irq_raised = dmachan_rx_irq_raised(rx);
+        bool rx_irq_raised = dmachan_link_irq_raised(&rx->link);
 
         trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, CSS.dmairqix,
                 tx_irq_raised, rx_irq_raised);

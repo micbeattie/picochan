@@ -19,7 +19,7 @@ static inline proto_packet_t get_rx_packet(pch_cu_t *cu) {
         // error: cast increases required alignment of target type
         // [-Werror=cast-align]
         proto_packet_t *pp = (proto_packet_t *)
-                __builtin_assume_aligned(cu->rx_channel.cmdbuf, 4);
+                __builtin_assume_aligned(cu->rx_channel.link.cmdbuf, 4);
         return *pp;
 }
 
