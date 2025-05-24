@@ -92,9 +92,9 @@ static inline void trace_cus_cu_irq(pch_trc_record_type_t rt, pch_cu_t *cu, uint
                 cu->traced, ((struct pch_trc_trdata_cu_irq){
                         .cunum = cu->cunum,
                         .dmairqix = dmairqix,
-                        .tx_state = ((uint8_t)tx_irq_raised << 7)
+                        .tx_state = ((uint8_t)tx_irq_raised << 4)
                                 | cu->tx_channel.mem_src_state,
-                        .rx_state = ((uint8_t)rx_irq_raised << 7)
+                        .rx_state = ((uint8_t)rx_irq_raised << 4)
                                 | cu->rx_channel.mem_dst_state
                 }));
 }

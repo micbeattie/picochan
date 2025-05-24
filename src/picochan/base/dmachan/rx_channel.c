@@ -145,6 +145,7 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
         channel_config_set_chain_to(&ctrl, dmaid);
         rx->ctrl = ctrl;
         rxl->dmaid = dmaid;
+        rxl->dmairqix = d1c->dmairqix;
         dma_channel_set_config(dmaid, &ctrl, false);
 }
 
@@ -210,6 +211,5 @@ dmachan_irq_reason_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_chan
         if (rxl->complete)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
 
-        return (rx_irq_raised << DMACHAN_IRQ_REASON_TRIGGERED)
-                | (rx_irq_forced << DMACHAN_IRQ_REASON_FORCED);
+        return dmachan_make_irq_reason(rx_irq_raised, rx_irq_forced);
 }

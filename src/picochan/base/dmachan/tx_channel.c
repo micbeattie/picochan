@@ -104,6 +104,7 @@ void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1
         dmachan_link_t *txl = &tx->link;
         dmachan_link_cmd_set_zero(txl);
         txl->dmaid = dmaid;
+        txl->dmairqix = d1c->dmairqix;
         channel_config_set_read_increment(&ctrl, true);
         channel_config_set_chain_to(&ctrl, dmaid);
         dma_channel_set_write_addr(dmaid, (void*)dstaddr, false);
@@ -143,6 +144,5 @@ dmachan_irq_reason_t __time_critical_func(dmachan_handle_tx_irq)(dmachan_tx_chan
         if (txl->complete)
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
 
-        return (tx_irq_raised << DMACHAN_IRQ_REASON_TRIGGERED)
-                | (tx_irq_forced << DMACHAN_IRQ_REASON_FORCED);
+        return dmachan_make_irq_reason(tx_irq_raised, tx_irq_forced);
 }

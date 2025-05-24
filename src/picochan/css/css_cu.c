@@ -144,7 +144,11 @@ void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
         pch_css_cu_dma_configure(cunum, &dc);
-        dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
+        // Do not enable irq for tx channel link because Pico DMA
+        // does not treat the INTSn bits separately. We enable only
+        // the rx side for irqs and the rx irq handler propagates
+        // notifications to the tx side via the INTFn "forced irq"
+        // register which overrides the INTEn enabled bits.
         dmachan_rx_channel_t *rx = &cu->rx_channel;
         dmachan_set_link_irq_enabled(&rx->link, true);
         txpeer->mem_rx_peer = rx;

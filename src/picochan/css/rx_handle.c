@@ -7,7 +7,7 @@
 #include "css_trace.h"
 
 // The returned bool is do_notify
-static bool end_channel_program(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
+static bool __time_critical_func(end_channel_program)(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
         schib->scsw.ctrl_flags &= ~PCH_AC_DEVICE_ACTIVE;
         // set the advertised window for start-write-immediate data
 	schib->mda.devcount = advcount;
@@ -60,7 +60,7 @@ static bool end_channel_program(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, 
 // this unsolicited status. FC.Start can only get cleared after
 // the subchannel becomes StatusPending (or via clear_subchannel)
 // so Fc.Start should be an accurate way to determine this condition.
-static void do_handle_update_status(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
+static void __time_critical_func(do_handle_update_status)(css_cu_t *cu, pch_schib_t *schib, uint8_t devs, uint16_t advcount) {
 	bool do_notify = true;
 
 	if (devs & PCH_DEVS_CHANNEL_END) {
@@ -92,7 +92,7 @@ static void do_handle_update_status(css_cu_t *cu, pch_schib_t *schib, uint8_t de
 
 // handle_update_status handles an incoming UpdateStatus packet
 // from a device.
-static void handle_update_status(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
+static void __time_critical_func(handle_update_status)(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
         struct proto_parsed_devstatus_payload de
                 = proto_parse_devstatus_payload(proto_get_payload(p));
         uint8_t devs = de.devs;
@@ -116,7 +116,7 @@ typedef struct addr_count {
 // redirect all the about-to-be-received data to discard it, set
 // ChainingCheck in Schs and then tell the device about its error
 // with a Stop command. For now, we just assert.
-static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
+static addr_count_t __time_critical_func(begin_data_write)(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
 	assert(cu->rx_data_for_ua == -1);
 	cu->rx_data_for_ua = (int16_t)(schib->pmcw.unit_addr);
 
@@ -157,7 +157,7 @@ static addr_count_t begin_data_write(css_cu_t *cu, pch_schib_t *schib, proto_pac
 	return ((addr_count_t){addr, count});
 }
 
-static void css_handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
+static void __time_critical_func(css_handle_rx_data_complete)(css_cu_t *cu, pch_schib_t *schib) {
 	cu->rx_data_for_ua = -1;
         uint8_t devs = cu->rx_data_end_ds;
 	trace_schib_byte(PCH_TRC_RT_CSS_RX_DATA_COMPLETE, schib, devs);
@@ -205,7 +205,7 @@ static void css_handle_rx_data_complete(css_cu_t *cu, pch_schib_t *schib) {
 // seen the Discard flag in our room announcement and used the
 // PROTO_CHOP_FLAG_SKIP flag in its command instead which would have
 // avoided it needing to send us all this data just for us to discard.
-static void css_handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
+static void __time_critical_func(css_handle_rx_data_command)(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
 	// if PROTO_CHOP_FLAG_SKIP is set in the incoming op, we write
 	// (or ignore/discard) zeroes and no data is about to be sent
 	// to us
@@ -246,7 +246,7 @@ static void css_handle_rx_data_command(css_cu_t *cu, pch_schib_t *schib, proto_p
 // just sent us which is asking us to read count bytes of data
 // from the current CCW segment (of a Write-type command) and
 // send it down the channel.
-static void handle_request_read(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
+static void __time_critical_func(handle_request_read)(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p) {
         uint16_t count = proto_get_count(p);
         if (!(schib->scsw.ctrl_flags & PCH_SCSW_CCW_WRITE)) {
                 // CU/device tried to request data when CCW is not
@@ -278,7 +278,7 @@ static void handle_request_read(css_cu_t *cu, pch_schib_t *schib, proto_packet_t
 	}
 }
 
-static void css_handle_rx_command_complete(css_cu_t *cu) {
+static void __time_critical_func(css_handle_rx_command_complete)(css_cu_t *cu) {
 	// DMA has received a command packet from cu into RxBuf
 	proto_packet_t p = get_rx_packet(cu);
         pch_unit_addr_t ua = p.unit_addr;

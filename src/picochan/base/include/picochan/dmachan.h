@@ -208,9 +208,21 @@ typedef struct __aligned(4) dmachan_rx_channel {
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
 
+// dmachan_irq_reason_t represents the reason(s) why a given DMA id
+// caused an interrupt for a given DMA IRQ number.
+// RAISED means there was a DMA engine completion causing the bit
+// for the DMA id to be set in register INTSn for that DMA IRQ index.
+// FORCED means the bit for the DMA id was explicitly set in register
+// INTFn for that DMA IRQ index, ignoring the value of the enable bit
+// in the corresponding INTEn register.
 typedef uint8_t dmachan_irq_reason_t;
-#define DMACHAN_IRQ_REASON_TRIGGERED    0x1
+#define DMACHAN_IRQ_REASON_RAISED       0x1
 #define DMACHAN_IRQ_REASON_FORCED       0x2
+
+static inline dmachan_irq_reason_t dmachan_make_irq_reason(bool raised, bool forced) {
+        return ((dmachan_irq_reason_t)raised)
+                | ((dmachan_irq_reason_t)forced) << 1;
+}
 
 // tx channel irq and memory source state handling
 static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {
