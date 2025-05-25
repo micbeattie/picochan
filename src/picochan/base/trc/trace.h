@@ -13,8 +13,8 @@
 #include <stddef.h>
 #include <string.h>
 #include "picochan/trc.h"
+#include "picochan/trc_records.h"
 #include "bufferset.h"
-#include "records.h"
 
 static_assert(sizeof(pch_trc_timestamp_t) == 6,
         "pch_trc_timestamp_t must be 6 bytes");

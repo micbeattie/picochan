@@ -2,8 +2,8 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#ifndef _PCH_TRC_RECORDS_H
-#define _PCH_TRC_RECORDS_H
+#ifndef _PCH_API_TRC_RECORDS_H
+#define _PCH_API_TRC_RECORDS_H
 
 #include "picochan/ids.h"
 #include "picochan/ccw.h"
