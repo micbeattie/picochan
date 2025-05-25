@@ -53,7 +53,7 @@ void pch_css_start(uint8_t dmairqix) {
 
 void pch_css_set_func_irq(irq_num_t irqnum) {
 	PCH_CSS_TRACE(PCH_TRC_RT_CSS_SET_FUNC_IRQ,
-                ((struct trdata_irqnum_opt){irqnum}));
+                ((struct pch_trc_trdata_irqnum_opt){irqnum}));
         irq_set_enabled(irqnum, true);
 	CSS.func_irqnum = (int16_t)irqnum;
 }
@@ -61,14 +61,14 @@ void pch_css_set_func_irq(irq_num_t irqnum) {
 void pch_css_set_io_irq(irq_num_t irqnum) {
         user_irq_claim(irqnum);
 	PCH_CSS_TRACE(PCH_TRC_RT_CSS_SET_IO_IRQ,
-                ((struct trdata_irqnum_opt){irqnum}));
+                ((struct pch_trc_trdata_irqnum_opt){irqnum}));
 	CSS.io_irqnum = (int16_t)irqnum;
 }
 
 void pch_css_unset_io_irq(void) {
         int16_t io_irqnum_opt = CSS.io_irqnum;
 	PCH_CSS_TRACE(PCH_TRC_RT_CSS_SET_IO_IRQ,
-                ((struct trdata_irqnum_opt){-1}));
+                ((struct pch_trc_trdata_irqnum_opt){-1}));
         if (io_irqnum_opt < 0)
                 return;
 
@@ -81,7 +81,7 @@ void pch_css_unset_io_irq(void) {
 io_callback_t pch_css_set_io_callback(io_callback_t io_callback) {
 	io_callback_t old_io_callback = CSS.io_callback;
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_SET_IO_CALLBACK,
-                ((struct trdata_address_change){
+                ((struct pch_trc_trdata_address_change){
                         (uint32_t)old_io_callback,
                         (uint32_t)io_callback
                 }));

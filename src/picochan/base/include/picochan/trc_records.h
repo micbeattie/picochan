@@ -96,4 +96,25 @@ struct pch_trc_trdata_cu_dma {
         pch_dma_irq_index_t     dmairqix;
 };
 
+struct pch_trc_trdata_css_cu_claim {
+        pch_sid_t       first_sid;
+        uint16_t        num_devices;
+        pch_cunum_t     cunum;
+};
+
+struct pch_trc_trdata_irqnum_opt {
+        int16_t         irqnum_opt;
+};
+
+struct pch_trc_trdata_address_change {
+        uint32_t        old_addr;
+        uint32_t        new_addr;
+};
+
+struct pch_trc_trdata_func_irq {
+        int16_t         ua_opt;
+        pch_cunum_t     cunum;
+        uint8_t         tx_active;
+};
+
 #endif

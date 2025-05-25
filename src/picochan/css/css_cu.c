@@ -53,7 +53,7 @@ static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
 	}
 
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CLAIM,
-                ((struct trdata_css_cu_claim){
+                ((struct pch_trc_trdata_css_cu_claim){
                         .first_sid = first_sid,
                         .num_devices = num_devices,
                         .cunum = cunum

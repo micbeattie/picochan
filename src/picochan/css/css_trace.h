@@ -7,28 +7,8 @@
 
 #include "css_internal.h"
 
+#include "picochan/trc_records.h"
 #include "trc/trace.h"
-
-struct trdata_css_cu_claim {
-        pch_sid_t       first_sid;
-        uint16_t        num_devices;
-        pch_cunum_t     cunum;
-};
-
-struct trdata_irqnum_opt {
-        int16_t         irqnum_opt;
-};
-
-struct trdata_address_change {
-        uint32_t        old_addr;
-        uint32_t        new_addr;
-};
-
-struct trdata_func_irq {
-        int16_t         ua_opt;
-        pch_cunum_t     cunum;
-        uint8_t         tx_active;
-};
 
 #define PCH_CSS_TRACE_COND(rt, cond, data) \
         PCH_TRC_WRITE(&CSS.trace_bs, (cond), (rt), (data))
