@@ -92,6 +92,6 @@ bool pch_trc_set_enable(pch_trc_bufferset_t *bs, bool enable) {
         bs->enable = enable;
 
         PCH_TRC_WRITE(bs, true, PCH_TRC_RT_TRC_ENABLE,
-                ((struct pch_trc_trdata_byte){enable}));
+                ((struct pch_trdata_byte){enable}));
         return old_enable;
 }

@@ -53,7 +53,7 @@ static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
 	}
 
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CLAIM,
-                ((struct pch_trc_trdata_css_cu_claim){
+                ((struct pch_trdata_css_cu_claim){
                         .first_sid = first_sid,
                         .num_devices = num_devices,
                         .cunum = cunum
@@ -69,7 +69,7 @@ void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
 }
 
 static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
-        PCH_CSS_TRACE(rt, ((struct pch_trc_trdata_cu_dma){
+        PCH_CSS_TRACE(rt, ((struct pch_trdata_cu_dma){
                 .addr = d1c->addr,
                 .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
                 .cunum = cunum,
@@ -109,7 +109,7 @@ void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured) {
         cu->configured = configured;
 
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CONFIGURED,
-                ((struct pch_trc_trdata_cu_byte){
+                ((struct pch_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = (uint8_t)configured
                 }));
@@ -170,7 +170,7 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,
                 trace || old_trace,
-		((struct pch_trc_trdata_cu_byte){
+		((struct pch_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = (uint8_t)trace
         }));
@@ -184,7 +184,7 @@ void pch_css_cu_start(pch_cunum_t cunum) {
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
                 cu->traced,
-		((struct pch_trc_trdata_cu_byte){
+		((struct pch_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = 1
         }));

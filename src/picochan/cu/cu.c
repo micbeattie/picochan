@@ -31,7 +31,7 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
         irq_set_enabled(irqnum, true);
         
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER,
-                ((struct pch_trc_trdata_word_byte){
+                ((struct pch_trdata_word_byte){
                         (uint32_t)pch_cus_handle_dma_irq, irqnum}));
 }
 
@@ -56,7 +56,7 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t
         pch_cus[cunum] = cu;
 
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_INIT,
-                ((struct pch_trc_trdata_cu_init){
+                ((struct pch_trdata_cu_init){
                         .num_devices = num_devibs,
                         .cunum = cunum,
                         .dmairqix = dmairqix
@@ -74,7 +74,7 @@ dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum) {
 }
 
 static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
-        PCH_CUS_TRACE(rt, ((struct pch_trc_trdata_cu_dma){
+        PCH_CUS_TRACE(rt, ((struct pch_trdata_cu_dma){
                 .addr = d1c->addr,
                 .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
                 .cunum = cunum,
@@ -109,7 +109,7 @@ void pch_cus_cu_set_configured(pch_cunum_t cunum, bool configured) {
         cu->configured = true;
 
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_CONFIGURED,
-                ((struct pch_trc_trdata_cu_byte){
+                ((struct pch_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = (uint8_t)configured
                 }));
@@ -164,7 +164,7 @@ void pch_cus_cu_start(pch_cunum_t cunum) {
 
         cu->started = true;
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_STARTED,
-                ((struct pch_trc_trdata_cu_byte){
+                ((struct pch_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = 1
                 }));
@@ -190,7 +190,7 @@ bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace) {
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,
                 trace || old_trace,
-                ((struct pch_trc_trdata_cu_byte){
+                ((struct pch_trdata_cu_byte){
                         .cunum = cunum,
                         .byte = (uint8_t)trace
                 }));
@@ -205,7 +205,7 @@ bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace) {
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_DEV_TRACED,
                 cu->traced || trace || old_trace,
-                ((struct pch_trc_trdata_dev_byte){
+                ((struct pch_trdata_dev_byte){
                         .cunum = cunum,
                         .ua = ua,
                         .byte = (uint8_t)trace
