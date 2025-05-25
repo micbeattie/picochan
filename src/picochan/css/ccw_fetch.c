@@ -30,7 +30,7 @@ static inline void update_ccw_cmd_write_flag(pch_schib_t *schib, uint8_t ccwcmd)
 // update_ccw_fields updates schib fields with all non-command fields
 // of CCW and ccw_addr.
 static inline void update_ccw_fields(pch_schib_t *schib, pch_ccw_t *ccw_addr, pch_ccw_t ccw) {
-	schib->scsw.ccw_addr = ccw_addr;
+	schib->scsw.ccw_addr = (uint32_t)ccw_addr;
 	schib->scsw.devs = (uint8_t)ccw.flags;
 	schib->scsw.count = ccw.count;
 	schib->mda.data_addr = ccw.addr;
@@ -44,7 +44,7 @@ static inline void update_ccw_fields(pch_schib_t *schib, pch_ccw_t *ccw_addr, pc
 // that ccw.cmd. If there is an error, an appropriate flag is set in
 // schib->scsw.schs.
 uint8_t __time_critical_func(fetch_first_command_ccw)(pch_schib_t *schib) {
-	pch_ccw_t *ccw_addr = schib->scsw.ccw_addr;
+	pch_ccw_t *ccw_addr = (pch_ccw_t*)schib->scsw.ccw_addr;
 	pch_ccw_t ccw = fetch_ccw(ccw_addr);
 	trace_schib_ccw(PCH_TRC_RT_CSS_CCW_FETCH, schib, ccw_addr, ccw);
 	ccw_addr++;
@@ -71,7 +71,8 @@ uint8_t __time_critical_func(fetch_first_command_ccw)(pch_schib_t *schib) {
 // is an error, an appropriate flag is set in schib->scsw.schs.
 uint8_t __time_critical_func(fetch_resume_ccw)(pch_schib_t *schib) {
 	// fetch CCW from preceding location
-	pch_ccw_t *ccw_addr = &schib->scsw.ccw_addr[-1]; // -8 bytes
+	pch_ccw_t *ccw_addr = (pch_ccw_t*)schib->scsw.ccw_addr;
+        ccw_addr--; // -8 bytes
 	pch_ccw_t ccw = fetch_ccw(ccw_addr);
 	// Don't increment schib->scsw.ccw_addr
 
@@ -92,8 +93,9 @@ uint8_t __time_critical_func(fetch_resume_ccw)(pch_schib_t *schib) {
 // except ccw.cmd into the schib and returns that ccw.cmd. If there
 // is an error, an appropriate flag is set in schib->scsw.schs.
 uint8_t __time_critical_func(fetch_chain_ccw)(pch_schib_t *schib) {
-	pch_ccw_t ccw = fetch_ccw(schib->scsw.ccw_addr);
-        pch_ccw_t *ccw_addr = &schib->scsw.ccw_addr[1]; // +8 bytes
+        pch_ccw_t *ccw_addr = (pch_ccw_t*)schib->scsw.ccw_addr;
+	pch_ccw_t ccw = fetch_ccw(ccw_addr);
+        ccw_addr++; // +8 bytes
 
 	if (ccw.cmd == PCH_CCW_CMD_TIC) {
 		ccw = fetch_ccw(ccw_addr);

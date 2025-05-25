@@ -74,7 +74,7 @@ typedef struct __aligned(4) pch_scsw {
     uint8_t     __unused_flags;
     uint8_t     user_flags;
     uint16_t    ctrl_flags;
-    pch_ccw_t   *ccw_addr;
+    uint32_t    ccw_addr;
     uint8_t     devs;
     uint8_t     schs;
     uint16_t    count;

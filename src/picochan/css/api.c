@@ -39,7 +39,7 @@ static int do_sch_start(pch_schib_t *schib, pch_ccw_t *ccw_addr) {
         assert(schib->mda.nextsid == get_sid(schib)); // shouldn't be on a list
 	pch_cunum_t cunum = schib->pmcw.cu_number;
 	css_cu_t *cu = get_cu(cunum);
-	schib->scsw.ccw_addr = ccw_addr;
+	schib->scsw.ccw_addr = (uint32_t)ccw_addr;
 	schib->scsw.ctrl_flags |= PCH_AC_START_PENDING;
         push_func_dlist(cu, schib);
 	raise_func_irq();

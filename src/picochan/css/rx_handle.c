@@ -33,7 +33,7 @@ static bool __time_critical_func(end_channel_program)(css_cu_t *cu, pch_schib_t 
 	// We need to command-chain so advance the CCW address if
 	// StatusModifier is set in the dev.Status
 	if (devs & PCH_DEVS_STATUS_MODIFIER)
-		schib->scsw.ccw_addr++; // +8 bytes
+		schib->scsw.ccw_addr += sizeof(pch_ccw_t); // +8 bytes
 
 	if (!cu->tx_active) {
 		// tx engine free - send immediately
