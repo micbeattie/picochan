@@ -117,4 +117,22 @@ struct pch_trdata_func_irq {
         uint8_t         tx_active;
 };
 
+struct pch_trdata_cus_init_mem_channel {
+        pch_cunum_t     cunum;
+        pch_dmaid_t     txdmaid;
+        pch_dmaid_t     rxdmaid;
+};
+
+struct pch_trdata_cus_tx_complete {
+        int16_t         uaopt;
+        pch_cunum_t     cunum;
+        uint8_t         txpstate;
+};
+
+struct pch_trdata_cus_call_callback {
+        pch_cunum_t     cunum;
+        pch_unit_addr_t ua;
+        uint8_t         cbindex;
+};
+
 #endif

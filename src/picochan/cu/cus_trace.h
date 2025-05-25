@@ -7,29 +7,12 @@
 
 #include "picochan/devib.h"
 #include "picochan/cu.h"
+#include "picochan/trc_records.h"
 #include "trc/trace.h"
 #include "proto/packet.h"
 #include "txsm/txsm.h"
 
 extern pch_trc_bufferset_t pch_cus_trace_bs;
-
-struct pch_cus_trdata_init_mem_channel {
-        pch_cunum_t     cunum;
-        pch_dmaid_t     txdmaid;
-        pch_dmaid_t     rxdmaid;
-};
-
-struct pch_cus_trdata_tx_complete {
-        int16_t         uaopt;
-        pch_cunum_t     cunum;
-        uint8_t         txpstate;
-};
-
-struct pch_cus_trdata_call_callback {
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
-        uint8_t         cbindex;
-};
 
 #define PCH_CUS_TRACE_COND(rt, cond, data) \
         PCH_TRC_WRITE(&pch_cus_trace_bs, (cond), (rt), (data))
@@ -65,7 +48,7 @@ static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_cu_t *cu, pch_
 
 static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t uaopt, pch_txsm_state_t txpstate) {
         PCH_CUS_TRACE_COND(rt, cu->traced,
-                ((struct pch_cus_trdata_tx_complete){
+                ((struct pch_trdata_cus_tx_complete){
                         .uaopt = uaopt,
                         .cunum = cu->cunum,
                         .txpstate = (uint8_t)txpstate
@@ -80,7 +63,7 @@ static inline void trace_register_callback(pch_trc_record_type_t rt, pch_cbindex
 static inline void trace_call_callback(pch_trc_record_type_t rt, pch_cu_t *cu, pch_devib_t *devib, pch_cbindex_t cbindex) {
         PCH_CUS_TRACE_COND(rt,
                 cu_or_devib_is_traced(cu, devib),
-                ((struct pch_cus_trdata_call_callback){
+                ((struct pch_trdata_cus_call_callback){
                         .cunum = cu->cunum,
                         .ua = pch_get_ua(cu, devib),
                         .cbindex = (uint8_t)cbindex
