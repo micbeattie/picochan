@@ -12,7 +12,7 @@
 // The meaning of the flag bits depends on the operation command.
 typedef uint8_t proto_chop_t;
 
-typedef enum __packed proto_chop_cmd {
+typedef enum __attribute__((packed)) proto_chop_cmd {
         PROTO_CHOP_START                = 0,
         PROTO_CHOP_ROOM                 = 1,
         PROTO_CHOP_DATA                 = 2,

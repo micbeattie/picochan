@@ -17,7 +17,7 @@
 // ARM ABI specifies that a return value of a composite type of up to
 // 4 bytes (such as proto_packet_t) is passed in R0, thus behaving the
 // same way as a 32-bit return value.
-typedef struct __aligned(4) proto_packet {
+typedef struct __attribute__((aligned(4))) proto_packet {
         proto_chop_t    chop;
         pch_unit_addr_t unit_addr;
         uint8_t         p0;

@@ -46,7 +46,6 @@ static inline proto_payload_t proto_make_count_payload(uint16_t count) {
 
 proto_payload_t proto_make_devstatus_payload(uint8_t devs, pch_bsize_t esize);
 proto_payload_t proto_make_start_payload(uint8_t ccwcmd, pch_bsize_t esize);
-struct proto_parsed_start_payload proto_parse_start_payload(proto_payload_t p);
 struct proto_parsed_devstatus_payload proto_parse_devstatus_payload(proto_payload_t p);
 
 #endif

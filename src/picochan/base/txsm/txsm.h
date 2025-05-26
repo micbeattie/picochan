@@ -12,6 +12,7 @@
 
 #include <stdint.h>
 #include "picochan/dmachan.h"
+#include "picochan/txsm_state.h"
 
 // txsm provides a state machine that manages using a
 // dmachan_tx_channel to transmit a data buffer, driven by
@@ -23,12 +24,6 @@
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //        |                             addr                              |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-typedef enum __packed pch_txsm_state {
-        PCH_TXSM_IDLE = 0,
-        PCH_TXSM_PENDING,
-        PCH_TXSM_SENDING
-} pch_txsm_state_t;
 
 typedef struct pch_txsm {
         pch_txsm_state_t        state;
