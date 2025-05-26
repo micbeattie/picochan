@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include "pico/platform/compiler.h"
 
 typedef uint8_t pch_ccw_flags_t;
 
@@ -43,7 +42,7 @@ typedef uint8_t pch_ccw_flags_t;
 //     |                        data address                           |
 //     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-typedef struct __aligned(4) pch_ccw {
+typedef struct __attribute__((aligned(4))) pch_ccw {
 	uint8_t         cmd;
 	pch_ccw_flags_t flags;
 	uint16_t        count;

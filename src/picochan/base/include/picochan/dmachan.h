@@ -14,6 +14,7 @@
 #include "hardware/structs/dma_debug.h"
 #include "hardware/uart.h"
 #include "pico/platform/compiler.h"
+#include "picochan/dmachan_defs.h"
 #include "picochan/ids.h"
 #include "picochan/trc.h"
 
@@ -51,22 +52,6 @@ static inline void dma_irqn_set_channel_forced(uint irq_index, uint channel, boo
         else
                 hw_clear_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
 }
-
-// dmachan_mem_src_state_t is the DMA state of a tx channel
-typedef enum __packed dmachan_mem_src_state {
-        DMACHAN_MEM_SRC_IDLE = 0,
-        DMACHAN_MEM_SRC_CMDBUF,
-        DMACHAN_MEM_SRC_DATA
-} dmachan_mem_src_state_t;
-
-// dmachan_mem_dst_state_t is the DMA state of an rx channel
-typedef enum __packed dmachan_mem_dst_state {
-        DMACHAN_MEM_DST_IDLE = 0,
-        DMACHAN_MEM_DST_CMDBUF,
-        DMACHAN_MEM_DST_DATA,
-        DMACHAN_MEM_DST_DISCARD,
-        DMACHAN_MEM_DST_SRC_ZEROES
-} dmachan_mem_dst_state_t;
 
 // DMA configuration for one direction (tx or rx) of a dmachan channel
 typedef struct dmachan_1way_config {
@@ -207,17 +192,6 @@ typedef struct __aligned(4) dmachan_rx_channel {
         dma_channel_config      ctrl;
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
-
-// dmachan_irq_reason_t represents the reason(s) why a given DMA id
-// caused an interrupt for a given DMA IRQ number.
-// RAISED means there was a DMA engine completion causing the bit
-// for the DMA id to be set in register INTSn for that DMA IRQ index.
-// FORCED means the bit for the DMA id was explicitly set in register
-// INTFn for that DMA IRQ index, ignoring the value of the enable bit
-// in the corresponding INTEn register.
-typedef uint8_t dmachan_irq_reason_t;
-#define DMACHAN_IRQ_REASON_RAISED       0x1
-#define DMACHAN_IRQ_REASON_FORCED       0x2
 
 static inline dmachan_irq_reason_t dmachan_make_irq_reason(bool raised, bool forced) {
         return ((dmachan_irq_reason_t)raised)

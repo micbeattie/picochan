@@ -7,7 +7,6 @@
 
 #include <stdint.h>
 #include <assert.h>
-#include "pico/platform/compiler.h"
 
 #define PCH_SF_CC_MASK  0xc0
 #define PCH_SF_CC_SHIFT 6
@@ -52,7 +51,7 @@
 #define PCH_SCHS_INTERFACE_CONTROL_CHECK         0x02
 #define PCH_SCHS_CHAINING_CHECK                  0x01
 
-typedef struct __aligned(4) pch_ccw pch_ccw_t;
+typedef struct __attribute__((aligned(4))) pch_ccw pch_ccw_t;
 
 // pch_scsw_t is the Subchannel Status Word (SCSW) which must be
 // 4-byte aligned. When marshalling/unmarshalling an SCSW, unlike the
@@ -70,7 +69,7 @@ typedef struct __aligned(4) pch_ccw pch_ccw_t;
 //         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 //         |      DEVS     |     SCHS      |     Residual Count            |
 //         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-typedef struct __aligned(4) pch_scsw {
+typedef struct __attribute__((aligned(4))) pch_scsw {
     uint8_t     __unused_flags;
     uint8_t     user_flags;
     uint16_t    ctrl_flags;

@@ -7,7 +7,8 @@
 
 #include "picochan/ids.h"
 #include "picochan/ccw.h"
-#include "picochan/css.h"
+#include "picochan/scsw.h"
+#include "picochan/intcode.h"
 
 // Common structs for the data parts of trace records
 
