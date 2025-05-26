@@ -53,12 +53,6 @@ static inline void pch_txsm_set_pending(pch_txsm_t *px, uint32_t addr, uint16_t 
         px->count = count;
 }
 
-typedef enum __packed pch_txsm_run_result {
-        PCH_TXSM_NOOP = 0,
-        PCH_TXSM_ACTED,
-        PCH_TXSM_FINISHED
-} pch_txsm_run_result_t;
-
 enum pch_txsm_run_result pch_txsm_run(pch_txsm_t *px, dmachan_tx_channel_t *txch);
 
 #endif
