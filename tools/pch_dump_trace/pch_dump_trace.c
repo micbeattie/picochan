@@ -216,7 +216,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CSS_TX_COMPLETE: {
                 struct pch_trdata_cu_byte *td = vd;
-                printf("CSS-side CU=%d handling tx complete while tx_pending is ",
+                printf("CSS-side CU=%d handling tx complete while txsm state is ",
                         td->cunum);
                 print_txpending_state(td->byte);
                 break;
@@ -255,7 +255,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_TX_COMPLETE: {
                 struct pch_trdata_cus_tx_complete *td = vd;
-                printf("dev-side CU=%d handling tx complete for UA=%d while tx_pending is ",
+                printf("dev-side CU=%d handling tx complete for UA=%d while txsm state is ",
                         td->cunum, td->uaopt);
                 print_txpending_state(td->txpstate);
                 break;
@@ -268,6 +268,81 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 print_packet(td->word, true);
                 break;
         }
+
+	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE: {
+		struct pch_trdata_dmachan *td = vd;
+                printf("CU rx channel DMAid=%d sets destination to cmdbuf",
+                        td->dmaid);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM: {
+		struct pch_trdata_dmachan_memstate *td = vd;
+                printf("MemCU rx channel DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
+                        td->dmaid);
+                print_mem_src_state(td->state);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE: {
+		struct pch_trdata_dmachan_segment *td = vd;
+                printf("CU rx channel DMAid=%d sets destination to data address:%08x count=%u",
+                        td->dmaid, td->addr, td->count);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_DST_DATA_MEM: {
+		struct pch_trdata_dmachan_segment_memstate *td = vd;
+                printf("MemCU rx channel DMAid=%d sets destination to data address:%08x count=%u while txpeer mem_src_state=",
+                        td->dmaid, td->addr, td->count);
+                print_mem_src_state(td->state);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_DST_DISCARD_REMOTE: {
+		struct pch_trdata_dmachan_segment *td = vd;
+                printf("CU rx channel DMAid=%d sets destination to discard data count=%u",
+                        td->dmaid, td->count);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM: {
+		struct pch_trdata_dmachan_segment_memstate *td = vd;
+                printf("MemCU rx channel DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
+                        td->dmaid, td->count);
+                print_mem_src_state(td->state);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE: {
+		struct pch_trdata_dmachan *td = vd;
+                printf("CU tx channel DMAid=%d sets source to cmdbuf",
+                        td->dmaid);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM: {
+		struct pch_trdata_dmachan_memstate *td = vd;
+                printf("MemCU tx channel DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
+                        td->dmaid);
+                print_mem_dst_state(td->state);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE: {
+		struct pch_trdata_dmachan_segment *td = vd;
+                printf("CU tx channel DMAid=%d sets source to data address:%08x count=%u",
+                        td->dmaid, td->addr, td->count);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_SRC_DATA_MEM: {
+		struct pch_trdata_dmachan_segment_memstate *td = vd;
+                printf("MemCU tx channel DMAid=%d sets source to data address:%08x count=%u while rxpeer mem_dst_state=",
+                        td->dmaid, td->addr, td->count);
+                print_mem_dst_state(td->state);
+                break;
+	}
 
         case PCH_TRC_RT_TRC_ENABLE:
                 printf("trace %s", data[0] ? "enabled" : "disabled");
