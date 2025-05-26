@@ -1,7 +1,15 @@
-PCH_INCLUDE_DIR=$(PICOCHAN_PATH)/base/include
-CFLAGS=-Wall -I $(PCH_INCLUDE_DIR)
+INCLUDE_FLAGS=-I $(PICOCHAN_PATH)/base/include \
+	-I $(PICOCHAN_PATH)/css/include \
+	-I $(PICOCHAN_PATH)/base/proto
+CDEBUGFLAGS=-g
+CFLAGS=-Wall $(INCLUDE_FLAGS) $(CDEBUGFLAGS)
 
-pch_dump_trace: pch_dump_trace.c
+OBJS=pch_dump_trace.o format.o
 
-distclean:
-	$(RM) -f pch_dump_trace
+pch_dump_trace: $(OBJS)
+
+clean:
+	$(RM) $(OBJS)
+
+distclean: clean
+	$(RM) pch_dump_trace

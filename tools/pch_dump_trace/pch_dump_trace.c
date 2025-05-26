@@ -17,6 +17,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "picochan/trc_records.h"
+#include "format.h"
 
 #define MAX_NUM_BUFFERS 64
 
@@ -31,6 +34,249 @@ const char *rtnames[] = {
 };
 
 #define NUM_RECORD_TYPES (sizeof(rtnames)/sizeof(rtnames[0]))
+
+#define FORMATTED_TRDATA_BUFSIZE 1024
+
+bool raw = false;
+
+void hexdump(unsigned char *data, int data_size) {
+        while (data_size--) {
+                printf("%02x", *data++);
+                if (data_size)
+                        putchar(' ');
+        }
+}
+
+void hexdump_trace_record_data(uint rt, unsigned char *data, int data_size) {
+        const char *rtname = "?";
+        if (rt < NUM_RECORD_TYPES)
+                rtname = rtnames[rt];
+
+        printf("%s(%d) ", rtname, rt);
+        hexdump(data, data_size);
+}
+
+void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
+        void *vd = data;
+
+        if (raw) {
+                hexdump_trace_record_data(rt, data, data_size);
+                return;
+        }
+
+        switch (rt) {
+        case PCH_TRC_RT_CSS_SCH_START: {
+                struct pch_trdata_word_sid_byte *td = vd;
+                printf("start subchannel ");
+                print_sid(td->sid);
+                putchar(' ');
+                print_ccwaddr(td->word);
+                putchar(' ');
+                print_cc(td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SCH_RESUME: {
+                struct pch_trdata_sid_byte *td = vd;
+                printf("resume subchannel ");
+                print_sid(td->sid);
+                putchar(' ');
+                print_cc(td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SCH_TEST: {
+                struct pch_trdata_scsw_sid_cc *td = vd;
+                printf("test subchannel ");
+                print_sid(td->sid);
+                putchar(' ');
+                print_cc(td->cc);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SCH_STORE: {
+                struct pch_trdata_sid_byte *td = vd;
+                printf("store subchannel ");
+                print_sid(td->sid);
+                putchar(' ');
+                print_cc(td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SCH_MODIFY: {
+                struct pch_trdata_sid_byte *td = vd;
+                printf("modify subchannel ");
+                print_sid(td->sid);
+                putchar(' ');
+                print_cc(td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_FUNC_IRQ: {
+                struct pch_trdata_func_irq *td = vd;
+                printf("CSS Function IRQ raised for CU=%d with pending UA=%d while tx_active=%d",
+                        td->cunum, td->ua_opt, td->tx_active);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CCW_FETCH: {
+                struct pch_trdata_ccw_addr_sid *td = vd;
+                printf("CSS CCW fetch for ");
+                print_sid(td->sid);
+                putchar(' ');
+                print_ccwaddr(td->addr);
+                printf(" provides ");
+                print_ccw(td->ccw);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CU_TX_DMA_INIT:
+        case PCH_TRC_RT_CSS_CU_RX_DMA_INIT: {
+                struct pch_trdata_cu_dma *td = vd;
+                printf("CSS-side ");
+                print_dma_irq_init(td);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_CU_TX_DMA_INIT:
+        case PCH_TRC_RT_CUS_CU_RX_DMA_INIT: {
+                struct pch_trdata_cu_dma *td = vd;
+                printf("dev-side ");
+                print_dma_irq_init(td);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CU_CONFIGURED: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("CSS-side CU=%d is now %s",
+                        td->cunum, td->byte ? "configured" : "unconfigured");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CU_TRACED: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("CSS-side CU=%d is now %s",
+                        td->cunum, td->byte ? "traced" : "untraced");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CU_STARTED: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("CSS-side CU=%d is now %s",
+                        td->cunum, td->byte ? "started" : "stopped");
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_CU_CONFIGURED: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("dev-side CU=%d is now %s",
+                        td->cunum, td->byte ? "configured" : "unconfigured");
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_CU_TRACED: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("dev-side CU=%d is now %s",
+                        td->cunum, td->byte ? "traced" : "untraced");
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_CU_STARTED: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("dev-side CU=%d is now %s",
+                        td->cunum, td->byte ? "started" : "stopped");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CU_IRQ:
+        case PCH_TRC_RT_CUS_CU_IRQ: {
+                const char *side = (rt == PCH_TRC_RT_CSS_CU_IRQ) ?
+                        "CSS-side" : "dev-side";
+                struct pch_trdata_cu_irq *td = vd;
+                printf("in IRQ for %s CU=%d with DMA_IRQ_%d tx:reason=",
+                       side, td->cunum, td->dmairqix);
+                print_dma_irq_reason(td->tx_state >> 4);
+                printf(",mem_src_state=");
+                print_mem_src_state(td->tx_state & 0xf);
+                printf(" rx:reason=");
+                print_dma_irq_reason(td->rx_state >> 4);
+                printf(",mem_dst_state=");
+                print_mem_dst_state(td->rx_state & 0xf);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SEND_TX_PACKET: {
+                struct pch_trdata_word_sid *td = vd;
+                printf("CSS-side ");
+                print_sid(td->sid);
+                printf(" sends ");
+                print_packet(td->word, true);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_TX_COMPLETE: {
+                struct pch_trdata_cu_byte *td = vd;
+                printf("CSS-side CU=%d handling tx complete while tx_pending is ",
+                        td->cunum);
+                print_txpending_state(td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE: {
+                struct pch_trdata_word_sid *td = vd;
+                printf("CSS-side ");
+                print_sid(td->sid);
+                printf(" received ");
+                print_packet(td->word, false);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_REGISTER_CALLBACK: {
+                struct pch_trdata_word_byte *td = vd;
+                printf("registers ");
+                print_devib_callback(td->byte, td->word);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_CALL_CALLBACK: {
+                struct pch_trdata_cus_call_callback *td = vd;
+                printf("dev-side CU=%d calls callback %d for UA=%d",
+                        td->cunum, td->cbindex, td->ua);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_SEND_TX_PACKET: {
+                struct pch_trdata_word_dev *td = vd;
+                printf("dev-side CU=%d UA=%d sends ",
+                        td->cunum, td->ua);
+                print_packet(td->word, true);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_TX_COMPLETE: {
+                struct pch_trdata_cus_tx_complete *td = vd;
+                printf("dev-side CU=%d handling tx complete for UA=%d while tx_pending is ",
+                        td->cunum, td->uaopt);
+                print_txpending_state(td->txpstate);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE: {
+                struct pch_trdata_word_dev *td = vd;
+                printf("dev-side CU=%d UA=%d received ",
+                        td->cunum, td->ua);
+                print_packet(td->word, true);
+                break;
+        }
+
+        case PCH_TRC_RT_TRC_ENABLE:
+                printf("trace %s", data[0] ? "enabled" : "disabled");
+                break;
+
+        default:
+                hexdump_trace_record_data(rt, data, data_size);
+        }
+}
 
 // dump_tracebs is a crude function to dump a single trace record.
 // It returns the length of the header-plus-record-data or, if an
@@ -64,18 +310,10 @@ int dump_trace_record(unsigned char *p) {
                 return -6; // sanity check 32-byte record data limit
 
         uint rt = h->rec_type;
-        const char *rtname = "?";
-        if (rt < NUM_RECORD_TYPES)
-                rtname = rtnames[rt];
 
-        printf("%d:%02d:%02d.%06d %s(%d) ",
-                thours, mm, ss, uuuuuu, rtname, rt);
+        printf("%d:%02d:%02d.%06d ", thours, mm, ss, uuuuuu);
         p += sizeof(pch_trc_header_t);
-        while (data_size--) {
-                printf("%02x", *p++);
-                if (data_size)
-                        putchar(' ');
-        }
+        print_trace_record_data(rt, p, data_size);
 
         return (int)size;
 }
@@ -117,8 +355,16 @@ void dump_tracebs(pch_trc_bufferset_t *bs) {
 pch_trc_bufferset_t bs;
 
 int main(int argc, char **argv) {
+        if (argc > 1) {
+                if (!strcmp(argv[1], "-r")) {
+                        raw = true;
+                        argc--;
+                        argv++;
+                }
+        }
+
         if (argc != 3) {
-                fprintf(stderr, "Usage: dump_trace bufferset_file buffers_file\n");
+                fprintf(stderr, "Usage: dump_trace [-r] bufferset_file buffers_file\n");
                 exit(1);
         }
 
@@ -157,6 +403,10 @@ int main(int argc, char **argv) {
         }
 
         FILE *bf = fopen(argv[2], "rb");
+        if (!bf) {
+                perror(argv[2]);
+                exit(1);
+        }
         for (int n = 0; n < bs.num_buffers; n++) {
                 unsigned char *buf = malloc(bs.buffer_size);
                 if (!buf) {
