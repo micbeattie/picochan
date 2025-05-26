@@ -136,4 +136,26 @@ struct pch_trdata_cus_call_callback {
         uint8_t         cbindex;
 };
 
+struct pch_trdata_dmachan {
+        pch_dmaid_t     dmaid;
+};
+
+struct pch_trdata_dmachan_memstate {
+        pch_dmaid_t     dmaid;
+        uint8_t         state;
+};
+
+struct pch_trdata_dmachan_segment {
+        uint32_t        addr;
+        uint32_t        count;
+        pch_dmaid_t     dmaid;
+};
+
+struct pch_trdata_dmachan_segment_memstate {
+        uint32_t        addr;
+        uint32_t        count;
+        pch_dmaid_t     dmaid;
+        uint8_t         state;
+};
+
 #endif
