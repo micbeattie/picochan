@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "picochan/trc_records.h"
+#include "picochan/txsm_state.h"
 #include "format.h"
 
 #define MAX_NUM_BUFFERS 64
@@ -216,7 +217,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CSS_TX_COMPLETE: {
                 struct pch_trdata_cu_byte *td = vd;
-                printf("CSS-side CU=%d handling tx complete while txsm state is ",
+                printf("CSS-side CU=%d handling tx complete while txsm is ",
                         td->cunum);
                 print_txpending_state(td->byte);
                 break;
@@ -228,6 +229,22 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 print_sid(td->sid);
                 printf(" received ");
                 print_packet(td->word, false);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_RX_DATA_COMPLETE: {
+                struct pch_trdata_sid_byte *td = vd;
+                printf("CSS rx data complete for ");
+                print_sid(td->sid);
+                printf(" with device status:%02x", td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_NOTIFY: {
+                struct pch_trdata_sid_byte *td = vd;
+                printf("CSS Notify for ");
+                print_sid(td->sid);
+                printf(" with device status:%02x", td->byte);
                 break;
         }
 
@@ -255,8 +272,13 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_TX_COMPLETE: {
                 struct pch_trdata_cus_tx_complete *td = vd;
-                printf("dev-side CU=%d handling tx complete for UA=%d while txsm state is ",
-                        td->cunum, td->uaopt);
+                if (td->txpstate == PCH_TXSM_FINISHED && td->uaopt != -1) {
+                        printf("dev-side CU=%d handling tx complete for UA=%d while txsm is ",
+                                td->cunum, td->uaopt);
+                } else {
+                        printf("dev-side CU=%d handling tx complete while txsm is ",
+                                td->cunum);
+                }
                 print_txpending_state(td->txpstate);
                 break;
         }
@@ -266,6 +288,13 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 printf("dev-side CU=%d UA=%d received ",
                         td->cunum, td->ua);
                 print_packet(td->word, true);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_RX_DATA_COMPLETE: {
+                struct pch_trdata_dev *td = vd;
+                printf("dev-side CU=%d UA=%d rx data complete",
+                        td->cunum, td->ua);
                 break;
         }
 
