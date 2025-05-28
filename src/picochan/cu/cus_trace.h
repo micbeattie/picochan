@@ -70,14 +70,14 @@ static inline void trace_call_callback(pch_trc_record_type_t rt, pch_cu_t *cu, p
                 }));
 }
 
-static inline void trace_cus_cu_irq(pch_trc_record_type_t rt, pch_cu_t *cu, uint8_t dmairqix, bool tx_irq_raised, bool rx_irq_raised) {
+static inline void trace_cus_cu_irq(pch_trc_record_type_t rt, pch_cu_t *cu, uint8_t dmairqix, uint8_t tx_irq_reason, uint8_t rx_irq_reason) {
         PCH_CUS_TRACE_COND(rt,
                 cu->traced, ((struct pch_trdata_cu_irq){
                         .cunum = cu->cunum,
                         .dmairqix = dmairqix,
-                        .tx_state = ((uint8_t)tx_irq_raised << 4)
+                        .tx_state = tx_irq_reason << 4
                                 | cu->tx_channel.mem_src_state,
-                        .rx_state = ((uint8_t)rx_irq_raised << 4)
+                        .rx_state = rx_irq_reason << 4
                                 | cu->rx_channel.mem_dst_state
                 }));
 }
