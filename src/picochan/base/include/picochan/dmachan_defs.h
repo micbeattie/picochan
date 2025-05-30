@@ -21,15 +21,27 @@ typedef enum __attribute__((packed)) dmachan_mem_dst_state {
         DMACHAN_MEM_DST_SRC_ZEROES
 } dmachan_mem_dst_state_t;
 
-// dmachan_irq_reason_t represents the reason(s) why a given DMA id
-// caused an interrupt for a given DMA IRQ number.
-// RAISED means there was a DMA engine completion causing the bit
-// for the DMA id to be set in register INTSn for that DMA IRQ index.
-// FORCED means the bit for the DMA id was explicitly set in register
-// INTFn for that DMA IRQ index, ignoring the value of the enable bit
-// in the corresponding INTEn register.
-typedef uint8_t dmachan_irq_reason_t;
+// dmachan_irq_state_t represents the state of a given DMA id
+// with respect to an interrupt for a given DMA IRQ number.
+// REASON_RAISED means either there was a DMA engine completion
+// causing the bit for the DMA id to be set in register INTSn for
+// that DMA IRQ index or, apparently, the INTFn forced bit was set
+// explicitly.
+// REASON_FORCED means the bit for the DMA id was explicitly set in
+// register INTFn for that DMA IRQ index, ignoring the value of the
+// enable bit in the corresponding INTEn register. It also seems to
+// cause the corresponding INTSn bit to be seen as 1 too so
+// REASON_RAISED will (always?) be set if REASON_FORCED is.
+// COMPLETE is the value of the link's complete field at the end of
+// the dmachan_handle_tx_irq and dmachan_handle_rx_irq functions:
+// it will be 1 if either the RAISED or FORCED conditions hold or if
+// the field was set explicitly beforehand as a way of causing
+// completion handling locally without an irq being triggered.
+typedef uint8_t dmachan_irq_state_t;
 #define DMACHAN_IRQ_REASON_RAISED       0x1
 #define DMACHAN_IRQ_REASON_FORCED       0x2
+#define DMACHAN_IRQ_COMPLETE            0x4
+
+#define DMACHAN_IRQ_REASON_MASK         0x3
 
 #endif

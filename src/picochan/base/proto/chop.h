@@ -27,13 +27,14 @@ typedef uint8_t proto_chop_flags_t;
 // and in CU -> CSS Data
 #define PROTO_CHOP_FLAG_SKIP    0x80
 
-// PROTO_CHOP_FLAG_END and PROTO_CHOP_FLAG_STOP are valid in
-// CSS -> CU Data
+// PROTO_CHOP_FLAG_END is valid in CSS <-> CU Data
 #define PROTO_CHOP_FLAG_END     0x40
+
+// PROTO_CHOP_FLAG_STOP is valid in CSS -> CU Data
 #define PROTO_CHOP_FLAG_STOP    0x80
 
 // PROTO_CHOP_FLAG_RESPONSE_REQUIRED is valid in CU -> CSS Data
-#define PROTO_CHOP_FLAG_RESPONSE_REQUIRED     0x40
+#define PROTO_CHOP_FLAG_RESPONSE_REQUIRED     0x20
 
 static inline proto_chop_flags_t proto_chop_flags(proto_chop_t c) {
         return (proto_chop_flags_t)(c & 0xf0);

@@ -36,12 +36,12 @@ static bool process_a_schib_waiting_for_tx(css_cu_t *cu) {
 
 static void css_handle_dma_irq_cu(css_cu_t *cu) {
         dmachan_tx_channel_t *tx = &cu->tx_channel;
-        dmachan_irq_reason_t tx_irq_reason = dmachan_handle_tx_irq(tx);
+        dmachan_irq_state_t tx_irq_state = dmachan_handle_tx_irq(tx);
         dmachan_rx_channel_t *rx = &cu->rx_channel;
-        dmachan_irq_reason_t rx_irq_reason = dmachan_handle_rx_irq(rx);
+        dmachan_irq_state_t rx_irq_state = dmachan_handle_rx_irq(rx);
 
         trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, CSS.dmairqix,
-                tx_irq_reason, rx_irq_reason);
+                tx_irq_state, rx_irq_state);
 
         dmachan_link_t *txl = &tx->link;
         dmachan_link_t *rxl = &rx->link;

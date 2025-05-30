@@ -29,8 +29,8 @@ void print_ccw(pch_ccw_t ccw) {
                 ccw.cmd, ccw.flags, ccw.count, ccw.addr);
 }
 
-void print_dma_irq_reason(uint8_t reason) {
-        switch (reason) {
+void print_dma_irq_state(uint8_t state) {
+        switch (state & DMACHAN_IRQ_REASON_MASK) {
         case 0:
                 printf("none");
                 break;
@@ -43,9 +43,15 @@ void print_dma_irq_reason(uint8_t reason) {
         case DMACHAN_IRQ_REASON_RAISED|DMACHAN_IRQ_REASON_FORCED:
                 printf("raised+forced");
                 break;
-        default:
-                printf("unknown:%02x", reason);
         }
+
+        if (state & DMACHAN_IRQ_COMPLETE)
+                printf("+complete");
+
+        uint8_t badflags = state
+                & ~(DMACHAN_IRQ_REASON_MASK|DMACHAN_IRQ_COMPLETE);
+        if (badflags)
+                printf("|unknown(%02x)", badflags);
 }
 
 void print_mem_src_state(dmachan_mem_src_state_t srcstate) {
@@ -161,10 +167,10 @@ void print_packet(uint32_t raw, bool from_css) {
                 if (flags & PROTO_CHOP_FLAG_SKIP)
                         printf("|Skip");
                 flags &= ~PROTO_CHOP_FLAG_SKIP;
+                if (flags & PROTO_CHOP_FLAG_END)
+                        printf("|End");
+                flags &= ~PROTO_CHOP_FLAG_END;
                 if (from_css) {
-                        if (flags & PROTO_CHOP_FLAG_END)
-                                printf("|End");
-                        flags &= ~PROTO_CHOP_FLAG_END;
                         if (flags & PROTO_CHOP_FLAG_STOP)
                                 printf("|Stop");
                         flags &= ~PROTO_CHOP_FLAG_STOP;

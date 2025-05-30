@@ -189,27 +189,32 @@ void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_
                 &rxl->cmd, count, true);
 }
 
-dmachan_irq_reason_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_channel_t *rx) {
+dmachan_irq_state_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_channel_t *rx) {
         dmachan_link_t *rxl = &rx->link;
+        uint32_t status = mem_peer_lock();
         bool rx_irq_raised = dmachan_link_irq_raised(rxl);
-        if (rx_irq_raised) {
-                dmachan_ack_link_irq(rxl);
-                rxl->complete = true;
-                // If memchan, propagate to peer tx channel
-                // (asymmetric: no corresponding tx -> rx trigger)
-                dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
-                if (txpeer)
-                        dmachan_set_link_irq_forced(&txpeer->link, true);
-        }
-
         bool rx_irq_forced = dmachan_get_link_irq_forced(rxl);
-        if (rx_irq_forced) {
-                dmachan_set_link_irq_forced(rxl, false);
+        if (rx_irq_raised) {
+                if (rx_irq_forced)
+                        dmachan_set_link_irq_forced(rxl, false);
+                else {
+                        // If memchan, propagate to peer tx channel
+                        // (asymmetric: no corresponding tx -> rx trigger)
+                        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+                        if (txpeer) {
+                                dmachan_set_link_irq_forced(&txpeer->link,
+                                        true);
+                        }
+                }
+
                 rxl->complete = true;
+                dmachan_ack_link_irq(rxl);
         }
 
         if (rxl->complete)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
 
-        return dmachan_make_irq_reason(rx_irq_raised, rx_irq_forced);
+        mem_peer_unlock(status);
+        return dmachan_make_irq_state(rx_irq_raised, rx_irq_forced,
+                rxl->complete);
 }

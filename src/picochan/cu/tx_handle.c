@@ -37,12 +37,14 @@ static void make_data_command(pch_cu_t *cu, pch_devib_t *devib) {
         assert(!pch_txsm_busy(&cu->tx_pending));
 
 	proto_chop_t op = devib->op;
-        // If no response packet required, arrange for callback
-        // immediately after tx of data
-	if (!(op & PROTO_CHOP_FLAG_RESPONSE_REQUIRED))
+        // If no response packet required and not a final auto-end
+        // send then arrange for callback immediately after tx of data
+	if (!(op & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
+                && !(op & PROTO_CHOP_FLAG_END)) {
 		cu->tx_callback_ua = (int16_t)ua;
-	 else
+        } else {
 		cu->tx_callback_ua = -1;
+        }
 
         // If the End flag is set then the data we're sending has an
         // implicit following UpdateStatus with a plain

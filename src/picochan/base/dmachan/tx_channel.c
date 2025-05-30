@@ -127,22 +127,21 @@ void __time_critical_func(dmachan_start_src_data)(dmachan_tx_channel_t *tx, uint
                 start_src_data_remote(tx, srcaddr, count);
 }
 
-dmachan_irq_reason_t __time_critical_func(dmachan_handle_tx_irq)(dmachan_tx_channel_t *tx) {
+dmachan_irq_state_t __time_critical_func(dmachan_handle_tx_irq)(dmachan_tx_channel_t *tx) {
         dmachan_link_t *txl = &tx->link;
+        uint32_t saved_irq = mem_peer_lock();
         bool tx_irq_raised = dmachan_link_irq_raised(txl);
-        if (tx_irq_raised) {
-                dmachan_ack_link_irq(txl);
-                txl->complete = true;
-        }
-
         bool tx_irq_forced = dmachan_get_link_irq_forced(txl);
-        if (tx_irq_forced) {
-                dmachan_set_link_irq_forced(txl, false);
+        if (tx_irq_raised || tx_irq_forced) {
                 txl->complete = true;
+                dmachan_set_link_irq_forced(txl, false);
+                dmachan_ack_link_irq(txl);
         }
 
         if (txl->complete)
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
 
-        return dmachan_make_irq_reason(tx_irq_raised, tx_irq_forced);
+        mem_peer_unlock(saved_irq);
+        return dmachan_make_irq_state(tx_irq_raised, tx_irq_forced,
+                txl->complete);
 }

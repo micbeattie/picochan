@@ -45,6 +45,7 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t
         cu->tx_head = -1;
         cu->tx_tail = -1;
         cu->dmairqix = dmairqix;
+        cu->corenum = -1;
         cu->num_devibs = num_devibs;
 
         for (int i = 0; i < num_devibs; i++) {
@@ -161,6 +162,7 @@ void pch_cus_cu_start(pch_cunum_t cunum) {
         if (cu->started)
                 return;
 
+        cu->corenum = (int8_t)get_core_num();
         cu->started = true;
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_STARTED,
                 ((struct pch_trdata_cu_byte){

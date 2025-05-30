@@ -194,13 +194,13 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 const char *side = (rt == PCH_TRC_RT_CSS_CU_IRQ) ?
                         "CSS-side" : "dev-side";
                 struct pch_trdata_cu_irq *td = vd;
-                printf("in IRQ for %s CU=%d with DMA_IRQ_%d tx:reason=",
+                printf("IRQ for %s CU=%d with DMA_IRQ_%d tx:irq_state=",
                        side, td->cunum, td->dmairqix);
-                print_dma_irq_reason(td->tx_state >> 4);
+                print_dma_irq_state(td->tx_state >> 4);
                 printf(",mem_src_state=");
                 print_mem_src_state(td->tx_state & 0xf);
-                printf(" rx:reason=");
-                print_dma_irq_reason(td->rx_state >> 4);
+                printf(" rx:irq_state=");
+                print_dma_irq_state(td->rx_state >> 4);
                 printf(",mem_dst_state=");
                 print_mem_dst_state(td->rx_state & 0xf);
                 break;

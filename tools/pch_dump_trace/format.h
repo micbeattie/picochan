@@ -14,7 +14,7 @@ void print_ccwaddr(uint32_t ccwaddr);
 void print_ccw(pch_ccw_t ccw);
 void print_mem_src_state(dmachan_mem_src_state_t srcstate);
 void print_mem_dst_state(dmachan_mem_dst_state_t dststate);
-void print_dma_irq_reason(uint8_t reason);
+void print_dma_irq_state(uint8_t state);
 void print_devib_callback(uint8_t cbindex, uint32_t cbaddr);
 void print_dma_irq_init(struct pch_trdata_cu_dma *td);
 void print_txpending_state(uint8_t txpstate);

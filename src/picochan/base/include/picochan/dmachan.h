@@ -193,9 +193,10 @@ typedef struct __aligned(4) dmachan_rx_channel {
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
 } dmachan_rx_channel_t;
 
-static inline dmachan_irq_reason_t dmachan_make_irq_reason(bool raised, bool forced) {
-        return ((dmachan_irq_reason_t)raised)
-                | ((dmachan_irq_reason_t)forced) << 1;
+static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool forced, bool complete) {
+        return ((dmachan_irq_state_t)raised)
+                | ((dmachan_irq_state_t)forced) << 1
+                | ((dmachan_irq_state_t)complete) << 2;
 }
 
 // tx channel irq and memory source state handling
@@ -207,7 +208,7 @@ static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_m
         tx->mem_src_state = new_state;
 }
 
-dmachan_irq_reason_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx);
+dmachan_irq_state_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx);
 
 // rx channel irq and memory destination state handling
 static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {
@@ -218,7 +219,7 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_m
         rx->mem_dst_state = new_state;
 }
 
-dmachan_irq_reason_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx);
+dmachan_irq_state_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx);
 
 void dmachan_panic_unless_memchan_initialised();
 
