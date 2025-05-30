@@ -26,8 +26,7 @@ void pch_cus_init() {
 // this function
 void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
         irq_num_t irqnum = dma_get_irq_num(dmairqix);
-        irq_add_shared_handler(irqnum, pch_cus_handle_dma_irq,
-                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+        irq_set_exclusive_handler(irqnum, pch_cus_handle_dma_irq);
         irq_set_enabled(irqnum, true);
         
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER,
