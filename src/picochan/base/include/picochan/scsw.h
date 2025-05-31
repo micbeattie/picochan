@@ -2,8 +2,8 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#ifndef _PCH_CSS_SCSW_H
-#define _PCH_CSS_SCSW_H
+#ifndef _PCH_API_SCSW_H
+#define _PCH_API_SCSW_H
 
 #include <stdint.h>
 #include <assert.h>
@@ -50,8 +50,6 @@
 #define PCH_SCHS_CHANNEL_CONTROL_CHECK           0x04
 #define PCH_SCHS_INTERFACE_CONTROL_CHECK         0x02
 #define PCH_SCHS_CHAINING_CHECK                  0x01
-
-typedef struct __attribute__((aligned(4))) pch_ccw pch_ccw_t;
 
 // pch_scsw_t is the Subchannel Status Word (SCSW) which must be
 // 4-byte aligned. When marshalling/unmarshalling an SCSW, unlike the

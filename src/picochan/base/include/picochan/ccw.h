@@ -2,8 +2,8 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
-#ifndef _PCH_API_H
-#define _PCH_API_H
+#ifndef _PCH_API_CCW_H
+#define _PCH_API_CCW_H
 
 #include <stdint.h>
 #include <assert.h>

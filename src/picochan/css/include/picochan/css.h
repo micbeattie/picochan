@@ -11,6 +11,7 @@
 #include "hardware/uart.h"
 #include "pico/time.h"
 #include "picochan/schib.h"
+#include "picochan/ccw.h"
 #include "picochan/intcode.h"
 #include "picochan/dmachan.h"
 

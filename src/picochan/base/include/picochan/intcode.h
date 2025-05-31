@@ -1,5 +1,7 @@
-#ifndef _PCH_CSS_INTCODE_H
-#define _PCH_CSS_INTCODE_H
+#ifndef _PCH_API_INTCODE_H
+#define _PCH_API_INTCODE_H
+
+#include "picochan/ids.h"
 
 // An I/O interruption code is returned from pch_test_pending_interruption.
 // (The original expansion of the acronym SID is
