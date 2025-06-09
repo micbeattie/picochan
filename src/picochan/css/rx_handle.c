@@ -20,11 +20,11 @@ static bool __time_critical_func(end_channel_program)(css_cu_t *cu, pch_schib_t 
 	}
 
 	// don't try command chaining if the CfCc flag isn't set or the
-	//  dev.Status is "unusual"
+	//  device status or subchannel status is "unusual"
 	uint8_t mask = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END
                 | PCH_DEVS_STATUS_MODIFIER;
         bool do_chain = ((get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_CC) != 0)
-                && ((devs & ~mask) == 0);
+                && ((devs & ~mask) == 0) && (schib->scsw.schs == 0);
 	if (!do_chain) {
                 schib->scsw.ctrl_flags |= PCH_SC_SECONDARY;
 		return true;
@@ -69,6 +69,12 @@ static void __time_critical_func(do_handle_update_status)(css_cu_t *cu, pch_schi
                 uint16_t unset = PCH_AC_SUBCHANNEL_ACTIVE
                                | PCH_FC_START;
                 schib->scsw.ctrl_flags &= ~unset;
+                if (schib->scsw.count) {
+                        // Count not exhausted at CE time
+                        pch_ccw_flags_t fl = get_stashed_ccw_flags(schib);
+                        if (!(fl & PCH_CCW_FLAG_SLI))
+                                schib->scsw.schs |= PCH_SCHS_INCORRECT_LENGTH;
+                }
                 if (devs & PCH_DEVS_DEVICE_END) {
                         // DeviceEnd: secondary status too
                         do_notify = end_channel_program(cu, schib,
@@ -257,11 +263,6 @@ static void __time_critical_func(handle_request_read)(css_cu_t *cu, pch_schib_t 
 		css_notify(schib, 0);
                 return;
         }
-
-	uint16_t rescount = schib->scsw.count;
-	// cap the requested count at the current segment size
-	if (count > rescount)
-		count = rescount;
 
 	// stash the requested count from the device in the schib where
 	// we can retrieve it if we need to defer the response because

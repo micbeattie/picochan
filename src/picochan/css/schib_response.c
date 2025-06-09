@@ -55,10 +55,27 @@ void __time_critical_func(send_command_with_data)(css_cu_t *cu, pch_schib_t *sch
 }
 
 void __time_critical_func(send_data_response)(css_cu_t *cu, pch_schib_t *schib) {
+        proto_chop_flags_t chopfl = 0;
         uint16_t count = schib->mda.devcount;
+
+        uint16_t rescount = schib->scsw.count;
+        // if the requested count exceeds the current segment size
+        // then cap the resulting data length but also the CCW SLI,
+        // CD and CC flags affect what we do
+        if (count > rescount) {
+                count = rescount;
+
+                pch_ccw_flags_t ccwfl = get_stashed_ccw_flags(schib);
+                if (!(ccwfl & PCH_CCW_FLAG_CD)) {
+                        chopfl = PROTO_CHOP_FLAG_STOP;
+                        if (!(ccwfl & PCH_CCW_FLAG_SLI))
+                                schib->scsw.schs |= PCH_SCHS_INCORRECT_LENGTH;
+                }
+        }
+
+        proto_chop_t chop = PROTO_CHOP_DATA | chopfl;
         pch_unit_addr_t ua = schib->pmcw.unit_addr;
-        proto_packet_t p = proto_make_count_packet(PROTO_CHOP_DATA,
-                ua, count);
+        proto_packet_t p = proto_make_count_packet(chop, ua, count);
 	send_command_with_data(cu, schib, p, count);
 }
 
