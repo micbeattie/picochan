@@ -5,9 +5,9 @@
 #include "css_internal.h"
 #include "css_trace.h"
 
-// CSS is a channel subsystem. It is intended to be a singleton and
-// is just a convenience for gathering together the global variables
-// associated with the CSS.
+//! CSS is a channel subsystem. It is intended to be a singleton and
+//! is just a convenience for gathering together the global variables
+//! associated with the CSS.
 struct css __not_in_flash("picochan_css") CSS;
 
 unsigned char pch_css_trace_buffer_space[PCH_TRC_NUM_BUFFERS * PCH_TRC_BUFFER_SIZE] __aligned(4);

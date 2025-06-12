@@ -1,0 +1,38 @@
+PROJECT_NAME            = "Picochan"
+PROJECT_BRIEF           = "Picochan documentation"
+PROJECT_NUMBER          = 0.0.1 
+
+STRIP_FROM_PATH        = /home/mbeattie/src/picochan/src/picochan
+
+INPUT                  =  /home/mbeattie/src/picochan/src/picochan
+
+FILE_PATTERNS          = *.h \
+                         *.cpp \
+                         *.c \
+                         *.S \
+                         *.s \
+                         *.md
+
+USE_MDFILE_AS_MAINPAGE = /home/mbeattie/src/picochan/src/picochan/docs/mainpage.md
+
+OPTIMIZE_OUTPUT_FOR_C = YES
+GENERATE_TREEVIEW      = YES
+GENERATE_LATEX = YES
+GENERATE_XML = YES
+GROUP_GRAPHS = NO
+
+OUTPUT_DIRECTORY       = /home/mbeattie/src/picochan/src/picochan/docs/doxygen
+RECURSIVE              = YES
+
+EXTRACT_STATIC         = YES
+EXTRACT_ALL            = NO
+ALWAYS_DETAILED_SEC    = NO
+
+ENABLE_PREPROCESSING   = YES
+MACRO_EXPANSION        = YES
+PREDEFINED             = __not_in_flash_func(x)= \
+                         __time_critical_func(x)= \
+                         __not_in_flash(x)= \
+                         __no_inline_not_in_flash(x)= \
+                         __attribute__(x)= \
+                         DOXYGEN_GENERATION=

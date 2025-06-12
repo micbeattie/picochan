@@ -51,22 +51,25 @@
 #define PCH_SCHS_INTERFACE_CONTROL_CHECK         0x02
 #define PCH_SCHS_CHAINING_CHECK                  0x01
 
-// pch_scsw_t is the Subchannel Status Word (SCSW) which must be
-// 4-byte aligned. When marshalling/unmarshalling an SCSW, unlike the
-// original architected SCSW which was implicitly big-endian, the
-// ccw_addr and count fields here are treated as native-endian and so
-// will be little-endian on both ARM and RISC-V (in Pico
-// configurations) and would also be so on x86, for example. The flags
-// fields are slightly rearranged from their original architected
-// positions and some have been dropped and one or two added.
-//
-// SCSW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |               | CC|P|I|U|Z| |N|W|  FC |     AC      |   SC    |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |                         CCW Address                           |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |      DEVS     |     SCHS      |     Residual Count            |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/*! pch_scsw_t is the Subchannel Status Word (SCSW) which must be
+ *  4-byte aligned. When marshalling/unmarshalling an SCSW, unlike the
+ *  original architected SCSW which was implicitly big-endian, the
+ *  ccw_addr and count fields here are treated as native-endian and so
+ *  will be little-endian on both ARM and RISC-V (in Pico
+ *  configurations) and would also be so on x86, for example. The flags
+ *  fields are slightly rearranged from their original architected
+ *  positions and some have been dropped and one or two added.
+ *
+\verbatim
+SCSW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |               | CC|P|I|U|Z| |N|W|  FC |     AC      |   SC    |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                         CCW Address                           |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |      DEVS     |     SCHS      |     Residual Count            |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\endverbatim
+ */
 typedef struct __attribute__((aligned(4))) pch_scsw {
     uint8_t     __unused_flags;
     uint8_t     user_flags;

@@ -9,31 +9,6 @@
 #include "picochan/pmcw.h"
 #include "picochan/scsw.h"
 
-// pch_schib_t is the Subchannel Information Block (SCHIB), formed
-// from the Path Management Control Word (PMCW),
-// Subchannel Status Word (SCSW) and Model Dependent Area (MDA).
-// Of these, the PMCW and SCSW are architected formats and the MDA
-// format is an internal implementation detail of the CSS.
-// PMCW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |                            Intparm                            |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |                     |T|E| ISC |      CUAddr   | UnitAddr      |
-// SCSW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |               | CC|P|I|U|Z| |N|W|  FC |     AC      |   SC    |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |                         CCW Address                           |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         | DEVS/ccwflags |     SCHS      |     Residual Count            |
-// MDA     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |                        data address                           |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |        reqcount/advcount      | prevua/ccwcmd |    nextua     |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |           prevsid             |           nextsid             |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-// DEVS only needs to be valid when SC.StatusPending is set.
-// Otherwise, we use the field to hold the current ccwflags.
-
 typedef struct pch_schib_mda {
         uint32_t        data_addr;
         uint16_t        devcount;
@@ -45,6 +20,33 @@ typedef struct pch_schib_mda {
 static_assert(sizeof(pch_schib_mda_t) == 12,
         "pch_schib_mda_t should be 12 bytes");
 
+/*! pch_schib_t is the Subchannel Information Block (SCHIB), formed
+ *  from the Path Management Control Word (PMCW),
+ *  Subchannel Status Word (SCSW) and Model Dependent Area (MDA).
+ *  Of these, the PMCW and SCSW are architected formats and the MDA
+ *  format is an internal implementation detail of the CSS.
+\verbatim
+PMCW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                            Intparm                            |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                     |T|E| ISC |      CUAddr   | UnitAddr      |
+SCSW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |               | CC|P|I|U|Z| |N|W|  FC |     AC      |   SC    |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                         CCW Address                           |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        | DEVS/ccwflags |     SCHS      |     Residual Count            |
+MDA     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                        data address                           |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |        reqcount/advcount      | prevua/ccwcmd |    nextua     |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |           prevsid             |           nextsid             |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\endverbatim
+ * DEVS only needs to be valid when SC.StatusPending is set.
+ * Otherwise, we use the field to hold the current ccwflags.
+ */
 typedef struct pch_schib {
         pch_pmcw_t      pmcw;
         pch_scsw_t      scsw;

@@ -34,10 +34,151 @@ enum {
 };
 
 // dev API with fully general arguments
+
+/*! \brief Set callback for device
+ *  \ingroup picochan_cu
+ *
+ * Sets, changes or unsets the callback function that the CU invokes
+ * when action is needed from the device.
+ * \param cu the CU to which the device belongs
+ * \param ua the unit address of the device within its CU
+ * \param cbindex_opt either a callback index (pch_devib_callback_t) of a
+ * callback function registered with pch_register_devib_callback or
+ * one of the following special values:
+ *  * PCH_DEVIB_CALLBACK_DEFAULT - any attempt by the CSS to start a
+ *  channel program for this device will result in the CU responding
+ *  on its behalf with a final device status (ChannelEnd|DeviceEnd)
+ *  with UnitCheck set and a sense code set with CommandReject with
+ *  additional code EINVALIDDEV. Any attempt to callback the device
+ *  at any other point in its lifecycle will result in the CU
+ *  responding on its behalf with a final device status
+ *  (ChannelEnd|DeviceEnd) with UnitCheck set and a sense code set
+ *  with ProtoError, an additional code of the requested operation
+ *  and ASC and ASCQ containing the bytes p0 and p1, respectively,
+ *  of the operation packet payload.
+ *  * PCH_DEVIB_CALLBACK_NOOP - any attempt to callback this device
+ *  will be silently ignored. For this to be at all useful, the device
+ *  must be specially written to determine any actions needed of it
+ *  independently of the usual CU-to-device communication mechanisms.
+ *  * -1 - the device callback is not changed
+ */
 int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
+
+/*! \brief Sends data to the CSS
+ * \ingroup picochan_cu
+ *
+ * This, and related variants, is the primary function used to send
+ * data to the CSS satisfying some or all of a CCW segment with a
+ * Read-type command. Before calling this function, the device must
+ * have verified that (1) the CSS is expecting data to be sent and
+ * (2) the amount of data it sends is no more than the maximum space
+ * advertised by the CSS. For (1),
+ * * the Start callback must have been called for the device and the
+ * device has not since sent an UpdateStatus including ChannelEnd
+ * * and the CCW command must have been Read-Type (the devib->flags
+ * field must have the PCH_DEVIB_FLAG_CMD_WRITE bit as zero).
+ *
+ * For (2), provided (1) holds, the devib->size field will have been
+ * filled in at Start time with a size that is no more than (and will
+ * typically be very close to) the size specified by the CCW segment
+ * itself. However, the size field is not affected by using this or
+ * related functions to send data to the CSS (and the field should
+ * not be updated in such a way by the device). Use the
+ * PROTO_CHOP_FLAG_RESPONSE_REQUIRED flag (see below) if up-to-date
+ * and/or exact size information is needed.
+ * \param flags - may contain the following flags:
+ * * PROTO_CHOP_FLAG_RESPONSE_REQUIRED -request that the CSS send an
+ * update (a Room operation) that causes the CU to update the
+ * devib->size field with up-to-date and exact information.
+ * * PROTO_CHOP_FLAG_END - after sending the data, the CSS will
+ * behave as though the device has sent a final device status with no
+ * unusual conditions (DeviceEnd|ChannelEnd and no other bits set).
+ * * PROTO_CHOP_FLAG_SKIP - instead of sending n data bytes down the
+ * channel, the CSS will behave as though n bytes of zeroes were
+ * sent. If this flag is set, srcaddr is ignored.
+ *
+ * \param srcaddr - the address of the data to be sent (ignored if
+ * flags contains PROTO_CHOP_FLAG_SKIP)
+ * \param n - the number of data bytes to send
+ * \param cbindex_opt - before sending, update the callback index
+ * in the devib (unless -1 is passed) ready for the next callback to
+ * the device. The event that will cause the next callback depends on
+ * the flags:
+ * * PROTO_CHOP_FLAG_RESPONSE_REQUIRED - the callback will happen
+ * after the CSS has replied with its Room operation and the CU has
+ * updated the devib->size field with an up-to-date and exact size.
+ * * PROTO_CHOP_FLAG_END - the next callback will be when the next
+ * CCW is processed causing a Start to the device (whether a CCW
+ * command-chained from the previous channel program or a new channel
+ * program - the difference is not visible to the device).
+ * * any other combination - the callback will happen as soon as the
+ * CU has completed sending the command+data to the CSS meaning that
+ * the device can invoke further API calls if it wishes. Whether any
+ * new API calls will cause commands to be sent to the CSS
+ * immediately depends on whether any other devices have commands
+ * that are being sent or are pending ahead of new requests from
+ * this device.
+ */
 int pch_dev_send_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+
+/*! \brief Sends zeroes to the CSS
+ *  \ingroup picochan_cu
+ *
+ * Convenience function that calls pch_dev_send_then with a flags
+ * field that ORs in PROTO_CHOP_FLAG_SKIP and an (ignored) srcaddr
+ * of 0.
+ */
 int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+
+/*! \brief Receive data from the CSS
+ *  \ingroup picochan_cu
+ *
+ * This, and related variants, is the primary function used to receive
+ * data from the CSS from the source address and count specified in a
+ * CCW segment with a Write-type command. Before calling this
+ * function, the device must have verified that the CSS is
+ * expecting to send data, i.e.
+ * * the Start callback must have been called for the device and the
+ * device has not since sent an UpdateStatus including ChannelEnd
+ * * and the CCW command must have been Write-Type (the devib->flags
+ * field must have the PCH_DEVIB_FLAG_CMD_WRITE bit set).
+ *
+ * If the device requests more data than the CCW segment contains
+ * then the amount of data sent to the device will be safely capped
+ * at the available amount but additional effects depend on flags
+ * set in the CCW and, possibly, the subchannel. A request by the
+ * device for more data than is available is an
+ * "Incorrect Length Condition" and, unless the channel program has
+ * included the PCH_CCW_FLAG_SLI ("Suppress Length Indication") flag
+ * in the CCW, will cause the channel program to stop any data
+ * chaining or command chaining and end (eventually) with a
+ * subchannel status field including the PCH_SCHS_INCORRECT_LENGTH
+ * flag. It is up to the device driver author to be aware of the
+ * effects the request counts may have on the channel program and,
+ * ideally, use them and document them in a way that allows the
+ * channel program author to construct channel programs that can
+ * make good use of the additional length checks or have them
+ * ignored where appropriate.
+ *
+ * The devib->size field will have been filled in at Start time with
+ * a size that is no more than (and will typically be very close to)
+ * the size specified by the CCW segment itself. Following a call to
+ * pch_dev_receive_then or its variants, the response from the CSS
+ * includes an exact up-to-date count of the remaining available
+ * room in the CCW segment and the CU updates the devib->size field
+ * with this value before invoking the next callback on the device.
+ * \param dstaddr - the address to receive the data sent by the CSS
+ * \param n - the number of data bytes requested - the number of
+ * bytes actually received will be at most n but may be
+ * strictly less.
+ * \param cbindex_opt - before sending, update the callback index
+ * in the devib (unless -1 is passed) ready for the next callback to
+ * the device, which will happen after the data has been received
+ * and the CU has updated the devib->size field with the
+ * remaining count of available data bytes.
+ */
 int pch_dev_receive_then(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt);
+
 int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
 
 // dev API convenience functions with some fixed arguments:

@@ -8,12 +8,16 @@
 #include <stdbool.h>
 #include "picochan/ids.h"
 
-// pch_pmcw_t is the Path Management Control World (PMCW).
-// PMCW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |               Interruption Parameter (Intparm)                |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//         |                     |T|E| ISC |      CUAddr   | UnitAddr      |
-//         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+/*! pch_pmcw_t is the Path Management Control World (PMCW).
+ *
+\verbatim
+PMCW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |               Interruption Parameter (Intparm)                |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        |                     |T|E| ISC |      CUAddr   | UnitAddr      |
+        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\endverbatim
+ */
 typedef struct pch_pmcw {
         uint32_t        intparm;
         uint16_t        flags;

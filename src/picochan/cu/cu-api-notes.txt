@@ -1,0 +1,107 @@
+# Types
+
+typedef struct pch_cu pch_cu_t;
+
+typedef uint8_t pch_cbindex_t;
+
+typedef struct pch_devib pch_devib_t;
+
+typedef void (*pch_devib_callback_t)(pch_cu_t *cu, pch_devib_t *devib);
+
+typedef struct pch_dev_sense pch_dev_sense_t;
+
+# Compile-time constants and definitions - examples:
+
+#define NUM_CUS 2
+
+## Debugging assertions:
+
+#define PARAM_ASSERTIONS_ENABLED_PCH_CUS 1
+#define PARAM_ASSERTIONS_ENABLED_PCH_DMACHAN 1
+#define PARAM_ASSERTIONS_ENABLED_PCH_TXSM 1
+
+# API
+
+## Initialisation of whole CU subsystem
+
+void pch_cus_init(void);
+
+bool pch_cus_set_trace(bool trace);
+
+void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
+
+pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
+
+## Initialisation of each CU
+
+void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs);
+
+bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace);
+
+void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+
+void pch_cus_cu_start(pch_cunum_t cunum);
+
+## Convenience API for device driver to its CU
+
+### Convenience API with fully general arguments
+
+int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
+int pch_dev_send_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+int pch_dev_receive_then(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
+
+### Convenience API with some fixed arguments
+
+* Omitting _then avoids setting devib callback by hardcoding -1
+as the cbindex_opt argument of the full _then function.
+
+* For send and send_zeroes family, the flags argument is set to
+    * PROTO_CHOP_FLAG_END for the _final variant,
+    * PROTO_CHOP_FLAG_RESPONSE_REQUIRED for the _respond variant
+    * 0 for the _norespond variant
+
+* For pch_dev_update_status_ok family, call the corresponding
+pch_dev_update_status_ function with DeviceEnd|ChannelEnd
+
+* For pch_dev_update_status_error family, set devib->sense to the
+sense argument then call the corresponding pch_dev_update_status_
+function with a device status of DeviceEnd|ChannelEnd|UnitCheck
+
+int pch_dev_send(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
+int pch_dev_send_final(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
+int pch_dev_send_final_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_respond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
+int pch_dev_send_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_norespond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
+int pch_dev_send_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags);
+int pch_dev_send_zeroes_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes_respond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
+int pch_dev_send_zeroes_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes_norespond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
+int pch_dev_receive(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
+int pch_dev_update_status_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, int cbindex_opt);
+int pch_dev_update_status(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs);
+int pch_dev_update_status_advert(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size);
+int pch_dev_update_status_ok_then(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
+int pch_dev_update_status_ok(pch_cu_t *cu, pch_unit_addr_t ua);
+int pch_dev_update_status_ok_advert(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_error_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, int cbindex_opt);
+int pch_dev_update_status_error_advert(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense);
+
+## Low-level API for device driver to its CU
+
+The Convenience API functions above use this low-level API and are
+more likely to be suitable instead of using these directly.
+
+static inline void pch_devib_prepare_callback(pch_devib_t *devib, pch_cbindex_t cbindex);
+static inline void pch_devib_prepare_count(pch_devib_t *devib, uint16_t count);
+static inline void pch_devib_prepare_write_data(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
+static inline void pch_devib_prepare_write_zeroes(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags);
+static inline void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr, uint16_t size);
+void pch_devib_prepare_update_status(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size);
+void pch_devib_send_or_queue_command(pch_cu_t *cu, pch_unit_addr_t ua);

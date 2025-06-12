@@ -17,6 +17,23 @@
 #include "picochan/dmachan.h"
 #include "txsm/txsm.h"
 
+/*! \file picochan/cu.h
+ *  \defgroup picochan_cu picochan_cu
+ *
+ * \brief Control Unit (CU)
+ * \ingroup picochan_cu
+ */
+
+/*!
+ * \def NUM_CUS
+ * \ingroup picochan_cu
+ * \hideinitializer
+ * \brief The number of control units
+ *
+ * Must be a compile-time constant between 1 and 256. Default 4.
+ * Defines the size of the global array of pch_cu_t structures
+ * running on this Pico.
+ */
 #ifndef NUM_CUS
 #define NUM_CUS 4
 #endif
@@ -90,22 +107,123 @@ static inline pch_cu_t *pch_get_cu(pch_cunum_t cunum) {
         return cu;
 }
 
+/*! \brief Initialise CU subsystem
+ *  \ingroup picochan_cu
+ *
+ * Must be called before any other CU function.
+ */
 void pch_cus_init(void);
+
+/*! \brief Sets whether CU subsystem tracing is enabled
+ * \ingroup picochan_cu
+ *
+ * If this flag is not set to be true then no CU trace records are
+ * written, regardless of any per-CU or per-device trace flags.
+ */
 bool pch_cus_set_trace(bool trace);
+
+/*! \brief Initialise CU subsystem DMA interrupt handling using this DMA IRQ index
+ * \ingroup picochan_cu
+ *
+ * Adds an IRQ handler and enables this DMA interrupt to be called on
+ * the core that calls this function. The CU subsystem uses this
+ * handler to drive its CU and device callback activity. If a CSS is
+ * to be used on the same Pico, it must be initialised on a different
+ * core, using a different DMA IRQ index.
+*/
 void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
 
 // CU initialisation and configuration
+
+/*! \brief Initialises CU cunum with up to num_devibs devices.
+ *  \ingroup picochan_cu
+ *
+ * \param cu Must be a pointer to enough space to hold the
+ * pch_cu_t structure including its flexible array that must
+ * itself have room for num_devibs pch_devib_t structures.
+ * \param dmairqix Must be a DMA IRQ index on which
+ * pch_cus_init_dma_irq_handler() has been invoked.
+ */
 void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs);
+
+/*! \brief Configure a UART control unit
+ * \ingroup picochan_cu
+ *
+ * Configure the hardware UART instance uart as a channel from
+ * CU cunum to the CSS. The UART must be connected to the CSS using
+ * the same baud rate as the CSS has configured and the hardware flow
+ * control pins, CTS and RTS MUST be enabled and connected between
+ * CU and CSS.
+ * ctrl should typically be a default dma_channel_config as returned
+ * from dma_channel_get_default_config(dmaid) invoked on any DMA id.
+ * Most bits in that dma_channel_config are overridden by the CU
+ * (including the CHAIN_TO which is why the dmaid above does not
+ * matter) but some applications may wish to set bits SNIFF_EN and
+ * HIGH_PRIORITY for their own purposes.
+ */
 void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+
+/*! \brief Configure a memchan control unit
+ * \ingroup picochan_cu
+ *
+ * A memchan control unit allows the CU to run on one core of a
+ * Pico while the CSS runs on the other core. Instead of using
+ * physical pins or connections between CU and CSS, picochan uses the
+ * DMA channels to copy memory-to-memory between CU and CSS and an
+ * internal state machine and cross-core synchronisation to mediate
+ * CU to CSS communications. txdmaid and rxdmaid must be two unused
+ * DMA ids, typically allocated using dma_claim_unused_channel().
+ * In order for the CU to find the CSS-side information to
+ * cross-connect the sides in memory, the CSS API function
+ * pch_css_cu_get_tx_channel() must be used to fetch the internal
+ * dmachan_tx_channel_t of the peer CSS for passing to
+ * pch_cus_memcu_configure.
+ */
 void pch_cus_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
+
+/*! \brief Starts the channel from CU cunum to the CSS
+ * \ingroup picochan_cu
+ *
+ * The CU must be already configured but not have been started.
+ * Marks the CU as started and starts the channel to the CSS,
+ * allowing it to receive commands from the CSS.
+ */
 void pch_cus_cu_start(pch_cunum_t cunum);
+
+/*! \brief Sets whether tracing is enabled for CU cunum
+ * \ingroup picochan_cu
+ *
+ * If this flag is not set to be true then no CU trace records are
+ * written for this CU and no device trace records, regardless
+ * of any per-device trace flags.
+ */
 bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace);
+
+/*! \brief Sets whether tracing is enabled for device
+ * \ingroup picochan_cu
+ *
+ * If this flag is set to true and the trace flag is set for the
+ * CU subsystem as a whole (with pch_cus_set_trace) and the trace
+ * flag is set for CU cnum (with pch_cus_trace_cu) then device
+ * trace records are written for the device with unit address ua
+ * on this CU.
+ */
 bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace);
 
 // CU initialisation low-level helpers
 void pch_cus_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
 void pch_cus_cu_set_configured(pch_cunum_t cunum, bool configured);
+
+/*! \brief Fetch the internal tx side of a channel from CU to CSS
+ * \ingroup picochan_cu
+ *
+ * This function is only needed when configuring a memchan between
+ * a CU and the CSS on different cores of a single Pico. The CSS
+ * initialisation procedure uses this function to find its peer
+ * CU structure in order to cross-connect the channels.
+ */
 dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cunum_t cunum);
+
 dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum);
 
 void __isr pch_cus_handle_dma_irq(void);
