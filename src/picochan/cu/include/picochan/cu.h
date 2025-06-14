@@ -48,39 +48,72 @@ static_assert(NUM_DEVIBS >= 1 && NUM_DEVIBS <= 256,
 
 #define PCH_CUS_BUFFERSET_MAGIC 0x70437553
 
+/*! \brief pch_cu_t is a Control Unit (CU)
+ *  \ingroup picochan_cu
+ *
+ * The struct starts with a fixed-size metadata section with state
+ * and communication information about its devices and channel to
+ * the CSS. Immediately following that is an array of pch_devib_t
+ * structures, one for each device on the CU. The size of that
+ * array is held in the num_devibs field of the pch_cu_t which is
+ * set at the time pch_cus_cu_init is called and cannot be changed
+ * afterwards. The allocation of memory for a pch_cu_t, whether
+ * static or dynamic, is the responsibility of the application
+ * before calling pch_cus_cu_init.
+ */
 typedef struct __aligned(4) pch_cu {
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;
         pch_txsm_t              tx_pending;
         pch_cunum_t             cunum;
-	// tx_callback_ua: when tx_pending in use, the ua to callback or -1
+	//! when tx_pending in use, the ua to callback or -1
 	int16_t                 tx_callback_ua;
-	// rx_active: active ua for rx data to dev or -1 if none
+	//! active ua for rx data to dev or -1 if none
 	int16_t                 rx_active;
-	// tx_head: head (active) ua on tx side or -1 if none
+	//! head (active) ua on tx side or -1 if none
 	int16_t                 tx_head;
-	// tx_tail: tail ua on tx side pending list of -1 if none
+	//! tail ua on tx side pending list of -1 if none
 	int16_t                 tx_tail;
-	// dmairqix: completions raise irq dma.IRQ_BASE+dmairqix
+	//! completions raise irq dma.IRQ_BASE+dmairqix
 	uint8_t                 dmairqix;
-        // corenum: set to current core at start, verified at irq time
+        //! set to current core at start, verified at irq time
         int8_t                  corenum;
 	bool                    traced;
 	bool                    configured;
 	bool                    started;
-        uint16_t                num_devibs; // [0, 256]
+        uint16_t                num_devibs; //!< [0, 256]
+        //! Flexible Array Member (FAM) of size num_devibs
 	pch_devib_t             devibs[];
 } pch_cu_t;
 
-// PCH_CU_INIT relies on a non-standard C extension (supported by gcc)
-// to initialise a pch_cu_t that includes the space for its devibs
-// array (a Flexible Array Member) at the end of ths struct.
+/*! \def PCH_CU_INIT
+ *  \ingroup picochan_cu
+ *  \hideinitializer
+ *  \brief a compile-time initialiser for a pch_cu_t
+ *
+ * PCH_CU_INIT relies on a non-standard C extension (supported by gcc)
+ * to initialise a pch_cu_t that includes the space for its devibs
+ * array (a Flexible Array Member) at the end of ths struct.
+ */
 #define PCH_CU_INIT(num_devibs) {.devibs = { [num_devibs-1] = {0} }}
 
+/*! \brief Look up the pch_devib_t of a device from its CU and unit address
+ *  \ingroup picochan_cu
+ *
+ * This is a direct array member dereference into the devibs array
+ * in the CU. There is no checking that ua is in range.
+ */
 static inline pch_devib_t *pch_get_devib(pch_cu_t *cu, pch_unit_addr_t ua) {
         return &cu->devibs[ua];
 }
 
+/*! \brief Look up the unit address of a device from its CU and devib
+ *  \ingroup picochan_cu
+ *
+ * This is address arithmetic based on the knowledge that the devib
+ * pointer lies within the fixed array of pch_devib_t structs within
+ * the pch_cu_t structure.
+ */
 static inline pch_unit_addr_t pch_get_ua(pch_cu_t *cu, pch_devib_t *devib) {
         valid_params_if(PCH_CUS,
                 devib >= &cu->devibs[0]
@@ -94,12 +127,15 @@ static inline bool cu_or_devib_is_traced(pch_cu_t *cu, pch_devib_t *devib) {
 
 int16_t push_tx_list(pch_cu_t *cu, pch_unit_addr_t ua);
 
-//
-// Global array of CUs
-//
-
 extern pch_cu_t *pch_cus[NUM_CUS];
 
+/*! \brief Get the CU for a given control unit number
+ *  \ingroup picochan_cu
+ *
+ * For a Debug build, asserts when cunum exceeds the
+ * (compile-time defined) number of CUs, NUM_CUS, or if
+ * the CU has not been initialised with pch_cus_cu_init.
+ */
 static inline pch_cu_t *pch_get_cu(pch_cunum_t cunum) {
         valid_params_if(PCH_CUS, cunum < NUM_CUS);
         pch_cu_t *cu = pch_cus[cunum];

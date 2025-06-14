@@ -2,6 +2,19 @@
  * Copyright (c) 2025 Malcolm Beattie
  */
 
+/*! \file picochan/dev_status.h
+ *  \ingroup picochan_cu
+ *
+ * \brief Device status bit values
+ *
+ * The device status is an 8-bit architected value that is sent from
+ * a device (via its CU) to the CSS at the end of (and sometimes
+ * during) the device's execution of a CCW. The device status sent
+ * by the device is never modified by the CU or CSS but its bits
+ * drive the CSS logic for how to progress/end the channel program
+ * and the final device status of a channel program is visible to
+ * the application in the SCSW part of the architected schib.
+ */ 
 #ifndef _PCH_DEV_STATUS_H
 #define _PCH_DEV_STATUS_H
 

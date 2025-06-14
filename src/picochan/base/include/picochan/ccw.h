@@ -8,6 +8,15 @@
 #include <stdint.h>
 #include <assert.h>
 
+/*! \file picochan/ccw.h
+ *  \ingroup picochan_base
+ *
+ * \brief Channel-Command Word (CCW)
+ */
+
+/*! \brief the flags of a CCW
+ *  \ingroup picochan_base
+ */
 typedef uint8_t pch_ccw_flags_t;
 
 // pch_ccw_flags_t: CCW flags
@@ -28,20 +37,24 @@ typedef uint8_t pch_ccw_flags_t;
 // MIDA: Modified Indirect Data Address (not used in Picochan)
 #define PCH_CCW_FLAG_MIDA       0x01
 
-// pch_ccw is an I/O Command Control Word (CCW). It is an architected
-// 8-byte control block that must be 4-byte aligned. When
-// marshalling/unmarshalling a CCW, unlike the original architected
-// Format-1 CCW which was implicitly big-endian, the count and addr
-// fields here are treated as native-endian and so will be
-// little-endian on both ARM and RISC-V (in Pico configurations) and
-// would also be so on x86, for example.
-//
-// CCW +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//     |      cmd      |     flags     |           count               |
-//     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-//     |                        data address                           |
-//     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
+/*! \brief I/O Channel-Command Word (CCW)
+ *  \ingroup picochan_base
+ *
+ * pch_ccw_t is an architected 8-byte control block that must be
+ * 4-byte aligned. When marshalling/unmarshalling a CCW, unlike the
+ * original architected Format-1 CCW which was implicitly big-endian,
+ * the count and addr fields here are treated as native-endian and so
+ * will be little-endian on both ARM and RISC-V (in Pico
+ * configurations) and would also be so on x86, for example.
+ *
+\verbatim
+CCW +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |      cmd      |     flags     |           count               |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    |                        data address                           |
+    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+\endverbatim
+ */
 typedef struct __attribute__((aligned(4))) pch_ccw {
 	uint8_t         cmd;
 	pch_ccw_flags_t flags;

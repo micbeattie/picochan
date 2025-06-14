@@ -8,13 +8,43 @@
 #include <stdbool.h>
 #include "picochan/ids.h"
 
-/*! pch_pmcw_t is the Path Management Control World (PMCW).
+/*! \file picochan/pmcw.h
+ *  \ingroup picochan_css
  *
+ * \brief The Path Management Control World (PMCW)
+ */
+
+/*! pch_pmcw_t is the Path Management Control World (PMCW)
+ *
+ * This is an architected part of the schib. It contains
+ * * the addressing information for the CSS to communicate with the
+ * device on its CU (see below)
+ * * An Interruption Parameter (intparm) - a 32-bit value which is
+ * not modified by the CSS and can be used by the application for
+ * any purpose
+ * * An Interrupt Service Class (ISC) so that groups of subchannels
+ * can be masked/unmasked together from delivering I/O interruptions
+ * * The flag which indicates that the subchannel is enabled and can
+ * thus run channel programs
+ * * A "trace" flag to indicate whether events for this subchannel
+ * can cause trace records to be written
+ *
+ * Although for a mainframe channel subsystem, the addressing
+ * information in the PMCW contains 8 x 8-bit channel path id numbers
+ * referencing one or more channels that can reach the control unit,
+ * for picochan, the addressing information is simply a control unit
+ * number and the unit address of the device on that CU.
+ *
+ * The addressing information (cu_number and unit_addr) must be set
+ * by the appliction (by using pch_css_modify or its variants)
+ * before or at the same time as the Enabled flag is set in order for
+ * attempts to start channel programs on this subchannel to be able
+ * to reach the CU and its device.
 \verbatim
 PMCW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         |               Interruption Parameter (Intparm)                |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        |                     |T|E| ISC |      CUAddr   | UnitAddr      |
+        |                     |T|E| ISC |      CUNum    | UnitAddr      |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 \endverbatim
  */

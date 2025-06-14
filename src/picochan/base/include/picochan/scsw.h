@@ -8,6 +8,12 @@
 #include <stdint.h>
 #include <assert.h>
 
+/*! \file picochan/scsw.h
+ *  \defgroup picochan_base picochan_base
+ *
+ * \brief The subchannel-status word (SCSW)
+ */
+
 #define PCH_SF_CC_MASK  0xc0
 #define PCH_SF_CC_SHIFT 6
 #define PCH_SF_P        0x20

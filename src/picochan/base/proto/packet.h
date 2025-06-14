@@ -11,12 +11,21 @@
 #include "picochan/ids.h"
 #include "picochan/bsize.h"
 
-// proto_packet_t is a 4-byte command packet sent on a channel between
-// CSS and CU or vice versa. Various parts of this implementation are
-// tuned for and rely on the size being exactly 4 bytes. Note that the
-// ARM ABI specifies that a return value of a composite type of up to
-// 4 bytes (such as proto_packet_t) is passed in R0, thus behaving the
-// same way as a 32-bit return value.
+/*! \file proto/packet.h
+ *  \defgroup internal_proto internal_proto
+ *
+ * \brief The internal protocol between CSS and CU
+ */
+
+/*! \brief a 4-byte command packet sent on a channel between CSS and CU or vice versa
+ *  \ingroup picochan_proto
+ *
+ * Various parts of this implementation are tuned for and rely on the
+ * size being exactly 4 bytes. Note that the ARM ABI specifies that a
+ * return value of a composite type of up to 4 bytes (such as
+ * proto_packet_t) is passed in R0, thus behaving the same way as a
+ * 32-bit return value.
+ */
 typedef struct __attribute__((aligned(4))) proto_packet {
         proto_chop_t    chop;
         pch_unit_addr_t unit_addr;

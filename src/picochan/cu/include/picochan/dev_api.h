@@ -7,6 +7,15 @@
 
 #include "picochan/devib.h"
 
+/*! \file picochan/dev_api.h
+ *  \ingroup picochan_cu
+ *
+ * \brief The main API for a device on a CU
+ *
+ * These provide a slightly higher-level API by wrapping the
+ * low-level pch_devib_ API functions.
+ */
+
 // Main API for dev implementation, slightly higher level than
 // devib ones. They return negative error values on error
 // (e.g. -EINVAL). They do various parameter checks and return

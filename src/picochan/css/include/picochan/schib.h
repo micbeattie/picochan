@@ -9,6 +9,18 @@
 #include "picochan/pmcw.h"
 #include "picochan/scsw.h"
 
+/*! \file picochan/schib.h
+ *  \ingroup picochan_base
+ *
+ * \brief The Subchannel Information Block (SCHIB)
+ */
+
+/*! \brief The Model Dependent Area (MDA) of a schib.
+ *
+ * Although this structure is part of the schib, pch_schib_t,
+ * and thus is visible to applications, the contents are for
+ * internal use by the CSS.
+ */
 typedef struct pch_schib_mda {
         uint32_t        data_addr;
         uint16_t        devcount;

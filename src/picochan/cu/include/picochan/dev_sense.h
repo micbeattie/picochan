@@ -5,6 +5,15 @@
 #ifndef _PCH_CU_DEV_SENSE_H
 #define _PCH_CU_DEV_SENSE_H
 
+/*! \file picochan/dev_sense.h
+ *  \ingroup picochan_base
+ *
+ * \brief Device sense
+ */
+
+/*! \brief The device sense structure by which a device can communicate additional error information on request by the CSS
+ *  \ingroup picochan_base
+ */
 typedef struct __attribute__((__packed__,__aligned__(4))) pch_dev_sense {
         uint8_t flags;
         uint8_t code;

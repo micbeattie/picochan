@@ -18,6 +18,7 @@ USE_MDFILE_AS_MAINPAGE = /home/mbeattie/src/picochan/src/picochan/docs/mainpage.
 OPTIMIZE_OUTPUT_FOR_C = YES
 GENERATE_TREEVIEW      = YES
 GENERATE_LATEX = YES
+USE_PDFLATEX = YES
 GENERATE_XML = YES
 GROUP_GRAPHS = NO
 
@@ -35,4 +36,5 @@ PREDEFINED             = __not_in_flash_func(x)= \
                          __not_in_flash(x)= \
                          __no_inline_not_in_flash(x)= \
                          __attribute__(x)= \
+                         __aligned(x)= \
                          DOXYGEN_GENERATION=

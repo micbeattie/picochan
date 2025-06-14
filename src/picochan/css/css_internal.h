@@ -22,18 +22,26 @@
 #include "picochan/dmachan.h"
 #include "trc/trace.h"
 
-// struct css is a channel subsystem (CSS). It is intended to be a
-// singleton and is just a convenience for gathering together the
-// global variables associated with the CSS.
+/*! \file css/css_internal.h
+ *  \defgroup internal_css internal_css
+ *
+ * \brief internal CSS implementations
+ */
+
+/*! \brief struct css is a channel subsystem (CSS)
+ *
+ * It is intended to be a singleton and is just a convenience for
+ * gathering together the global variables associated with the CSS.
+ */
 struct css {
         schib_dlist_t   isc_dlists[PCH_NUM_ISCS]; // indexed by ISC
         io_callback_t   io_callback;
-        int16_t         io_irqnum;   // -1 or Irq raised for schib notify
-        int16_t         func_irqnum; // raised by API to schedule schib function
+        int16_t         io_irqnum;   //!< -1 or Irq raised for schib notify
+        int16_t         func_irqnum; //!< raised by API to schedule schib function
         uint8_t         isc_enable_mask;
         uint8_t         isc_status_mask;
-        int8_t          dmairqix; // completions raise irq dma.IRQ_BASE+dmairqix
-        pch_sid_t       next_sid;
+        int8_t          dmairqix; //!< completions raise irq dma.IRQ_BASE+dmairqix
+        pch_sid_t       next_sid; //!< starting SID for next css_cu_claim
         pch_trc_bufferset_t trace_bs;
         css_cu_t        cus[PCH_NUM_CSS_CUS];
         pch_schib_t     schibs[PCH_NUM_SCHIBS];
