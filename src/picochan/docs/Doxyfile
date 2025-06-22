@@ -1,6 +1,6 @@
 PROJECT_NAME            = "Picochan"
 PROJECT_BRIEF           = "Picochan documentation"
-PROJECT_NUMBER          = 0.0.1 
+PROJECT_NUMBER          = 0.1
 
 STRIP_FROM_PATH        = /home/mbeattie/src/picochan/src/picochan
 
