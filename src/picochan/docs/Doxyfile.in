@@ -2,9 +2,9 @@ PROJECT_NAME            = "Picochan"
 PROJECT_BRIEF           = "Picochan documentation"
 PROJECT_NUMBER          = 0.1
 
-STRIP_FROM_PATH        = /home/mbeattie/src/picochan/src/picochan
+STRIP_FROM_PATH        = @PICOCHAN_SOURCE_DIR@
 
-INPUT                  =  /home/mbeattie/src/picochan/src/picochan
+INPUT                  =  @PICOCHAN_SOURCE_DIR@
 
 FILE_PATTERNS          = *.h \
                          *.cpp \
@@ -13,7 +13,7 @@ FILE_PATTERNS          = *.h \
                          *.s \
                          *.md
 
-USE_MDFILE_AS_MAINPAGE = /home/mbeattie/src/picochan/src/picochan/docs/mainpage.md
+USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/mainpage.md
 
 OPTIMIZE_OUTPUT_FOR_C = YES
 GENERATE_TREEVIEW = YES
@@ -23,7 +23,7 @@ PDF_HYPERLINKS = YES
 GENERATE_XML = YES
 GROUP_GRAPHS = NO
 
-OUTPUT_DIRECTORY       = /home/mbeattie/src/picochan/src/picochan/docs/doxygen
+OUTPUT_DIRECTORY       = @DOXY_OUTPUT_DIR@
 RECURSIVE              = YES
 
 EXTRACT_STATIC         = YES
