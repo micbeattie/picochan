@@ -95,10 +95,12 @@ int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
  * not be updated in such a way by the device). Use the
  * PROTO_CHOP_FLAG_RESPONSE_REQUIRED flag (see below) if up-to-date
  * and/or exact size information is needed.
+ * \param cu - the control unit
+ * \param ua - the unit address of the device in control unit `cu`
  * \param flags - may contain the following flags:
  * * PROTO_CHOP_FLAG_RESPONSE_REQUIRED -request that the CSS send an
  * update (a Room operation) that causes the CU to update the
- * devib->size field with up-to-date and exact information.
+ * `devib->size` field with up-to-date and exact information.
  * * PROTO_CHOP_FLAG_END - after sending the data, the CSS will
  * behave as though the device has sent a final device status with no
  * unusual conditions (DeviceEnd|ChannelEnd and no other bits set).
@@ -115,7 +117,7 @@ int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
  * the flags:
  * * PROTO_CHOP_FLAG_RESPONSE_REQUIRED - the callback will happen
  * after the CSS has replied with its Room operation and the CU has
- * updated the devib->size field with an up-to-date and exact size.
+ * updated the `devib->size` field with an up-to-date and exact size.
  * * PROTO_CHOP_FLAG_END - the next callback will be when the next
  * CCW is processed causing a Start to the device (whether a CCW
  * command-chained from the previous channel program or a new channel
@@ -169,21 +171,23 @@ int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto
  * make good use of the additional length checks or have them
  * ignored where appropriate.
  *
- * The devib->size field will have been filled in at Start time with
+ * The `devib->size` field will have been filled in at Start time with
  * a size that is no more than (and will typically be very close to)
  * the size specified by the CCW segment itself. Following a call to
- * pch_dev_receive_then or its variants, the response from the CSS
+ * `pch_dev_receive_then()` or its variants, the response from the CSS
  * includes an exact up-to-date count of the remaining available
- * room in the CCW segment and the CU updates the devib->size field
+ * room in the CCW segment and the CU updates the `devib->size` field
  * with this value before invoking the next callback on the device.
+ * \param cu - the control unit
+ * \param ua - the unit address of the device in control unit `cu`
  * \param dstaddr - the address to receive the data sent by the CSS
- * \param n - the number of data bytes requested - the number of
- * bytes actually received will be at most n but may be
+ * \param size - the number of data bytes requested - the number of
+ * bytes actually received will be at most `n` but may be
  * strictly less.
  * \param cbindex_opt - before sending, update the callback index
  * in the devib (unless -1 is passed) ready for the next callback to
  * the device, which will happen after the data has been received
- * and the CU has updated the devib->size field with the
+ * and the CU has updated the `devib->size` field with the
  * remaining count of available data bytes.
  */
 int pch_dev_receive_then(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt);

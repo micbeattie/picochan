@@ -7,11 +7,10 @@
  *  \defgroup picochan_base picochan_base
  *
  * \brief The I/O interruption code
+ *
  */
 
-/*! \brief An I/O interruption code
- *
- * An I/O interruption code is returned from
+/*! pch_intcode_t is the I/O interruption code which is returned from
  * pch_test_pending_interruption.
  *
  * The original expansion of the acronym SID is

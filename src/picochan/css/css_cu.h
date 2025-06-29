@@ -11,6 +11,12 @@
 #include "txsm/txsm.h"
 #include "proto/packet.h"
 
+/*! \file css/css_cu.h
+ *  \defgroup internal_css internal_css
+ *
+ * \brief The CSS-side representation of a Control Unit
+ */
+
 // ua_dlist_t is the head of a circular double-linked list of schibs
 // which all belong to the same CU, linked by the prevua/nextua
 // fields of schib.mda. It is the unit_addr_t of the head of the list
@@ -26,6 +32,13 @@ typedef struct ua_slist {
         int16_t tail;
 } ua_slist_t;
 
+/*! \brief css_cu_t is the CSS-side representation of a Control Unit
+ * \ingroup internal_css
+ *
+ * The application API usually refers to these by a control unit
+ * number which indexes into the global array CSS.cus and so does
+ * not really need to care about the details of this struct.
+ */
 typedef struct __aligned(4) css_cu {
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;

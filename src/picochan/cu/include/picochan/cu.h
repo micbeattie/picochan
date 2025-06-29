@@ -21,7 +21,6 @@
  *  \defgroup picochan_cu picochan_cu
  *
  * \brief Control Unit (CU)
- * \ingroup picochan_cu
  */
 
 /*!
@@ -177,8 +176,10 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
  * \param cu Must be a pointer to enough space to hold the
  * pch_cu_t structure including its flexible array that must
  * itself have room for num_devibs pch_devib_t structures.
+ * \param cunum control unit number to initialise
  * \param dmairqix Must be a DMA IRQ index on which
  * pch_cus_init_dma_irq_handler() has been invoked.
+ * \param num_devibs The number of devices to initialise
  */
 void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs);
 

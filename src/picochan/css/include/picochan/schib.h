@@ -32,8 +32,10 @@ typedef struct pch_schib_mda {
 static_assert(sizeof(pch_schib_mda_t) == 12,
         "pch_schib_mda_t should be 12 bytes");
 
-/*! pch_schib_t is the Subchannel Information Block (SCHIB), formed
- *  from the Path Management Control Word (PMCW),
+/*! \brief pch_schib_t is the Subchannel Information Block (SCHIB)
+ *  \ingroup picochan_base
+ *
+ *  The SCHIB is formed from the Path Management Control Word (PMCW),
  *  Subchannel Status Word (SCSW) and Model Dependent Area (MDA).
  *  Of these, the PMCW and SCSW are architected formats and the MDA
  *  format is an internal implementation detail of the CSS.

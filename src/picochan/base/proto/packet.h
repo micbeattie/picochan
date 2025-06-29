@@ -18,7 +18,7 @@
  */
 
 /*! \brief a 4-byte command packet sent on a channel between CSS and CU or vice versa
- *  \ingroup picochan_proto
+ *  \ingroup internal_proto
  *
  * Various parts of this implementation are tuned for and rely on the
  * size being exactly 4 bytes. Note that the ARM ABI specifies that a

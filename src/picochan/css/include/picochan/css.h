@@ -19,7 +19,6 @@
  *  \defgroup picochan_css picochan_css
  *
  * \brief Channel Subsystem (CSS)
- * \ingroup picochan_css
  */
 
 /*!
@@ -72,8 +71,6 @@ static_assert(PCH_NUM_ISCS >= 1 && PCH_NUM_ISCS <= 8,
         "PCH_NUM_ISCS must be between 1 and 8");
 
 #define PCH_CSS_BUFFERSET_MAGIC 0x70437353
-
-typedef struct pch_schib pch_schib_t;
 
 /*! \brief A callback function to be invoked when a subchannel becomes status pending
  * \ingroup picochan_css
