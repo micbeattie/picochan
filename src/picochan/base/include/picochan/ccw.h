@@ -70,6 +70,10 @@ static_assert(sizeof(pch_ccw_t) == 8, "architected pch_ccw_t is 8 bytes");
 // ReadBackward/Sense/Test/Write via various low-bit groups.
 
 #define PCH_CCW_CMD_FIRST_RESERVED 0xf0
+// WRITE
+#define PCH_CCW_CMD_WRITE       0x01
+// READ
+#define PCH_CCW_CMD_READ        0x02
 // TIC: Transfer In Channel
 #define PCH_CCW_CMD_TIC         0xf0
 // SENSE: Read Sense data from devib
