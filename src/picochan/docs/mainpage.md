@@ -91,6 +91,20 @@ For which modules to use for which purposes and how to use CMake
 to compile your application and/or device driver programs, see
 [Compiling](@ref compiling_page).
 
+## [Tracing](@ref tracing_page)
+
+Picochan can be configured to write trace records for events
+happening in the CSS and CUs to help debugging of applications,
+device drivers and Picochan itself. Trace records are small
+binary records written with low-overhead (although compiled out
+by default) to in-memory ring buffers (e.g. 2 x 1KB). Offloading
+trace buffers can be done easily even with no application
+support if, e.g., SWD access is available (via openocd or gdb)
+and a Picochan-supplied `pch_dump_trace` program (a small C
+program intended to be compiled and run off-platform) parses and
+displays human-readable output of what each event represents.
+See [Tracing](@ref tracing_page).
+
 ## [Design](@ref design_page)
 
 There is a [brief summary](@ref design_page) of the design of
