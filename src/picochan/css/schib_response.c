@@ -84,7 +84,7 @@ void __time_critical_func(send_update_room)(css_cu_t *cu, pch_schib_t *schib) {
 
 	proto_chop_t op = PROTO_CHOP_ROOM;
         if (schib->scsw.schs != 0)
-		op |= PROTO_CHOP_FLAG_RESPONSE_REQUIRED;
+		op |= PROTO_CHOP_FLAG_STOP;
 
         pch_unit_addr_t ua = schib->pmcw.unit_addr;
 	proto_packet_t p = proto_make_count_packet(op, ua,
