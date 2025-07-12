@@ -18,7 +18,7 @@
 // be the bsize encoding of Size so the actual window that the CSS
 // may use will be less than Size if Size is not one of the sizes
 // that bsize.Encode can encode exactly.
-void __time_critical_func(pch_devib_prepare_update_status)(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size) {
+void __no_inline_not_in_flash_func(pch_devib_prepare_update_status)(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size) {
         // If the channel program has started, require ChannelEnd to
         // be in devs, otherwise require it *not* to be in devs.
         assert((devib->flags & PCH_DEVIB_FLAG_STARTED)
@@ -36,7 +36,7 @@ void __time_critical_func(pch_devib_prepare_update_status)(pch_devib_t *devib, u
 	devib->payload = proto_make_devstatus_payload(devs, esize);
 }
 
-void __time_critical_func(pch_devib_send_or_queue_command)(pch_cu_t *cu, pch_unit_addr_t ua) {
+void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_cu_t *cu, pch_unit_addr_t ua) {
         int16_t tx_tail = push_tx_list(cu, ua);
 	if (tx_tail == -1) {
 		// List was empty
@@ -80,7 +80,7 @@ int __time_critical_func(pch_dev_set_callback)(pch_cu_t *cu, pch_unit_addr_t ua,
         return set_callback(devib, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
+int __no_inline_not_in_flash_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
@@ -136,7 +136,7 @@ int __time_critical_func(pch_dev_send)(pch_cu_t *cu, pch_unit_addr_t ua, void *s
         return pch_dev_send_then(cu, ua, srcaddr, n, flags, -1);
 }
 
-int __time_critical_func(pch_dev_receive_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
+int __no_inline_not_in_flash_func(pch_dev_receive_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
@@ -157,7 +157,7 @@ int __time_critical_func(pch_dev_receive)(pch_cu_t *cu, pch_unit_addr_t ua, void
         return pch_dev_receive_then(cu, ua, dstaddr, size, -1);
 }
 
-int __time_critical_func(pch_dev_update_status_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt) {
+int __no_inline_not_in_flash_func(pch_dev_update_status_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
@@ -185,7 +185,7 @@ int __time_critical_func(pch_dev_update_status)(pch_cu_t *cu, pch_unit_addr_t ua
         return pch_dev_update_status_advert_then(cu, ua, devs, NULL, 0, -1);
 }
 
-int __time_critical_func(pch_dev_update_status_ok_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
+int __no_inline_not_in_flash_func(pch_dev_update_status_ok_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
@@ -209,7 +209,7 @@ int __time_critical_func(pch_dev_update_status_ok)(pch_cu_t *cu, pch_unit_addr_t
         return pch_dev_update_status_ok_advert_then(cu, ua, NULL, 0, -1);
 }
 
-int __time_critical_func(pch_dev_update_status_error_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt) {
+int __no_inline_not_in_flash_func(pch_dev_update_status_error_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
