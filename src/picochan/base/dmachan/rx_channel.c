@@ -14,6 +14,7 @@ static void start_dst_cmdbuf_remote(dmachan_rx_channel_t *rx) {
                 (void*)rx->srcaddr, DMACHAN_CMD_SIZE, true);
 }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
 static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *txpeer) {
         valid_params_if(PCH_DMACHAN,
                 rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
@@ -44,6 +45,7 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
 
         mem_peer_unlock(status);
 }
+#endif
 
 static void start_dst_data_remote(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
         dmachan_link_t *rxl = &rx->link;
@@ -55,6 +57,7 @@ static void start_dst_data_remote(dmachan_rx_channel_t *rx, uint32_t dstaddr, ui
                 (void*)rx->srcaddr, count, true);
 }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
 static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *txpeer, uint32_t dstaddr, uint32_t count) {
         valid_params_if(PCH_DMACHAN,
                 rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
@@ -86,6 +89,7 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
 
         mem_peer_unlock(status);
 }
+#endif
 
 static void start_dst_discard_remote(dmachan_rx_channel_t *rx, uint32_t count) {
         dmachan_link_t *rxl = &rx->link;
@@ -101,6 +105,7 @@ static void start_dst_discard_remote(dmachan_rx_channel_t *rx, uint32_t count) {
                 (void*)rx->srcaddr, count, true);
 }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
 static void start_dst_discard_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *txpeer, uint32_t count) {
         valid_params_if(PCH_DMACHAN,
                 rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
@@ -130,6 +135,7 @@ static void start_dst_discard_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t
 
         mem_peer_unlock(status);
 }
+#endif
 
 void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
         pch_dmaid_t dmaid = d1c->dmaid;
@@ -151,31 +157,51 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
 
 void __time_critical_func(dmachan_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {
         dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
-        if (txpeer != NULL)
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (txpeer != NULL) {
                 start_dst_cmdbuf_mem(rx, txpeer);
-        else
-                start_dst_cmdbuf_remote(rx);
+                return;
+        }
+#else
+        assert(!txpeer);
+#endif
+        start_dst_cmdbuf_remote(rx);
 }
 
 void __time_critical_func(dmachan_start_dst_data)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
         dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
-        if (txpeer != NULL)
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (txpeer != NULL) {
                 start_dst_data_mem(rx, txpeer, dstaddr, count);
-        else
-                start_dst_data_remote(rx, dstaddr, count);
+                return;
+        }
+#else
+        assert(!txpeer);
+#endif
+        start_dst_data_remote(rx, dstaddr, count);
 }
 
 void __time_critical_func(dmachan_start_dst_discard)(dmachan_rx_channel_t *rx, uint32_t count) {
         dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
-        if (txpeer != NULL)
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (txpeer != NULL) {
                 start_dst_discard_mem(rx, txpeer, count);
-        else
-                start_dst_discard_remote(rx, count);
+                return;
+        }
+#else
+        assert(!txpeer);
+#endif
+        start_dst_discard_remote(rx, count);
 }
 
 void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
-        if (rx->mem_tx_peer != NULL)
+        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (txpeer != NULL)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_SRC_ZEROES); // for verification only
+#else
+        assert(!txpeer);
+#endif
 
         // We set 4 bytes of zeroes to use as DMA source. At the moment,
         // everything uses DataSize8 but if we plumb through choice of
@@ -201,18 +227,24 @@ dmachan_irq_state_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_chann
                         // If memchan, propagate to peer tx channel
                         // (asymmetric: no corresponding tx -> rx trigger)
                         dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+#if PCH_CONFIG_ENABLE_MEMCHAN
                         if (txpeer) {
                                 dmachan_set_link_irq_forced(&txpeer->link,
                                         true);
                         }
+#else
+                        assert(!txpeer);
+#endif
                 }
 
                 rxl->complete = true;
                 dmachan_ack_link_irq(rxl);
         }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
         if (rxl->complete)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
+#endif
 
         mem_peer_unlock(status);
         return dmachan_make_irq_state(rx_irq_raised, rx_irq_forced,

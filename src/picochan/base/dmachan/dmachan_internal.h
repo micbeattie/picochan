@@ -15,11 +15,17 @@
 extern spin_lock_t *dmachan_mem_peer_spin_lock;
 
 static inline uint32_t mem_peer_lock(void) {
+#if PCH_CONFIG_ENABLE_MEMCHAN
         return spin_lock_blocking(dmachan_mem_peer_spin_lock);
+#else
+        return 0;
+#endif
 }
 
 static inline void mem_peer_unlock(uint32_t saved_irq) {
-        return spin_unlock(dmachan_mem_peer_spin_lock, saved_irq);
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        spin_unlock(dmachan_mem_peer_spin_lock, saved_irq);
+#endif
 }
 
 #endif

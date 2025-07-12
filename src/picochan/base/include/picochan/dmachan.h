@@ -10,6 +10,10 @@
 #define PARAM_ASSERTIONS_ENABLED_PCH_DMACHAN 0
 #endif
 
+#ifndef PCH_CONFIG_ENABLE_MEMCHAN
+#define PCH_CONFIG_ENABLE_MEMCHAN 1
+#endif
+
 #include "hardware/dma.h"
 #include "hardware/structs/dma_debug.h"
 #include "hardware/uart.h"

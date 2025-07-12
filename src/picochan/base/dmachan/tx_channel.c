@@ -13,6 +13,7 @@ static void start_src_cmdbuf_remote(dmachan_tx_channel_t *tx) {
                 &tx->link.cmd, DMACHAN_CMD_SIZE);
 }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
 static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *rxpeer) {
         valid_params_if(PCH_DMACHAN,
                 tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
@@ -44,6 +45,7 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
 
         mem_peer_unlock(saved_irq);
 }
+#endif
 
 static void start_src_data_remote(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
         trace_dmachan_segment(PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE,
@@ -52,6 +54,7 @@ static void start_src_data_remote(dmachan_tx_channel_t *tx, uint32_t srcaddr, ui
                 (void*)srcaddr, count);
 }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
 static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *rxpeer, uint32_t srcaddr, uint32_t count) {
         valid_params_if(PCH_DMACHAN,
                 tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
@@ -92,6 +95,7 @@ static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *r
 
         mem_peer_unlock(saved_irq);
 }
+#endif
 
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c) {
         pch_dmaid_t dmaid = d1c->dmaid;
@@ -113,18 +117,28 @@ void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1
 
 void __time_critical_func(dmachan_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
         dmachan_rx_channel_t *rxpeer = tx->mem_rx_peer;
-        if (rxpeer != NULL)
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (rxpeer != NULL) {
                 start_src_cmdbuf_mem(tx, rxpeer);
-        else
-                start_src_cmdbuf_remote(tx);
+                return;
+        }
+#else
+        assert(!rxpeer);
+#endif
+        start_src_cmdbuf_remote(tx);
 }
 
 void __time_critical_func(dmachan_start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
         dmachan_rx_channel_t *rxpeer = tx->mem_rx_peer;
-        if (rxpeer != NULL)
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (rxpeer != NULL) {
                 start_src_data_mem(tx, rxpeer, srcaddr, count);
-        else
-                start_src_data_remote(tx, srcaddr, count);
+                return;
+        }
+#else
+        assert(!rxpeer);
+#endif
+        start_src_data_remote(tx, srcaddr, count);
 }
 
 dmachan_irq_state_t __time_critical_func(dmachan_handle_tx_irq)(dmachan_tx_channel_t *tx) {
@@ -138,8 +152,10 @@ dmachan_irq_state_t __time_critical_func(dmachan_handle_tx_irq)(dmachan_tx_chann
                 dmachan_ack_link_irq(txl);
         }
 
+#if PCH_CONFIG_ENABLE_MEMCHAN
         if (txl->complete)
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_IDLE);
+#endif
 
         mem_peer_unlock(saved_irq);
         return dmachan_make_irq_state(tx_irq_raised, tx_irq_forced,
