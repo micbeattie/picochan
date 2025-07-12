@@ -39,7 +39,9 @@ enum {
         EINVALIDSTATUS		= 7,
         EINVALIDDEV             = 8,
         EINVALIDCMD             = 9,
-        EDATALENZERO            = 10,
+        EINVALIDVALUE           = 10,
+        EDATALENZERO            = 11,
+        EBUFFERTOOSHORT         = 12,
 };
 
 // dev API with fully general arguments
