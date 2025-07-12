@@ -265,4 +265,17 @@ dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum);
 
 void __isr pch_cus_handle_dma_irq(void);
 
+/*! \brief Helper to call pch_dev_call_or_reject_then when the
+ * caller has a devib but not the ua.
+ *
+ * This declaration would be more at home in dev_api.h but it needs
+ * to know the size of pch_cu_t in order to do the address
+ * arithmetic in pch_get_ua so it currently lives in cu.h instead.
+ */
+static inline int pch_dev_call_devib_or_reject_then(pch_cu_t *cu, pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt) {
+        pch_unit_addr_t ua = pch_get_ua(cu, devib);
+        return pch_dev_call_or_reject_then(cu, ua, f,
+                reject_cbindex_opt);
+}
+
 #endif

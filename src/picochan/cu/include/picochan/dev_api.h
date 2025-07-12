@@ -232,4 +232,27 @@ int pch_dev_update_status_error_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_s
 int pch_dev_update_status_error_advert(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
 int pch_dev_update_status_error(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense);
 
+typedef int (*pch_dev_call_func_t)(pch_cu_t *cu, pch_unit_addr_t ua);
+
+/*! Calls f and, if it returns a negative value, sets sense code to
+ * CommandReject with the associated negated (positive) error value,
+ * triggers an UpdateStatus to report the error and sets the
+ * "next callback" index. If f returns a non-negative value, no
+ * further action is taken. In either case, the return value of f
+ * is propagated to the caller.
+ */
+static inline int pch_dev_call_or_reject_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_call_func_t f, int reject_cbindex_opt) {
+        int rc = f(cu, ua);
+        if (rc < 0) {
+                pch_dev_sense_t sense = {
+                        .flags = PCH_DEV_SENSE_COMMAND_REJECT,
+                        .asc = (uint8_t)(-rc),
+                };
+                pch_dev_update_status_error_then(cu, ua, sense,
+                        reject_cbindex_opt);
+        }
+
+        return rc;
+}
+
 #endif
