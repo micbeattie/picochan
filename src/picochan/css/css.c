@@ -39,7 +39,8 @@ void pch_css_init(void) {
 void pch_css_start(uint8_t dmairqix) {
         valid_params_if(PCH_CSS, dmairqix <= 127);
         irq_num_t irqnum = dma_get_irq_num(dmairqix);
-        irq_set_exclusive_handler(irqnum, css_handle_dma_irq);
+        irq_add_shared_handler(irqnum, css_handle_dma_irq,
+                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         irq_set_enabled(irqnum, true);
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER,
                 ((struct pch_trdata_word_byte){
