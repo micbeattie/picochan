@@ -189,6 +189,21 @@ void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
  */
 void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
 
+/*! \brief Configure a UART control unit with default
+ * dma_channel_config control register.
+ * \ingroup picochan_css
+ *
+ * Calls pch_css_uartcu_configure with ctrl argument bits taken from
+ * an appropriate dma_channel_get_default_config() value.
+ */
+static inline void pch_css_uartcu_configure_default(pch_cunum_t cunum, uart_inst_t *uart) {
+        // Argument 0 is ok here (as would be any DMA id) because it
+        // only affects the "chain-to" value and that is overridden in
+        // pch_css_uartcu_configure anyway.
+        dma_channel_config ctrl = dma_channel_get_default_config(0);
+        pch_css_uartcu_configure(cunum, uart, ctrl);
+}
+
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_css
  *

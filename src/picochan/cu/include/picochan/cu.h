@@ -200,6 +200,21 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t
  */
 void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
 
+/*! \brief Configure a UART control unit with default
+ * dma_channel_config control register.
+ * \ingroup picochan_cu
+ *
+ * Calls pch_cus_uartcu_configure with ctrl argument bits taken from
+ * an appropriate dma_channel_get_default_config() value.
+ */
+static inline void pch_cus_uartcu_configure_default(pch_cunum_t cunum, uart_inst_t *uart) {
+        // Argument 0 is ok here (as would be any DMA id) because it
+        // only affects the "chain-to" value and that is overridden in
+        // pch_cus_uartcu_configure anyway.
+        dma_channel_config ctrl = dma_channel_get_default_config(0);
+        pch_cus_uartcu_configure(cunum, uart, ctrl);
+}
+
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_cu
  *
