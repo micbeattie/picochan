@@ -164,6 +164,7 @@ void __time_critical_func(dmachan_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {
         }
 #else
         assert(!txpeer);
+        (void)txpeer;
 #endif
         start_dst_cmdbuf_remote(rx);
 }
@@ -177,6 +178,7 @@ void __time_critical_func(dmachan_start_dst_data)(dmachan_rx_channel_t *rx, uint
         }
 #else
         assert(!txpeer);
+        (void)txpeer;
 #endif
         start_dst_data_remote(rx, dstaddr, count);
 }
@@ -190,6 +192,7 @@ void __time_critical_func(dmachan_start_dst_discard)(dmachan_rx_channel_t *rx, u
         }
 #else
         assert(!txpeer);
+        (void)txpeer;
 #endif
         start_dst_discard_remote(rx, count);
 }
@@ -201,6 +204,7 @@ void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_SRC_ZEROES); // for verification only
 #else
         assert(!txpeer);
+        (void)txpeer;
 #endif
 
         // We set 4 bytes of zeroes to use as DMA source. At the moment,
@@ -234,6 +238,7 @@ dmachan_irq_state_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_chann
                         }
 #else
                         assert(!txpeer);
+                        (void)txpeer;
 #endif
                 }
 

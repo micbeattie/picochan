@@ -124,6 +124,7 @@ void __time_critical_func(dmachan_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
         }
 #else
         assert(!rxpeer);
+        (void)rxpeer;
 #endif
         start_src_cmdbuf_remote(tx);
 }
@@ -137,6 +138,7 @@ void __time_critical_func(dmachan_start_src_data)(dmachan_tx_channel_t *tx, uint
         }
 #else
         assert(!rxpeer);
+        (void)rxpeer;
 #endif
         start_src_data_remote(tx, srcaddr, count);
 }
