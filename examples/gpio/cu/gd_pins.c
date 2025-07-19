@@ -1,9 +1,7 @@
 #include "hardware/gpio.h"
 #include "gd_config.h"
 #include "gd_pins.h"
-#if GD_ENABLE_GPIO_VERBOSE
-#include "stdio.h"
-#endif
+#include "gd_debug.h"
 
 void gd_init_out_pins(gpio_dev_t *gd) {
         gd_pins_t *p = &gd->cfg.out_pins;

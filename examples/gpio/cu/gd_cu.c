@@ -4,6 +4,7 @@
 #include "picochan/cu.h"
 #include "picochan/dev_status.h"
 #include "picochan/ccw.h"
+#include "gd_debug.h"
 #include "gd_cu.h"
 #include "gd_config.h"
 #include "gd_pins.h"

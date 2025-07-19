@@ -1,7 +1,7 @@
 #ifndef _GD_CONFIG_H
 #define _GD_CONFIG_H
 
-#include "gd_api.h"
+#include "../gd_api.h"
 
 typedef struct gd_config {
         //! count of microseconds for the delay between each

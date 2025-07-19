@@ -1,6 +1,5 @@
 #include "hardware/gpio.h"
 #include "pico/binary_info.h"
-#include "picochan/cu.h"
 #include "uart_chan.h"
 
 // UART definitions for CU side channel - must match
