@@ -4,7 +4,7 @@
 #include "picochan/cu.h"
 #include "picochan/dev_status.h"
 #include "picochan/ccw.h"
-#include "gd_debug.h"
+#include "../gd_debug.h"
 #include "gd_cu.h"
 #include "gd_config.h"
 #include "gd_pins.h"
@@ -57,10 +57,7 @@ static int do_ccw_get_config(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, void 
                 gd_start_cbindex);
 }
 
-static int do_ccw_set_config(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t room, gpio_dev_t *gd, uint8_t ccwcmd, size_t cfgsize) {
-        if (room < cfgsize)
-                return -EBUFFERTOOSHORT;
-
+static int do_ccw_set_config(pch_cu_t *cu, pch_unit_addr_t ua, gpio_dev_t *gd, uint8_t ccwcmd, size_t cfgsize) {
         gd->cfgcmd = ccwcmd;
         pch_dev_receive_then(cu, ua, &gd->cfgbuf, (uint16_t)cfgsize,
                 gd_setconf_cbindex);
@@ -68,12 +65,18 @@ static int do_ccw_set_config(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t room, gp
         return 0;
 }
 
-static int setconf_clock_period_us(gpio_dev_t *gd) {
+static int setconf_clock_period_us(gpio_dev_t *gd, uint16_t n) {
+        if (n < sizeof gd->cfg.clock_period_us)
+                return -EBUFFERTOOSHORT;
+
         gd->cfg.clock_period_us = *(uint32_t *)gd->cfgbuf;
         return 0;
 }
 
-static int setconf_out_pins(gpio_dev_t *gd) {
+static int setconf_out_pins(gpio_dev_t *gd, uint16_t n) {
+        if (n < sizeof gd->cfg.out_pins)
+                return -EBUFFERTOOSHORT;
+
         gd_pins_t *p = (gd_pins_t *)gd->cfgbuf;
         if (p->base > 31 || p->count > 7)
                 return -EINVALIDVALUE;
@@ -82,7 +85,10 @@ static int setconf_out_pins(gpio_dev_t *gd) {
         return 0;
 }
 
-static int setconf_in_pins(gpio_dev_t *gd) {
+static int setconf_in_pins(gpio_dev_t *gd, uint16_t n) {
+        if (n < sizeof gd->cfg.in_pins)
+                return -EBUFFERTOOSHORT;
+
         gd_pins_t *p = (gd_pins_t *)gd->cfgbuf;
         if (p->base > 31 || p->count > 7)
                 return -EINVALIDVALUE;
@@ -91,12 +97,18 @@ static int setconf_in_pins(gpio_dev_t *gd) {
         return 0;
 }
 
-static int setconf_filter(gpio_dev_t *gd) {
+static int setconf_filter(gpio_dev_t *gd, uint16_t n) {
+        if (n < sizeof gd->cfg.filter)
+                return -EBUFFERTOOSHORT;
+
         gd->cfg.filter = *(gd_filter_t *)gd->cfgbuf;
         return 0;
 }
 
-static int setconf_irq_config(gpio_dev_t *gd) {
+static int setconf_irq_config(gpio_dev_t *gd, uint16_t n) {
+        if (n < sizeof gd->cfg.irq)
+                return -EBUFFERTOOSHORT;
+
         gd_irq_t *p = (gd_irq_t *)gd->cfgbuf;
         if (p->pin > 31 || (p->flags & ~GD_IRQ_FLAGS_MASK))
                 return -EINVALIDVALUE;
@@ -113,21 +125,24 @@ static int do_gd_setconf(pch_cu_t *cu, pch_unit_addr_t ua) {
         if (!gd)
                 return -EINVALIDDEV;
 
+        pch_devib_t *devib = pch_get_devib(cu, ua);
+        uint16_t size = proto_parse_count_payload(devib->payload);
+
         switch (gd->cfgcmd) {
         case GD_CCW_CMD_SET_CLOCK_PERIOD_US:
-                return setconf_clock_period_us(gd);
+                return setconf_clock_period_us(gd, size);
 
 	case GD_CCW_CMD_SET_OUT_PINS:
-                return setconf_out_pins(gd);
+                return setconf_out_pins(gd, size);
 
 	case GD_CCW_CMD_SET_IN_PINS:
-                return setconf_in_pins(gd);
+                return setconf_in_pins(gd, size);
 
 	case GD_CCW_CMD_SET_FILTER:
-                return setconf_filter(gd);
+                return setconf_filter(gd, size);
 
 	case GD_CCW_CMD_SET_IRQ_CONFIG:
-                return setconf_irq_config(gd);
+                return setconf_irq_config(gd, size);
         
         default:
                 panic("invalid ccwcmd in do_gd_setconf");
@@ -137,7 +152,7 @@ static int do_gd_setconf(pch_cu_t *cu, pch_unit_addr_t ua) {
 }
 
 static void gd_setconf(pch_cu_t *cu, pch_devib_t *devib) {
-        pch_dev_call_devib_or_reject_then(cu, devib,
+        pch_dev_call_devib_final_then(cu, devib,
                 do_gd_setconf, gd_start_cbindex);
 }
 
@@ -175,15 +190,8 @@ static int do_ccw_read(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, gpi
 }
 
 static int do_ccw_write(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, gpio_dev_t *gd) {
-        uint16_t n = devib->size;
-        if (n == 0)
-                return -EDATALENZERO;
-
-        if (n > VALUES_BUF_SIZE)
-                n = VALUES_BUF_SIZE;
-
-        pch_dev_receive_then(cu, ua, &gd->values.data, n,
-                gd_write_cbindex);
+        pch_dev_receive_then(cu, ua, &gd->values.data,
+                VALUES_BUF_SIZE, gd_write_cbindex);
 
         return 0;
 }
@@ -211,21 +219,23 @@ static int do_gd_write(pch_cu_t *cu, pch_unit_addr_t ua) {
                 return -EINVALIDDEV;
 
         pch_devib_t *devib = pch_get_devib(cu, ua);
-        uint16_t n = devib->size;
-        if (n == 0)
+        uint16_t size = proto_parse_count_payload(devib->payload);
+        if (size == 0)
                 return -EDATALENZERO;
+
+        assert(size <= VALUES_BUF_SIZE);
 
         gd_init_out_pins(gd);
 
         uint8_t val = gd->values.data[0];
         gd_write_out_pins(gd, val);
         
-        if (n == 1) {
+        if (size == 1) {
                 pch_dev_update_status_ok(&gd_cu, ua);
                 return 0;
         }
 
-        gd->values.count = n;
+        gd->values.count = size;
         gd->values.offset = 1;
         gd_add_repeating_timer(gd, write_out_pins_rt_callback, ua);
         return 0;
@@ -294,23 +304,23 @@ static int do_gd_start(pch_cu_t *cu, pch_unit_addr_t ua) {
                 return do_ccw_test(cu, devib, ua, gd);
 
         case GD_CCW_CMD_SET_CLOCK_PERIOD_US:
-                return do_ccw_set_config(cu, ua, devib->size, gd,
+                return do_ccw_set_config(cu, ua, gd,
                         ccwcmd, sizeof gd->cfg.clock_period_us);
 
 	case GD_CCW_CMD_SET_OUT_PINS:
-                return do_ccw_set_config(cu, ua, devib->size, gd,
+                return do_ccw_set_config(cu, ua, gd,
                         ccwcmd, sizeof gd->cfg.out_pins);
 
 	case GD_CCW_CMD_SET_IN_PINS:
-                return do_ccw_set_config(cu, ua, devib->size, gd,
+                return do_ccw_set_config(cu, ua, gd,
                         ccwcmd, sizeof gd->cfg.in_pins);
 
 	case GD_CCW_CMD_SET_FILTER:
-                return do_ccw_set_config(cu, ua, devib->size, gd,
+                return do_ccw_set_config(cu, ua, gd,
                         ccwcmd, sizeof gd->cfg.filter);
 
 	case GD_CCW_CMD_SET_IRQ_CONFIG:
-                return do_ccw_set_config(cu, ua, devib->size, gd,
+                return do_ccw_set_config(cu, ua, gd,
                         ccwcmd, sizeof gd->cfg.irq);
 
         case GD_CCW_CMD_GET_CLOCK_PERIOD_US:
@@ -351,6 +361,7 @@ void gd_cu_init(pch_cunum_t cunum, uint8_t dmairqix) {
         assert(!gd_cu_done_init);
 
         pch_cus_cu_init(&gd_cu, cunum, dmairqix, NUM_GPIO_DEVS);
+        pch_cus_trace_cu(cunum, (bool)GD_ENABLE_TRACE);
 
         memset(gpio_devs, 0, sizeof(gpio_devs));
         gd_start_cbindex =

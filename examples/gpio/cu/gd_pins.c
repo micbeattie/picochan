@@ -1,7 +1,7 @@
 #include "hardware/gpio.h"
 #include "gd_config.h"
 #include "gd_pins.h"
-#include "gd_debug.h"
+#include "../gd_debug.h"
 
 void gd_init_out_pins(gpio_dev_t *gd) {
         gd_pins_t *p = &gd->cfg.out_pins;
@@ -9,7 +9,7 @@ void gd_init_out_pins(gpio_dev_t *gd) {
         // Initialise p->count+1 GPIO pins starting at p->base
         // for output
 #if GD_ENABLE_GPIO_VERBOSE
-        printf("init GPIO out %d..%d\n", p->base, p->base + p->count);
+        dprintf("init GPIO out %d..%d\n", p->base, p->base + p->count);
 #endif
 #if GD_ENABLE_GPIO_WRITES
         for (uint i = 0; i <= p->count; i++) {
