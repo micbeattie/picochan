@@ -273,3 +273,19 @@ int __time_critical_func(pch_dev_send_zeroes_norespond_then)(pch_cu_t *cu, pch_u
 int __time_critical_func(pch_dev_send_zeroes_norespond)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n) {
         return pch_dev_send_zeroes_then(cu, ua, n, 0, -1);
 }
+
+void __time_critical_func(pch_dev_call_final_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_call_func_t f, int cbindex_opt) {
+        int rc = f(cu, ua);
+
+        uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END;
+        if (rc < 0) {
+                devs |= PCH_DEVS_UNIT_CHECK;
+                pch_dev_sense_t sense = {
+                        .flags = PCH_DEV_SENSE_COMMAND_REJECT,
+                        .asc = (uint8_t)(-rc),
+                };
+                pch_devib_t *devib = pch_get_devib(cu, ua);
+                devib->sense = sense;
+        }
+        pch_dev_update_status_then(cu, ua, devs, cbindex_opt);
+}

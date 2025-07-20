@@ -297,4 +297,15 @@ static inline int pch_dev_call_devib_or_reject_then(pch_cu_t *cu, pch_devib_t *d
                 reject_cbindex_opt);
 }
 
+/*! \brief Helper to call pch_dev_call_final_then when the
+ * caller has a devib but not the ua.
+ *
+ * This declaration would be more at home in dev_api.h but it needs
+ * to know the size of pch_cu_t in order to do the address
+ * arithmetic in pch_get_ua so it currently lives in cu.h instead.
+ */
+static inline void pch_dev_call_devib_final_then(pch_cu_t *cu, pch_devib_t *devib, pch_dev_call_func_t f, int cbindex_opt) {
+        pch_unit_addr_t ua = pch_get_ua(cu, devib);
+        return pch_dev_call_final_then(cu, ua, f, cbindex_opt);
+}
 #endif

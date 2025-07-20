@@ -255,4 +255,14 @@ static inline int pch_dev_call_or_reject_then(pch_cu_t *cu, pch_unit_addr_t ua, 
         return rc;
 }
 
+/*! Calls f, sends an UpdateStatus with an appropriate payload based
+ * on its return value then sets cbindex_opt as the next callback.
+ * If f returns a negative value, the UpdateStatus payload is
+ * UnitCheck with sense CommandReject with the associated negated
+ * (positive) error value or else, if f returns a non-negative
+ * valuem the UpdateStatus payload is normal "no error" with
+ * ChannelEnd|DeviceEnd.
+ */
+void pch_dev_call_final_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_call_func_t f, int cbindex_opt);
+
 #endif
