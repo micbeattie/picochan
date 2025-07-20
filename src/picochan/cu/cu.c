@@ -12,7 +12,10 @@ pch_trc_bufferset_t pch_cus_trace_bs;
 
 unsigned char pch_cus_trace_buffer_space[PCH_TRC_NUM_BUFFERS * PCH_TRC_BUFFER_SIZE] __aligned(4);
 
+bool pch_cus_init_done;
+
 void pch_cus_init() {
+        assert(!pch_cus_init_done);
         pch_register_devib_callback(PCH_DEVIB_CALLBACK_DEFAULT,
                 pch_default_devib_callback);
 
@@ -20,6 +23,7 @@ void pch_cus_init() {
                         PCH_CUS_BUFFERSET_MAGIC);
         pch_trc_init_all_buffers(&pch_cus_trace_bs,
                 pch_cus_trace_buffer_space);
+        pch_cus_init_done = true;
 }
 
 // CU interrupts and callbacks will be handled on the core that calls
@@ -117,8 +121,6 @@ void pch_cus_cu_set_configured(pch_cunum_t cunum, bool configured) {
 }
 
 void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl) {
-        pch_init_uart(uart);
-
         dma_channel_config txctrl = dmachan_uartcu_make_txctrl(uart, ctrl);
         dma_channel_config rxctrl = dmachan_uartcu_make_rxctrl(uart, ctrl);
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
@@ -130,6 +132,16 @@ void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
         dmachan_set_link_irq_enabled(&cu->rx_channel.link, true);
         pch_cus_cu_set_configured(cunum, true);
+}
+
+void pch_cus_uartcu_init_and_configure(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate) {
+        pch_uart_init(uart, baudrate);
+
+        // Argument 0 is ok here (as would be any DMA id) because it
+        // only affects the "chain-to" value and that is overridden in
+        // pch_css_uartcu_configure anyway.
+        dma_channel_config ctrl = dma_channel_get_default_config(0);
+        pch_cus_uartcu_configure(cunum, uart, ctrl);
 }
 
 void pch_cus_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer) {

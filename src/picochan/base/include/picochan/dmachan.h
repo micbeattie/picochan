@@ -238,7 +238,7 @@ void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);
 void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
 
 // Convenience functions for configuring UART channels
-void pch_init_uart(uart_inst_t *uart);
+void pch_uart_init(uart_inst_t *uart, uint baudrate);
 
 static inline dma_channel_config dmachan_uartcu_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl) {
         channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);

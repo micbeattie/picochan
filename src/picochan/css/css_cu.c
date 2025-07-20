@@ -119,8 +119,6 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->started);
 
-        pch_init_uart(uart);
-
         dma_channel_config txctrl = dmachan_uartcu_make_txctrl(uart, ctrl);
         dma_channel_config rxctrl = dmachan_uartcu_make_rxctrl(uart, ctrl);
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
@@ -130,6 +128,16 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
         dmachan_set_link_irq_enabled(&cu->rx_channel.link, true);
         pch_css_cu_set_configured(cunum, true);
+}
+
+void pch_css_uartcu_init_and_configure(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate) {
+        pch_uart_init(uart, baudrate);
+
+        // Argument 0 is ok here (as would be any DMA id) because it
+        // only affects the "chain-to" value and that is overridden in
+        // pch_css_uartcu_configure anyway.
+        dma_channel_config ctrl = dma_channel_get_default_config(0);
+        pch_css_uartcu_configure(cunum, uart, ctrl);
 }
 
 void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer) {
