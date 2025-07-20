@@ -149,4 +149,3 @@ void __time_critical_func(cus_handle_rx_complete)(pch_cu_t *cu) {
 		cus_handle_rx_command_complete(cu);
 	}
 }
-

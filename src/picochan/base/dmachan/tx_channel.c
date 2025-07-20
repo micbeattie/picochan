@@ -7,6 +7,12 @@
 #include "dmachan_internal.h"
 #include "dmachan_trace.h"
 
+// This handles two classes of channel: non-memchan and memchan.
+// It's still just about better to keep this as a simplistic
+// "if"-based dispatch based on tx->peer being set or not but as
+// soon as we introduce a third type of channel, this'll be
+// replaced with a typical generic "object method" dispatcher.
+
 static void start_src_cmdbuf_remote(dmachan_tx_channel_t *tx) {
         trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE, &tx->link);
         dma_channel_transfer_from_buffer_now(tx->link.dmaid,
@@ -44,6 +50,22 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
         }
 
         mem_peer_unlock(saved_irq);
+}
+#endif
+
+static void write_src_reset_remote(dmachan_tx_channel_t *tx) {
+        trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_RESET_REMOTE, &tx->link);
+        // Bypass DMA and write a single 32-bit word with low byte
+        // DMACHAN_RESET_BYTE to the address in the DMA write address
+        // register which is the address of the hardware transmit FIFO
+        // for the channel
+        dma_channel_hw_t *dmahw = dma_channel_hw_addr(tx->link.dmaid);
+        *(uint32_t*)dmahw->write_addr = DMACHAN_RESET_BYTE;
+}
+
+#if PCH_CONFIG_ENABLE_MEMCHAN
+static void write_src_reset_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *rxpeer) {
+        trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_RESET_MEM, &tx->link);
 }
 #endif
 
@@ -127,6 +149,20 @@ void __time_critical_func(dmachan_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
         (void)rxpeer;
 #endif
         start_src_cmdbuf_remote(tx);
+}
+
+void __time_critical_func(dmachan_write_src_reset)(dmachan_tx_channel_t *tx) {
+        dmachan_rx_channel_t *rxpeer = tx->mem_rx_peer;
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (rxpeer != NULL) {
+                write_src_reset_mem(tx, rxpeer);
+                return;
+        }
+#else
+        assert(!rxpeer);
+        (void)rxpeer;
+#endif
+        write_src_reset_remote(tx);
 }
 
 void __time_critical_func(dmachan_start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {

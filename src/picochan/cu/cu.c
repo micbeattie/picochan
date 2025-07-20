@@ -183,7 +183,7 @@ void pch_cus_cu_start(pch_cunum_t cunum) {
                         .byte = 1
                 }));
 
-        dmachan_start_dst_cmdbuf(&cu->rx_channel);
+        dmachan_start_dst_reset(&cu->rx_channel);
 }
 
 bool pch_cus_set_trace(bool trace) {

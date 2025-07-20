@@ -190,6 +190,9 @@ void pch_css_cu_start(pch_cunum_t cunum) {
 	css_cu_t *cu = get_cu(cunum);
         assert(cu->configured);
 
+        if (cu->started)
+                return;
+
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
                 cu->traced,
 		((struct pch_trdata_cu_byte){
@@ -199,4 +202,5 @@ void pch_css_cu_start(pch_cunum_t cunum) {
 
         cu->started = true;
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
+        dmachan_write_src_reset(&cu->tx_channel);
 }

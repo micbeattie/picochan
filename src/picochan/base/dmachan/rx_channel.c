@@ -6,6 +6,12 @@
 #include "picochan/dmachan.h"
 #include "dmachan_internal.h"
 
+// This handles two classes of channel: non-memchan and memchan.
+// It's still just about better to keep this as a simplistic
+// "if"-based dispatch based on rx->peer being set or not but as
+// soon as we introduce a third type of channel, this'll be
+// replaced with a typical generic "object method" dispatcher.
+
 static void start_dst_cmdbuf_remote(dmachan_rx_channel_t *rx) {
         trace_dmachan(PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE, &rx->link);
         dma_channel_config ctrl = rx->ctrl;
@@ -44,6 +50,27 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
         }
 
         mem_peer_unlock(status);
+}
+#endif
+
+// Receive single characters at a time looking for DMACHAN_RESET_BYTE
+// ('C') so that we can ignore any zero bytes due to Break conditions
+// on a uart channel and resync with the sender.
+static void start_dst_reset_remote(dmachan_rx_channel_t *rx) {
+        dmachan_link_t *rxl = &rx->link;
+        trace_dmachan(PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE, rxl);
+        rxl->resetting = true;
+        dma_channel_config ctrl = rx->ctrl;
+        channel_config_set_write_increment(&ctrl, true);
+        dma_channel_configure(rx->link.dmaid, &ctrl, &rx->link.cmd,
+                (void*)rx->srcaddr, 1, true);
+}
+
+#if PCH_CONFIG_ENABLE_MEMCHAN
+static void start_dst_reset_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *txpeer) {
+        trace_dmachan(PCH_TRC_RT_DMACHAN_DST_RESET_MEM, &rx->link);
+        // No reset action for now, go straight to receiving to cmdbuf
+        start_dst_cmdbuf_mem(rx, txpeer);
 }
 #endif
 
@@ -169,6 +196,20 @@ void __time_critical_func(dmachan_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {
         start_dst_cmdbuf_remote(rx);
 }
 
+void __time_critical_func(dmachan_start_dst_reset)(dmachan_rx_channel_t *rx) {
+        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+#if PCH_CONFIG_ENABLE_MEMCHAN
+        if (txpeer != NULL) {
+                start_dst_reset_mem(rx, txpeer);
+                return;
+        }
+#else
+        assert(!txpeer);
+        (void)txpeer;
+#endif
+        start_dst_reset_remote(rx);
+}
+
 void __time_critical_func(dmachan_start_dst_data)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
         dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
 #if PCH_CONFIG_ENABLE_MEMCHAN
@@ -219,6 +260,25 @@ void __time_critical_func(dmachan_start_dst_data_src_zeroes)(dmachan_rx_channel_
                 &rxl->cmd, count, true);
 }
 
+// Count drops of incorrect reset bytes for debugging
+uint32_t dmachan_dropped_reset_byte_count;
+
+static void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx) {
+        dmachan_link_t *rxl = &rx->link;
+        rxl->complete = false; // don't pass on to channel handler
+
+        if (rxl->cmd.buf[0] != DMACHAN_RESET_BYTE) {
+                dmachan_dropped_reset_byte_count++;
+                dmachan_start_dst_reset(rx);
+                return;
+        }
+
+        // Found the synchronising "reset" byte - ready to
+        // receive commands
+        rxl->resetting = false;
+        dmachan_start_dst_cmdbuf(rx);
+}
+
 dmachan_irq_state_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_channel_t *rx) {
         dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
@@ -250,6 +310,9 @@ dmachan_irq_state_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_chann
         if (rxl->complete)
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_IDLE);
 #endif
+
+        if (rxl->resetting)
+                dmachan_handle_rx_resetting(rx);
 
         mem_peer_unlock(status);
         return dmachan_make_irq_state(rx_irq_raised, rx_irq_forced,

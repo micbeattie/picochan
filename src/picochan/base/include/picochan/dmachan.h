@@ -143,6 +143,7 @@ typedef struct __aligned(4) dmachan_link {
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
         bool                    complete;
+        bool                    resetting;
 } dmachan_link_t;
 
 #define DMACHAN_LINK_CMD_COPY(l, p) do { \
@@ -229,9 +230,11 @@ void dmachan_panic_unless_memchan_initialised();
 
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);
 void dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx);
+void dmachan_write_src_reset(dmachan_tx_channel_t *tx);
 void dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
 
 void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *cfg);
+void dmachan_start_dst_reset(dmachan_rx_channel_t *rx);
 void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx);
 void dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
 void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);
