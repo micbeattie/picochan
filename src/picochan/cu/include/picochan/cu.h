@@ -10,6 +10,12 @@
 #define PARAM_ASSERTIONS_ENABLED_PCH_CUS 0
 #endif
 
+#ifndef PCH_MAX_DEVIBS_PER_CPU
+#define PCH_MAX_DEVIBS_PER_CPU 32
+#endif
+static_assert(PCH_MAX_DEVIBS_PER_CPU >= 1 && PCH_MAX_DEVIBS_PER_CPU <= 256,
+        "PCH_MAX_DEVIBS_PER_CPU must be between 1 and 256");
+
 #include <stdint.h>
 #include <assert.h>
 #include "hardware/uart.h"

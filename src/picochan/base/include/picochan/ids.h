@@ -32,7 +32,7 @@ typedef uint8_t pch_cunum_t;
 /*! \brief a unit address that identifies a device on a given CU on the control unit side
  *  \ingroup picochan_base
  *
- *  Must be between 0 and NUM_DEVICES_PER_CU (at most 255).
+ *  Must be between 0 and cu->num_devibs-1 (which is at most 255).
  */
 typedef uint8_t pch_unit_addr_t;
 
