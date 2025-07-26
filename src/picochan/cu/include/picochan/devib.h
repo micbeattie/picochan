@@ -74,8 +74,11 @@ typedef struct __aligned(4) pch_devib {
         uint32_t        addr;
         pch_dev_sense_t sense;
 } pch_devib_t;
-static_assert(sizeof(pch_devib_t) == 16,
-        "pch_devib_t must be 16 bytes");
+
+#define PCH_DEVIB_SPACE_SHIFT (31U - __builtin_clz(2 * sizeof(pch_devib_t) - 1))
+
+static_assert(__builtin_constant_p(PCH_DEVIB_SPACE_SHIFT),
+        "__builtin_clz() did not produce compile-time constant for PCH_DEVIB_SPACE_SHIFT");
 
 #define PCH_DEVIB_FLAG_STARTED          0x80
 #define PCH_DEVIB_FLAG_CMD_WRITE        0x40

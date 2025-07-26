@@ -36,6 +36,15 @@ typedef uint8_t pch_cunum_t;
  */
 typedef uint8_t pch_unit_addr_t;
 
+/*! \brief a device id that identifies a device by its control unit
+ * number and its unit address on that CU.
+ *  \ingroup picochan_base
+ */
+typedef struct pch_dev_id {
+        pch_cunum_t     cunum;
+        pch_unit_addr_t ua;
+} pch_dev_id_t;
+
 /*! \brief a DMA id used by CSS or CU
  *  \ingroup picochan_base
  *

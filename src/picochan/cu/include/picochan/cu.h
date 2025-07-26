@@ -10,11 +10,9 @@
 #define PARAM_ASSERTIONS_ENABLED_PCH_CUS 0
 #endif
 
-#ifndef PCH_MAX_DEVIBS_PER_CPU
-#define PCH_MAX_DEVIBS_PER_CPU 32
+#ifndef PCH_MAX_DEVIBS_PER_CU
+#define PCH_MAX_DEVIBS_PER_CU 32
 #endif
-static_assert(PCH_MAX_DEVIBS_PER_CPU >= 1 && PCH_MAX_DEVIBS_PER_CPU <= 256,
-        "PCH_MAX_DEVIBS_PER_CPU must be between 1 and 256");
 
 #include <stdint.h>
 #include <assert.h>
@@ -22,6 +20,22 @@ static_assert(PCH_MAX_DEVIBS_PER_CPU >= 1 && PCH_MAX_DEVIBS_PER_CPU <= 256,
 #include "picochan/dev_api.h"
 #include "picochan/dmachan.h"
 #include "txsm/txsm.h"
+
+static_assert(__builtin_constant_p(PCH_MAX_DEVIBS_PER_CU),
+        "PCH_MAX_DEVIBS_PER_CU must be a compile-time constant");
+
+static_assert(PCH_MAX_DEVIBS_PER_CU >= 1 && PCH_MAX_DEVIBS_PER_CU <= 256,
+        "PCH_MAX_DEVIBS_PER_CU must be between 1 and 256");
+
+#define PCH_MAX_DEVIBS_PER_CU_ALIGN_SHIFT (31U - __builtin_clz(2 * (PCH_MAX_DEVIBS_PER_CU) - 1))
+
+static_assert(__builtin_constant_p(PCH_MAX_DEVIBS_PER_CU_ALIGN_SHIFT),
+        "__builtin_clz() did not produce compile-time constant for PCH_MAX_DEVIBS_PER_CU_ALIGN_SHIFT");
+
+#define PCH_CU_ALIGN (1U << (PCH_DEVIB_SPACE_SHIFT+PCH_MAX_DEVIBS_PER_CU_ALIGN_SHIFT))
+
+static_assert(__builtin_constant_p(PCH_CU_ALIGN),
+        "could not produce compile-time constant for PCH_CU_ALIGN");
 
 /*! \file picochan/cu.h
  *  \defgroup picochan_cu picochan_cu
@@ -58,15 +72,29 @@ static_assert(NUM_DEVIBS >= 1 && NUM_DEVIBS <= 256,
  *
  * The struct starts with a fixed-size metadata section with state
  * and communication information about its devices and channel to
- * the CSS. Immediately following that is an array of pch_devib_t
- * structures, one for each device on the CU. The size of that
- * array is held in the num_devibs field of the pch_cu_t which is
- * set at the time pch_cus_cu_init is called and cannot be changed
- * afterwards. The allocation of memory for a pch_cu_t, whether
- * static or dynamic, is the responsibility of the application
- * before calling pch_cus_cu_init.
+ * the CSS. Immediately following that (ignoring internal padding) is
+ * an array of pch_devib_t structures, one for each device on the CU.
+ * The size of that array is held in the num_devibs field of the
+ * pch_cu_t which is set at the time pch_cus_cu_init is called and
+ * cannot be changed afterwards. The allocation of memory for a
+ * pch_cu_t, whether static or dynamic, is the responsibility of the
+ * application before calling pch_cus_cu_init.
+ *
+ * The alignment of pch_cu_t is enforced to be PCH_CU_ALIGN which is
+ * calculated at compile-time as PCH_MAX_DEVIBS_PER_CU multiplied by
+ * the smallest power of 2 greater than or equal to
+ * sizeof(pch_devib_t). This allows address arithmetic and bit masking
+ * to determine the unit address and owning pch_cu_t of a devib.
+ * PCH_MAX_DEVIBS_PER_CU, a preprocessor symbol, can be defined as any
+ * compile-time constant between 1 and 256, defaulting to 32.
+ * sizeof(pch_devib_t) is currently 16 so for the default
+ * PCH_MAX_DEVIBS_PER_CU, alignof(pch_cu_t) is 512. With the
+ * maximum PCH_MAX_DEVIBS_PER_CU of 256, alignof(pch_cu_t) is 4096.
+ * Each individual pch_cu_t may be allocated at either compile-time or
+ * runtime with a smaller numbers of devibs than PCH_MAX_DEVIBS_PER_CU
+ * but the alignment as calculated above is still required.
  */
-typedef struct __aligned(4) pch_cu {
+typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;
         pch_txsm_t              tx_pending;
@@ -101,6 +129,27 @@ typedef struct __aligned(4) pch_cu {
  * array (a Flexible Array Member) at the end of ths struct.
  */
 #define PCH_CU_INIT(num_devibs) {.devibs = { [num_devibs-1] = {0} }}
+
+static inline pch_cu_t *pch_dev_get_cu(pch_devib_t *devib) {
+        unsigned long p = (unsigned long)devib;
+        p -= __builtin_offsetof(pch_cu_t, devibs);
+        p &= ~(PCH_CU_ALIGN-1);
+        return (pch_cu_t *)p;
+}
+
+static inline pch_unit_addr_t pch_dev_get_ua(pch_devib_t *devib) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
+        return (pch_unit_addr_t)(devib - cu->devibs);
+}
+
+static inline pch_dev_id_t pch_dev_get_dev_id(pch_devib_t *devib) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
+        pch_unit_addr_t ua = (pch_unit_addr_t)(devib - cu->devibs);
+        return ((pch_dev_id_t){
+                .cunum = cu->cunum,
+                .ua = ua
+        });
+}
 
 /*! \brief Look up the pch_devib_t of a device from its CU and unit address
  *  \ingroup picochan_cu
