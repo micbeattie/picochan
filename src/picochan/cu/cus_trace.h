@@ -19,30 +19,25 @@ extern pch_trc_bufferset_t pch_cus_trace_bs;
 
 #define PCH_CUS_TRACE(rt, data) PCH_CUS_TRACE_COND((rt), true, (data))
 
-static inline void trace_dev(pch_trc_record_type_t rt, pch_cu_t *cu, pch_devib_t *devib) {
-        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(cu, devib),
-                ((struct pch_trdata_dev){
-                        .cunum = cu->cunum,
-                        .ua = pch_get_ua(cu, devib),
-                }));
+static inline void trace_dev(pch_trc_record_type_t rt, pch_devib_t *devib) {
+        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),
+                ((struct { pch_dev_id_t devid; }){pch_dev_get_dev_id(devib)}));
 }
 
-static inline void trace_dev_byte(pch_trc_record_type_t rt, pch_cu_t *cu, pch_devib_t *devib, uint8_t byte) {
-        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(cu, devib),
+static inline void trace_dev_byte(pch_trc_record_type_t rt, pch_devib_t *devib, uint8_t byte) {
+        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_dev_byte){
-                        .cunum = cu->cunum,
-                        .ua = pch_get_ua(cu, devib),
+                        .devid = pch_dev_get_dev_id(devib),
                         .byte = byte
                 }));
 }
 
-static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
+static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_devib_t *devib, proto_packet_t p) {
         PCH_CUS_TRACE_COND(rt,
-                cu_or_devib_is_traced(cu, devib),
+                cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_word_dev){
                         .word = proto_packet_as_word(p),
-                        .cunum = cu->cunum,
-                        .ua = pch_get_ua(cu, devib)
+                        .devid = pch_dev_get_dev_id(devib)
                 }));
 }
 
@@ -60,12 +55,11 @@ static inline void trace_register_callback(pch_trc_record_type_t rt, pch_cbindex
                 ((struct pch_trdata_word_byte){(uint32_t)cb,n}));
 }
 
-static inline void trace_call_callback(pch_trc_record_type_t rt, pch_cu_t *cu, pch_devib_t *devib, pch_cbindex_t cbindex) {
+static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *devib, pch_cbindex_t cbindex) {
         PCH_CUS_TRACE_COND(rt,
-                cu_or_devib_is_traced(cu, devib),
+                cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_cus_call_callback){
-                        .cunum = cu->cunum,
-                        .ua = pch_get_ua(cu, devib),
+                        .devid = pch_dev_get_dev_id(devib),
                         .cbindex = (uint8_t)cbindex
                 }));
 }

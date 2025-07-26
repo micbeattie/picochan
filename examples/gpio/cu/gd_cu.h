@@ -11,6 +11,6 @@ void gd_cu_init(pch_cunum_t cunum, uint8_t dmairqix);
 
 pch_cu_t *gd_get_cu();
 
-void gd_dev_init(pch_cu_t *cu, pch_unit_addr_t ua);
+void gd_dev_init(pch_devib_t *devib);
 
 #endif

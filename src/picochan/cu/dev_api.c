@@ -36,7 +36,9 @@ void __no_inline_not_in_flash_func(pch_devib_prepare_update_status)(pch_devib_t 
 	devib->payload = proto_make_devstatus_payload(devs, esize);
 }
 
-void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_cu_t *cu, pch_unit_addr_t ua) {
+void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_devib_t *devib) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
+        pch_unit_addr_t ua = pch_dev_get_ua(devib);
         int16_t tx_tail = push_tx_list(cu, ua);
 	if (tx_tail == -1) {
 		// List was empty
@@ -49,13 +51,13 @@ void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_cu_t *cu
                 }
 	} else {
 		trace_dev_byte(PCH_TRC_RT_CUS_QUEUE_COMMAND,
-			cu, pch_get_devib(cu, ua), (uint8_t)tx_tail);
+			devib, (uint8_t)tx_tail);
 	}
 }
 
 // (Slightly) higher-level "pch_dev_" API for dev implementations.
-// These take a (cu, ua) pair, update the fields of the corresponding
-// devib (with "pch_devib_" functions) then call
+// These update the fields of the corresponding devib
+// (with "pch_devib_" functions) then call
 // pch_devib_send_or_queue_command to send the command to the CSS
 // either immediately (if the CU tx is available) or queue it up to
 // be sent after in-progress sends.
@@ -72,16 +74,14 @@ static int set_callback(pch_devib_t *devib, int cbindex_opt) {
         return 0;
 }
 
-int __time_critical_func(pch_dev_set_callback)(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt) {
+int __time_critical_func(pch_dev_set_callback)(pch_devib_t *devib, int cbindex_opt) {
         if (cbindex_opt < 0)
                 return 0;
 
-        pch_devib_t *devib = pch_get_devib(cu, ua);
         return set_callback(devib, cbindex_opt);
 }
 
-int __no_inline_not_in_flash_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+int __no_inline_not_in_flash_func(pch_dev_send_then)(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
 
@@ -91,7 +91,7 @@ int __no_inline_not_in_flash_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr
         if (n == 0)
                 return -EDATALENZERO;
 
-        int err = pch_dev_set_callback(cu, ua, cbindex_opt);
+        int err = pch_dev_set_callback(devib, cbindex_opt);
         if (err < 0)
                 return err;
 
@@ -100,44 +100,43 @@ int __no_inline_not_in_flash_func(pch_dev_send_then)(pch_cu_t *cu, pch_unit_addr
                 n = devib->size;
 
         pch_devib_prepare_write_data(devib, srcaddr, n, flags);
-        pch_devib_send_or_queue_command(cu, ua);
+        pch_devib_send_or_queue_command(devib);
         return n;
 }
 
-int __time_critical_func(pch_dev_send_final_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
-        return pch_dev_send_then(cu, ua, srcaddr, n,
+int __time_critical_func(pch_dev_send_final_then)(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_then(devib, srcaddr, n,
                 PROTO_CHOP_FLAG_END, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_final)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
-        return pch_dev_send_then(cu, ua, srcaddr, n,
+int __time_critical_func(pch_dev_send_final)(pch_devib_t *devib, void *srcaddr, uint16_t n) {
+        return pch_dev_send_then(devib, srcaddr, n,
                 PROTO_CHOP_FLAG_END, -1);
 }
 
-int __time_critical_func(pch_dev_send_respond_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
-        return pch_dev_send_then(cu, ua, srcaddr, n,
+int __time_critical_func(pch_dev_send_respond_then)(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_then(devib, srcaddr, n,
                 PROTO_CHOP_FLAG_RESPONSE_REQUIRED, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_respond)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
-        return pch_dev_send_then(cu, ua, srcaddr, n,
+int __time_critical_func(pch_dev_send_respond)(pch_devib_t *devib, void *srcaddr, uint16_t n) {
+        return pch_dev_send_then(devib, srcaddr, n,
                 PROTO_CHOP_FLAG_RESPONSE_REQUIRED, -1);
 }
 
-int __time_critical_func(pch_dev_send_norespond_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt) {
-        return pch_dev_send_then(cu, ua, srcaddr, n, 0, cbindex_opt);
+int __time_critical_func(pch_dev_send_norespond_then)(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_then(devib, srcaddr, n, 0, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_norespond)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n) {
-        return pch_dev_send_then(cu, ua, srcaddr, n, 0, -1);
+int __time_critical_func(pch_dev_send_norespond)(pch_devib_t *devib, void *srcaddr, uint16_t n) {
+        return pch_dev_send_then(devib, srcaddr, n, 0, -1);
 }
 
-int __time_critical_func(pch_dev_send)(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags) {
-        return pch_dev_send_then(cu, ua, srcaddr, n, flags, -1);
+int __time_critical_func(pch_dev_send)(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags) {
+        return pch_dev_send_then(devib, srcaddr, n, flags, -1);
 }
 
-int __no_inline_not_in_flash_func(pch_dev_receive_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+int __no_inline_not_in_flash_func(pch_dev_receive_then)(pch_devib_t *devib, void *dstaddr, uint16_t size, int cbindex_opt) {
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
 
@@ -149,16 +148,15 @@ int __no_inline_not_in_flash_func(pch_dev_receive_then)(pch_cu_t *cu, pch_unit_a
                 return err;
 
         pch_devib_prepare_read_data(devib, dstaddr, size);
-        pch_devib_send_or_queue_command(cu, ua);
+        pch_devib_send_or_queue_command(devib);
         return 0;
 }
 
-int __time_critical_func(pch_dev_receive)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size) {
-        return pch_dev_receive_then(cu, ua, dstaddr, size, -1);
+int __time_critical_func(pch_dev_receive)(pch_devib_t *devib, void *dstaddr, uint16_t size) {
+        return pch_dev_receive_then(devib, dstaddr, size, -1);
 }
 
-int __no_inline_not_in_flash_func(pch_dev_update_status_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+int __no_inline_not_in_flash_func(pch_dev_update_status_advert_then)(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt) {
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
                 return err;
@@ -169,48 +167,46 @@ int __no_inline_not_in_flash_func(pch_dev_update_status_advert_then)(pch_cu_t *c
         }
 
         pch_devib_prepare_update_status(devib, devs, dstaddr, size);
-        pch_devib_send_or_queue_command(cu, ua);
+        pch_devib_send_or_queue_command(devib);
         return 0;
 }
 
-int __time_critical_func(pch_dev_update_status_advert)(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size) {
-        return pch_dev_update_status_advert_then(cu, ua, devs, dstaddr, size, -1);
+int __time_critical_func(pch_dev_update_status_advert)(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size) {
+        return pch_dev_update_status_advert_then(devib, devs, dstaddr, size, -1);
 }
 
-int __time_critical_func(pch_dev_update_status_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, int cbindex_opt) {
-        return pch_dev_update_status_advert_then(cu, ua, devs, NULL, 0, cbindex_opt);
+int __time_critical_func(pch_dev_update_status_then)(pch_devib_t *devib, uint8_t devs, int cbindex_opt) {
+        return pch_dev_update_status_advert_then(devib, devs, NULL, 0, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_update_status)(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs) {
-        return pch_dev_update_status_advert_then(cu, ua, devs, NULL, 0, -1);
+int __time_critical_func(pch_dev_update_status)(pch_devib_t *devib, uint8_t devs) {
+        return pch_dev_update_status_advert_then(devib, devs, NULL, 0, -1);
 }
 
-int __no_inline_not_in_flash_func(pch_dev_update_status_ok_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+int __no_inline_not_in_flash_func(pch_dev_update_status_ok_advert_then)(pch_devib_t *devib, void *dstaddr, uint16_t size, int cbindex_opt) {
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
                 return err;
 
         uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END;
         pch_devib_prepare_update_status(devib, devs, dstaddr, size);
-        pch_devib_send_or_queue_command(cu, ua);
+        pch_devib_send_or_queue_command(devib);
         return 0;
 }
 
-int __time_critical_func(pch_dev_update_status_ok_advert)(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size) {
-        return pch_dev_update_status_ok_advert_then(cu, ua, dstaddr, size, -1);
+int __time_critical_func(pch_dev_update_status_ok_advert)(pch_devib_t *devib, void *dstaddr, uint16_t size) {
+        return pch_dev_update_status_ok_advert_then(devib, dstaddr, size, -1);
 }
 
-int __time_critical_func(pch_dev_update_status_ok_then)(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt) {
-        return pch_dev_update_status_ok_advert_then(cu, ua, NULL, 0, cbindex_opt);
+int __time_critical_func(pch_dev_update_status_ok_then)(pch_devib_t *devib, int cbindex_opt) {
+        return pch_dev_update_status_ok_advert_then(devib, NULL, 0, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_update_status_ok)(pch_cu_t *cu, pch_unit_addr_t ua) {
-        return pch_dev_update_status_ok_advert_then(cu, ua, NULL, 0, -1);
+int __time_critical_func(pch_dev_update_status_ok)(pch_devib_t *devib) {
+        return pch_dev_update_status_ok_advert_then(devib, NULL, 0, -1);
 }
 
-int __no_inline_not_in_flash_func(pch_dev_update_status_error_advert_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+int __no_inline_not_in_flash_func(pch_dev_update_status_error_advert_then)(pch_devib_t *devib, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt) {
         int err = set_callback(devib, cbindex_opt);
         if (err < 0)
                 return err;
@@ -219,24 +215,23 @@ int __no_inline_not_in_flash_func(pch_dev_update_status_error_advert_then)(pch_c
         uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END
                 | PCH_DEVS_UNIT_CHECK;
         pch_devib_prepare_update_status(devib, devs, dstaddr, size);
-        pch_devib_send_or_queue_command(cu, ua);
+        pch_devib_send_or_queue_command(devib);
         return 0;
 }
 
-int __time_critical_func(pch_dev_update_status_error_advert)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size) {
-        return pch_dev_update_status_error_advert_then(cu, ua, sense, dstaddr, size, -1);
+int __time_critical_func(pch_dev_update_status_error_advert)(pch_devib_t *devib, pch_dev_sense_t sense, void *dstaddr, uint16_t size) {
+        return pch_dev_update_status_error_advert_then(devib, sense, dstaddr, size, -1);
 }
 
-int __time_critical_func(pch_dev_update_status_error_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, int cbindex_opt) {
-        return pch_dev_update_status_error_advert_then(cu, ua, sense, NULL, 0, cbindex_opt);
+int __time_critical_func(pch_dev_update_status_error_then)(pch_devib_t *devib, pch_dev_sense_t sense, int cbindex_opt) {
+        return pch_dev_update_status_error_advert_then(devib, sense, NULL, 0, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_update_status_error)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense) {
-        return pch_dev_update_status_error_advert_then(cu, ua, sense, NULL, 0, -1);
+int __time_critical_func(pch_dev_update_status_error)(pch_devib_t *devib, pch_dev_sense_t sense) {
+        return pch_dev_update_status_error_advert_then(devib, sense, NULL, 0, -1);
 }
 
-int __time_critical_func(pch_dev_send_zeroes_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+int __time_critical_func(pch_dev_send_zeroes_then)(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags, int cbindex_opt) {
         if (!pch_devib_is_started(devib))
                 return -ENOTSTARTED;
 
@@ -248,34 +243,34 @@ int __time_critical_func(pch_dev_send_zeroes_then)(pch_cu_t *cu, pch_unit_addr_t
                 return err;
 
         pch_devib_prepare_write_zeroes(devib, n, flags);
-        pch_devib_send_or_queue_command(cu, ua);
+        pch_devib_send_or_queue_command(devib);
         return 0;
 }
 
-int __time_critical_func(pch_dev_send_zeroes)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags) {
-        return pch_dev_send_zeroes_then(cu, ua, n, flags, -1);
+int __time_critical_func(pch_dev_send_zeroes)(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags) {
+        return pch_dev_send_zeroes_then(devib, n, flags, -1);
 }
 
-int __time_critical_func(pch_dev_send_zeroes_respond_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt) {
-        return pch_dev_send_zeroes_then(cu, ua, n,
+int __time_critical_func(pch_dev_send_zeroes_respond_then)(pch_devib_t *devib, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_zeroes_then(devib, n,
                 PROTO_CHOP_FLAG_RESPONSE_REQUIRED, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_zeroes_respond)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n) {
-        return pch_dev_send_zeroes_then(cu, ua, n,
+int __time_critical_func(pch_dev_send_zeroes_respond)(pch_devib_t *devib, uint16_t n) {
+        return pch_dev_send_zeroes_then(devib, n,
                 PROTO_CHOP_FLAG_RESPONSE_REQUIRED, -1);
 }
 
-int __time_critical_func(pch_dev_send_zeroes_norespond_then)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt) {
-        return pch_dev_send_zeroes_then(cu, ua, n, 0, cbindex_opt);
+int __time_critical_func(pch_dev_send_zeroes_norespond_then)(pch_devib_t *devib, uint16_t n, int cbindex_opt) {
+        return pch_dev_send_zeroes_then(devib, n, 0, cbindex_opt);
 }
 
-int __time_critical_func(pch_dev_send_zeroes_norespond)(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n) {
-        return pch_dev_send_zeroes_then(cu, ua, n, 0, -1);
+int __time_critical_func(pch_dev_send_zeroes_norespond)(pch_devib_t *devib, uint16_t n) {
+        return pch_dev_send_zeroes_then(devib, n, 0, -1);
 }
 
-void __time_critical_func(pch_dev_call_final_then)(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_call_func_t f, int cbindex_opt) {
-        int rc = f(cu, ua);
+void __time_critical_func(pch_dev_call_final_then)(pch_devib_t *devib, pch_dev_call_func_t f, int cbindex_opt) {
+        int rc = f(devib);
 
         uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END;
         if (rc < 0) {
@@ -284,8 +279,7 @@ void __time_critical_func(pch_dev_call_final_then)(pch_cu_t *cu, pch_unit_addr_t
                         .flags = PCH_DEV_SENSE_COMMAND_REJECT,
                         .asc = (uint8_t)(-rc),
                 };
-                pch_devib_t *devib = pch_get_devib(cu, ua);
                 devib->sense = sense;
         }
-        pch_dev_update_status_then(cu, ua, devs, cbindex_opt);
+        pch_dev_update_status_then(devib, devs, cbindex_opt);
 }

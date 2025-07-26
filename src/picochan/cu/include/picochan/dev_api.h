@@ -73,7 +73,7 @@ enum {
  *  independently of the usual CU-to-device communication mechanisms.
  *  * -1 - the device callback is not changed
  */
-int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
+int pch_dev_set_callback(pch_devib_t *devib, int cbindex_opt);
 
 /*! \brief Sends data to the CSS
  * \ingroup picochan_cu
@@ -132,7 +132,7 @@ int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
  * that are being sent or are pending ahead of new requests from
  * this device.
  */
-int pch_dev_send_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+int pch_dev_send_then(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
 
 /*! \brief Sends zeroes to the CSS
  *  \ingroup picochan_cu
@@ -141,7 +141,7 @@ int pch_dev_send_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t 
  * field that ORs in PROTO_CHOP_FLAG_SKIP and an (ignored) srcaddr
  * of 0.
  */
-int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+int pch_dev_send_zeroes_then(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
 
 /*! \brief Receive data from the CSS
  *  \ingroup picochan_cu
@@ -192,9 +192,9 @@ int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto
  * and the CU has updated the `devib->size` field with the
  * remaining count of available data bytes.
  */
-int pch_dev_receive_then(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_receive_then(pch_devib_t *devib, void *dstaddr, uint16_t size, int cbindex_opt);
 
-int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_advert_then(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
 
 // dev API convenience functions with some fixed arguments:
 // * Omitting _then avoids setting devib callback by hardcoding -1
@@ -208,31 +208,31 @@ int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t 
 // * For pch_dev_update_status_error family, set devib->sense to the
 // sense argument then call the corresponding pch_dev_update_status_
 // function with a device status of DeviceEnd|ChannelEnd|UnitCheck
-int pch_dev_send(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
-int pch_dev_send_final(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_final_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_respond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_norespond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags);
-int pch_dev_send_zeroes_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes_respond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
-int pch_dev_send_zeroes_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes_norespond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
-int pch_dev_receive(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
-int pch_dev_update_status_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, int cbindex_opt);
-int pch_dev_update_status(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs);
-int pch_dev_update_status_advert(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size);
-int pch_dev_update_status_ok_then(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
-int pch_dev_update_status_ok(pch_cu_t *cu, pch_unit_addr_t ua);
-int pch_dev_update_status_ok_advert(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
-int pch_dev_update_status_error_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt);
-int pch_dev_update_status_error_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, int cbindex_opt);
-int pch_dev_update_status_error_advert(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
-int pch_dev_update_status_error(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense);
+int pch_dev_send(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
+int pch_dev_send_final(pch_devib_t *devib, void *srcaddr, uint16_t n);
+int pch_dev_send_final_then(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_respond(pch_devib_t *devib, void *srcaddr, uint16_t n);
+int pch_dev_send_respond_then(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_norespond(pch_devib_t *devib, void *srcaddr, uint16_t n);
+int pch_dev_send_norespond_then(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags);
+int pch_dev_send_zeroes_respond_then(pch_devib_t *devib, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes_respond(pch_devib_t *devib, uint16_t n);
+int pch_dev_send_zeroes_norespond_then(pch_devib_t *devib, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes_norespond(pch_devib_t *devib, uint16_t n);
+int pch_dev_receive(pch_devib_t *devib, void *dstaddr, uint16_t size);
+int pch_dev_update_status_then(pch_devib_t *devib, uint8_t devs, int cbindex_opt);
+int pch_dev_update_status(pch_devib_t *devib, uint8_t devs);
+int pch_dev_update_status_advert(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size);
+int pch_dev_update_status_ok_then(pch_devib_t *devib, int cbindex_opt);
+int pch_dev_update_status_ok(pch_devib_t *devib);
+int pch_dev_update_status_ok_advert(pch_devib_t *devib, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error_advert_then(pch_devib_t *devib, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_error_then(pch_devib_t *devib, pch_dev_sense_t sense, int cbindex_opt);
+int pch_dev_update_status_error_advert(pch_devib_t *devib, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error(pch_devib_t *devib, pch_dev_sense_t sense);
 
-typedef int (*pch_dev_call_func_t)(pch_cu_t *cu, pch_unit_addr_t ua);
+typedef int (*pch_dev_call_func_t)(pch_devib_t *devib);
 
 /*! Calls f and, if it returns a negative value, sets sense code to
  * CommandReject with the associated negated (positive) error value,
@@ -241,14 +241,14 @@ typedef int (*pch_dev_call_func_t)(pch_cu_t *cu, pch_unit_addr_t ua);
  * further action is taken. In either case, the return value of f
  * is propagated to the caller.
  */
-static inline int pch_dev_call_or_reject_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_call_func_t f, int reject_cbindex_opt) {
-        int rc = f(cu, ua);
+static inline int pch_dev_call_or_reject_then(pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt) {
+        int rc = f(devib);
         if (rc < 0) {
                 pch_dev_sense_t sense = {
                         .flags = PCH_DEV_SENSE_COMMAND_REJECT,
                         .asc = (uint8_t)(-rc),
                 };
-                pch_dev_update_status_error_then(cu, ua, sense,
+                pch_dev_update_status_error_then(devib, sense,
                         reject_cbindex_opt);
         }
 
@@ -263,6 +263,6 @@ static inline int pch_dev_call_or_reject_then(pch_cu_t *cu, pch_unit_addr_t ua, 
  * valuem the UpdateStatus payload is normal "no error" with
  * ChannelEnd|DeviceEnd.
  */
-void pch_dev_call_final_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_call_func_t f, int cbindex_opt);
+void pch_dev_call_final_then(pch_devib_t *devib, pch_dev_call_func_t f, int cbindex_opt);
 
 #endif

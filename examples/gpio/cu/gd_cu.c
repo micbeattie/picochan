@@ -25,41 +25,37 @@ static pch_cbindex_t gd_complete_test_cbindex;
 
 gpio_dev_t gpio_devs[NUM_GPIO_DEVS];
 
-static inline gpio_dev_t *get_gpio_dev(pch_unit_addr_t ua) {
+static inline gpio_dev_t *get_gpio_dev(pch_devib_t *devib) {
+        pch_unit_addr_t ua = pch_dev_get_ua(devib);
         if (ua < NUM_GPIO_DEVS)
                 return &gpio_devs[ua];
 
         return NULL;
 }
 
-static void reset_gpio_dev(gpio_dev_t *gd, pch_unit_addr_t ua) {
-        memset(gd, 0, sizeof(*gd));
-}
-
-static void gd_add_repeating_timer(gpio_dev_t *gd, repeating_timer_callback_t callback, pch_unit_addr_t ua) {
+static void gd_add_repeating_timer(gpio_dev_t *gd, repeating_timer_callback_t callback, pch_devib_t *devib) {
         // Negate delay time so that delay is measured between start
         // (not end) of one callback and the next.
         int64_t delay_us = -(int64_t)gd->cfg.clock_period_us;
 
-        void *user_data = (void*)(uint32_t)ua;
         bool ok = alarm_pool_add_repeating_timer_us(gd_alarm_pool,
-                 delay_us, callback, user_data, &gd->rt);
+                 delay_us, callback, devib, &gd->rt);
         assert(ok); // alarm slots available to create the timer?
 }
 
 // CCW command implementations
 
-static int do_ccw_get_config(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, void *data, size_t size) {
+static int do_ccw_get_config(pch_devib_t *devib, uint16_t n, void *data, size_t size) {
         if (n > size)
                 n = size;
 
-        return pch_dev_send_final_then(cu, ua, data, n,
+        return pch_dev_send_final_then(devib, data, n,
                 gd_start_cbindex);
 }
 
-static int do_ccw_set_config(pch_cu_t *cu, pch_unit_addr_t ua, gpio_dev_t *gd, uint8_t ccwcmd, size_t cfgsize) {
+static int do_ccw_set_config(pch_devib_t *devib, gpio_dev_t *gd, uint8_t ccwcmd, size_t cfgsize) {
         gd->cfgcmd = ccwcmd;
-        pch_dev_receive_then(cu, ua, &gd->cfgbuf, (uint16_t)cfgsize,
+        pch_dev_receive_then(devib, &gd->cfgbuf, (uint16_t)cfgsize,
                 gd_setconf_cbindex);
 
         return 0;
@@ -120,12 +116,11 @@ static int setconf_irq_config(gpio_dev_t *gd, uint16_t n) {
 // do_gd_setconf is called from the devib's gd_setconf callback from
 // the CU after a do_ccw_set_config has received the config data from
 // the channel and written it to the cfgbuf. The CCW cmd is cfgcmd.
-static int do_gd_setconf(pch_cu_t *cu, pch_unit_addr_t ua) {
-        gpio_dev_t *gd = get_gpio_dev(ua);
+static int do_gd_setconf(pch_devib_t *devib) {
+        gpio_dev_t *gd = get_gpio_dev(devib);
         if (!gd)
                 return -EINVALIDDEV;
 
-        pch_devib_t *devib = pch_get_devib(cu, ua);
         uint16_t size = proto_parse_count_payload(devib->payload);
 
         switch (gd->cfgcmd) {
@@ -151,25 +146,25 @@ static int do_gd_setconf(pch_cu_t *cu, pch_unit_addr_t ua) {
         // NOTREACHED
 }
 
-static void gd_setconf(pch_cu_t *cu, pch_devib_t *devib) {
-        pch_dev_call_devib_final_then(cu, devib,
-                do_gd_setconf, gd_start_cbindex);
+static void gd_setconf(pch_devib_t *devib) {
+        pch_dev_call_final_then(devib, do_gd_setconf,
+                gd_start_cbindex);
 }
 
 static bool read_in_pins_rt_callback(repeating_timer_t *rt) {
-        pch_unit_addr_t ua = (pch_unit_addr_t)(uint32_t)rt->user_data;
-        gpio_dev_t *gd = get_gpio_dev(ua);
+        pch_devib_t *devib = (pch_devib_t *)rt->user_data;
+        gpio_dev_t *gd = get_gpio_dev(devib);
         gd->values.data[gd->values.offset++] = gd_read_in_pins(gd);
         uint16_t count = gd->values.count;
         if (gd->values.offset < count)
                 return true; // continue with repeating timer
 
-        pch_dev_send_final_then(&gd_cu, ua, gd->values.data, count,
+        pch_dev_send_final_then(devib, gd->values.data, count,
                 gd_start_cbindex);
         return false; // stop repeating timer
 }
 
-static int do_ccw_read(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, gpio_dev_t *gd) {
+static int do_ccw_read(pch_devib_t *devib, gpio_dev_t *gd) {
         uint16_t n = devib->size;
         if (n == 0)
                 return -EDATALENZERO;
@@ -178,27 +173,27 @@ static int do_ccw_read(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, gpi
 
         gd->values.data[0] = gd_read_in_pins(gd);
         if (n == 1) {
-                pch_dev_send_final_then(cu, ua, gd->values.data, n,
+                pch_dev_send_final_then(devib, gd->values.data, n,
                         gd_start_cbindex);
                 return 0;
         }
 
         gd->values.count = n;
         gd->values.offset = 1;
-        gd_add_repeating_timer(gd, read_in_pins_rt_callback, ua);
+        gd_add_repeating_timer(gd, read_in_pins_rt_callback, devib);
         return 0;
 }
 
-static int do_ccw_write(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, gpio_dev_t *gd) {
-        pch_dev_receive_then(cu, ua, &gd->values.data,
+static int do_ccw_write(pch_devib_t *devib, gpio_dev_t *gd) {
+        pch_dev_receive_then(devib, &gd->values.data,
                 VALUES_BUF_SIZE, gd_write_cbindex);
 
         return 0;
 }
 
 static bool write_out_pins_rt_callback(repeating_timer_t *rt) {
-        pch_unit_addr_t ua = (pch_unit_addr_t)(uint32_t)rt->user_data;
-        gpio_dev_t *gd = get_gpio_dev(ua);
+        pch_devib_t *devib = (pch_devib_t *)rt->user_data;
+        gpio_dev_t *gd = get_gpio_dev(devib);
         uint8_t val = gd->values.data[gd->values.offset++];
         gd_write_out_pins(gd, val);
 
@@ -206,19 +201,18 @@ static bool write_out_pins_rt_callback(repeating_timer_t *rt) {
         if (gd->values.offset < count)
                 return true; // continue with repeating timer
 
-        pch_dev_update_status_ok(&gd_cu, ua);
+        pch_dev_update_status_ok(devib);
         return false; // stop repeating timer
 }
 
 // do_gd_write is called from the gd_write callback from the CU after
 // a do_ccw_write has received the values data from the channel
 // and written it to gd->values.data.
-static int do_gd_write(pch_cu_t *cu, pch_unit_addr_t ua) {
-        gpio_dev_t *gd = get_gpio_dev(ua);
+static int do_gd_write(pch_devib_t *devib) {
+        gpio_dev_t *gd = get_gpio_dev(devib);
         if (!gd)
                 return -EINVALIDDEV;
 
-        pch_devib_t *devib = pch_get_devib(cu, ua);
         uint16_t size = proto_parse_count_payload(devib->payload);
         if (size == 0)
                 return -EDATALENZERO;
@@ -231,117 +225,116 @@ static int do_gd_write(pch_cu_t *cu, pch_unit_addr_t ua) {
         gd_write_out_pins(gd, val);
         
         if (size == 1) {
-                pch_dev_update_status_ok(&gd_cu, ua);
+                pch_dev_update_status_ok(devib);
                 return 0;
         }
 
         gd->values.count = size;
         gd->values.offset = 1;
-        gd_add_repeating_timer(gd, write_out_pins_rt_callback, ua);
+        gd_add_repeating_timer(gd, write_out_pins_rt_callback, devib);
         return 0;
 }
 
-static void gd_write(pch_cu_t *cu, pch_devib_t *devib) {
-        pch_dev_call_devib_or_reject_then(cu, devib,
-                do_gd_write, gd_start_cbindex);
+static void gd_write(pch_devib_t *devib) {
+        pch_dev_call_or_reject_then(devib, do_gd_write,
+                gd_start_cbindex);
 }
 
 static inline bool filter_match(gd_filter_t filter, uint8_t val) {
         return (val & filter.mask) == filter.target;
 }
 
-static void complete_test(pch_cu_t *cu, pch_unit_addr_t ua, gpio_dev_t *gd) {
+static void complete_test(pch_devib_t *devib, gpio_dev_t *gd) {
         uint8_t val = gd->values.data[0];
         uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END;
         if (filter_match(gd->cfg.filter, val))
                 devs |= PCH_DEVS_STATUS_MODIFIER;
 
-        pch_dev_update_status_then(cu, ua, devs, gd_start_cbindex);
+        pch_dev_update_status_then(devib, devs, gd_start_cbindex);
 }       
 
-static int do_gd_complete_test(pch_cu_t *cu, pch_unit_addr_t ua) {
-        gpio_dev_t *gd = get_gpio_dev(ua);
+static int do_gd_complete_test(pch_devib_t *devib) {
+        gpio_dev_t *gd = get_gpio_dev(devib);
         if (!gd)
                 return -EINVALIDDEV;
 
-        complete_test(cu, ua, gd);
+        complete_test(devib, gd);
         return 0;
 }
                 
-static void gd_complete_test(pch_cu_t *cu, pch_devib_t *devib) {
-        pch_dev_call_devib_or_reject_then(cu, devib,
-                do_gd_complete_test, gd_start_cbindex);
+static void gd_complete_test(pch_devib_t *devib) {
+        pch_dev_call_or_reject_then(devib, do_gd_complete_test,
+                gd_start_cbindex);
 }
 
-static int do_ccw_test(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, gpio_dev_t *gd) {
+static int do_ccw_test(pch_devib_t *devib, gpio_dev_t *gd) {
         gd->values.data[0] = gd_read_in_pins(gd);
 
         if (!devib->size) {
-                complete_test(cu, ua, gd);
+                complete_test(devib, gd);
                 return 0;
         }
 
-        return pch_dev_send_norespond_then(cu, ua,
+        return pch_dev_send_norespond_then(devib,
                 &gd->values.data[0], 1, gd_complete_test_cbindex);
 }
 
 // do_gd_start is called from the devib's gd_start callback from the CU.
-static int do_gd_start(pch_cu_t *cu, pch_unit_addr_t ua) {
-        gpio_dev_t *gd = get_gpio_dev(ua);
+static int do_gd_start(pch_devib_t *devib) {
+        gpio_dev_t *gd = get_gpio_dev(devib);
         if (!gd)
                 return -EINVALIDDEV;
 
-        pch_devib_t *devib = pch_get_devib(cu, ua);
         uint8_t ccwcmd = devib->payload.p0;
         switch (ccwcmd) {
         case PCH_CCW_CMD_READ:
-                return do_ccw_read(cu, devib, ua, gd);
+                return do_ccw_read(devib, gd);
 
         case PCH_CCW_CMD_WRITE:
-                return do_ccw_write(cu, devib, ua, gd);
+                return do_ccw_write(devib, gd);
 
         case GD_CCW_CMD_TEST:
-                return do_ccw_test(cu, devib, ua, gd);
+                return do_ccw_test(devib, gd);
 
         case GD_CCW_CMD_SET_CLOCK_PERIOD_US:
-                return do_ccw_set_config(cu, ua, gd,
+                return do_ccw_set_config(devib, gd,
                         ccwcmd, sizeof gd->cfg.clock_period_us);
 
 	case GD_CCW_CMD_SET_OUT_PINS:
-                return do_ccw_set_config(cu, ua, gd,
+                return do_ccw_set_config(devib, gd,
                         ccwcmd, sizeof gd->cfg.out_pins);
 
 	case GD_CCW_CMD_SET_IN_PINS:
-                return do_ccw_set_config(cu, ua, gd,
+                return do_ccw_set_config(devib, gd,
                         ccwcmd, sizeof gd->cfg.in_pins);
 
 	case GD_CCW_CMD_SET_FILTER:
-                return do_ccw_set_config(cu, ua, gd,
+                return do_ccw_set_config(devib, gd,
                         ccwcmd, sizeof gd->cfg.filter);
 
 	case GD_CCW_CMD_SET_IRQ_CONFIG:
-                return do_ccw_set_config(cu, ua, gd,
+                return do_ccw_set_config(devib, gd,
                         ccwcmd, sizeof gd->cfg.irq);
 
         case GD_CCW_CMD_GET_CLOCK_PERIOD_US:
-                return do_ccw_get_config(cu, ua, devib->size,
+                return do_ccw_get_config(devib, devib->size,
                         &gd->cfg.clock_period_us,
                         sizeof gd->cfg.clock_period_us);
 
 	case GD_CCW_CMD_GET_OUT_PINS:
-                return do_ccw_get_config(cu, ua, devib->size,
+                return do_ccw_get_config(devib, devib->size,
                         &gd->cfg.out_pins, sizeof gd->cfg.out_pins);
 
 	case GD_CCW_CMD_GET_IN_PINS:
-                return do_ccw_get_config(cu, ua, devib->size,
+                return do_ccw_get_config(devib, devib->size,
                         &gd->cfg.in_pins, sizeof gd->cfg.in_pins);
 
 	case GD_CCW_CMD_GET_FILTER:
-                return do_ccw_get_config(cu, ua, devib->size,
+                return do_ccw_get_config(devib, devib->size,
                         &gd->cfg.filter, sizeof gd->cfg.filter);
 
 	case GD_CCW_CMD_GET_IRQ_CONFIG:
-                return do_ccw_get_config(cu, ua, devib->size,
+                return do_ccw_get_config(devib, devib->size,
                         &gd->cfg.irq, sizeof gd->cfg.irq);
 
         default:
@@ -351,9 +344,9 @@ static int do_gd_start(pch_cu_t *cu, pch_unit_addr_t ua) {
         // NOTREACHED
 }
 
-static void gd_start(pch_cu_t *cu, pch_devib_t *devib) {
+static void gd_start(pch_devib_t *devib) {
         assert(proto_chop_cmd(devib->op) == PROTO_CHOP_START);
-        pch_dev_call_devib_or_reject_then(cu, devib, do_gd_start,
+        pch_dev_call_or_reject_then(devib, do_gd_start,
                 gd_start_cbindex);
 }
 
@@ -377,11 +370,10 @@ void gd_cu_init(pch_cunum_t cunum, uint8_t dmairqix) {
         gd_cu_done_init = true;
 }
 
-void gd_dev_init(pch_cu_t *cu, pch_unit_addr_t ua) {
-        gpio_dev_t *gd = get_gpio_dev(ua);
+void gd_dev_init(pch_devib_t *devib) {
+        gpio_dev_t *gd = get_gpio_dev(devib);
         assert(gd);
 
-        reset_gpio_dev(gd, ua);
-
-        pch_dev_set_callback(cu, ua, gd_start_cbindex);
+        memset(gd, 0, sizeof(*gd));
+        pch_dev_set_callback(devib, gd_start_cbindex);
 }

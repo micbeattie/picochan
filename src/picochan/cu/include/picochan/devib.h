@@ -117,7 +117,7 @@ typedef struct pch_cu pch_cu_t;
 /*! \brief pch_devib_callback_t is a function for the CU to callback a device
  *  \ingroup picochan_cu
  */
-typedef void (*pch_devib_callback_t)(pch_cu_t *cu, pch_devib_t *devib);
+typedef void (*pch_devib_callback_t)(pch_devib_t *devib);
 
 extern pch_devib_callback_t pch_devib_callbacks[];
 
@@ -153,7 +153,7 @@ void pch_register_devib_callback(pch_cbindex_t n, pch_devib_callback_t cb);
  */
 pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
 
-void pch_default_devib_callback(pch_cu_t *cu, pch_devib_t *devib);
+void pch_default_devib_callback(pch_devib_t *devib);
 
 // Low-level API for dev implementation updating devib
 
@@ -273,5 +273,5 @@ static inline void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr
  */
 void pch_devib_prepare_update_status(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size);
 
-void pch_devib_send_or_queue_command(pch_cu_t *cu, pch_unit_addr_t ua);
+void pch_devib_send_or_queue_command(pch_devib_t *devib);
 #endif

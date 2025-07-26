@@ -29,10 +29,11 @@ target_compile_definitions(gdtest1cu PRIVATE
         PARAM_ASSERTIONS_ENABLED_PCH_TXSM=1
         PCH_CONFIG_ENABLE_TRACE=1
         NUM_CUS=1
+        PCH_MAX_DEVIBS_PER_CU=8
         PCH_CONFIG_ENABLE_MEMCHAN=0
-        GD_ENABLE_DEBUG_PRINTF=1
-        GD_ENABLE_GPIO_VERBOSE=1
-        GD_ENABLE_GPIO_WRITES=0
+#        GD_ENABLE_DEBUG_PRINTF=1
+#        GD_ENABLE_GPIO_VERBOSE=1
+#        GD_ENABLE_GPIO_WRITES=0
 )
 
 target_compile_options(gdtest1cu PRIVATE -Wall)

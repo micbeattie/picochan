@@ -31,8 +31,7 @@ pch_cbindex_t __time_critical_func(pch_register_unused_devib_callback)(pch_devib
 	panic("no more room in pch_devib_callbacks array");
 }
 
-void __time_critical_func(pch_default_devib_callback)(pch_cu_t *cu, pch_devib_t *devib) {
-        pch_unit_addr_t ua = pch_get_ua(cu, devib);
+void __time_critical_func(pch_default_devib_callback)(pch_devib_t *devib) {
         proto_chop_cmd_t cmd = proto_chop_cmd(devib->op);
         pch_dev_sense_t sense;
 
@@ -42,7 +41,7 @@ void __time_critical_func(pch_default_devib_callback)(pch_cu_t *cu, pch_devib_t 
                         .flags = PCH_DEV_SENSE_COMMAND_REJECT,
                         .code = EINVALIDDEV,
                 };
-                pch_dev_update_status_error(cu, ua, sense);
+                pch_dev_update_status_error(devib, sense);
                 break;
 
         default:
@@ -52,7 +51,7 @@ void __time_critical_func(pch_default_devib_callback)(pch_cu_t *cu, pch_devib_t 
                         .asc = devib->payload.p0,
                         .ascq = devib->payload.p1
                 };
-                pch_dev_update_status_error(cu, ua, sense);
+                pch_dev_update_status_error(devib, sense);
                 break;
         }
 }

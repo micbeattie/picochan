@@ -70,8 +70,10 @@ int main(void) {
 
         pch_cu_t *cu = gd_get_cu();
         dprintf("Initialising %u gpio_dev devices\n", NUM_GPIO_DEVS);
-        for (uint i = 0; i < NUM_GPIO_DEVS; i++)
-                gd_dev_init(cu, (pch_unit_addr_t)i);
+        for (uint i = 0; i < NUM_GPIO_DEVS; i++) {
+                pch_devib_t *devib = pch_get_devib(cu, i);
+                gd_dev_init(devib);
+        }
 
         dprintf("Starting CU %u\n", GDCU_NUM);
         pch_cus_cu_start(GDCU_NUM);

@@ -7,8 +7,9 @@
 #include "callback.h"
 #include "cus_trace.h"
 
-static void cus_handle_rx_chop_data(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
-        pch_unit_addr_t ua = pch_get_ua(cu, devib);
+static void cus_handle_rx_chop_data(pch_devib_t *devib, proto_packet_t p) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
+        pch_unit_addr_t ua = pch_dev_get_ua(devib);
 	assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
 	assert(devib->flags & PCH_DEVIB_FLAG_RX_DATA_REQUIRED);
 	uint32_t dstaddr = devib->addr;
@@ -24,58 +25,58 @@ static void cus_handle_rx_chop_data(pch_cu_t *cu, pch_devib_t *devib, proto_pack
 	cu->rx_active = (int16_t)ua;
 }
 
-static void cus_handle_rx_chop_room(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
+static void cus_handle_rx_chop_room(pch_devib_t *devib, proto_packet_t p) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
         assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
         devib->size = proto_get_count(p);
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
-	callback_devib(cu, devib);
+	callback_devib(devib);
 }
 
-static void cus_handle_rx_chop_start_read_sense(pch_cu_t *cu, pch_devib_t *devib, pch_unit_addr_t ua, uint16_t count) {
+static void cus_handle_rx_chop_start_read_sense(pch_devib_t *devib, uint16_t count) {
         if (count > sizeof(devib->sense))
                 count = sizeof(devib->sense);
 
-        int rc = pch_dev_send_final(cu, ua, &devib->sense, count);
+        int rc = pch_dev_send_final(devib, &devib->sense, count);
         assert(rc >= 0);
 }
 
-static void cus_handle_rx_chop_start_read_reserved(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
-        pch_unit_addr_t ua = pch_get_ua(cu, devib);
-
+static void cus_handle_rx_chop_start_read_reserved(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         switch (ccwcmd) {
         case PCH_CCW_CMD_SENSE:
-                cus_handle_rx_chop_start_read_sense(cu, devib, ua,
-                        count);
+                cus_handle_rx_chop_start_read_sense(devib, count);
                 break;
 
         default:
                 pch_dev_sense_t sense = {
                         .flags = PCH_DEV_SENSE_COMMAND_REJECT
                 };
-                pch_dev_update_status_error(cu, ua, sense);
+                pch_dev_update_status_error(devib, sense);
                 break;
         }
 }
 
-static void cus_handle_rx_chop_start_read(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void cus_handle_rx_chop_start_read(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
         devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
         devib->size = count; // advertised window we can write to
 
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 
         if (ccwcmd >= PCH_CCW_CMD_FIRST_RESERVED)
-                cus_handle_rx_chop_start_read_reserved(cu, devib,
+                cus_handle_rx_chop_start_read_reserved(devib,
                         ccwcmd, count);
         else
-                callback_devib(cu, devib);
+                callback_devib(devib);
 }
 
-static void cus_handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void cus_handle_rx_chop_start_write(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
         devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
 
         if (count == 0) {
                 dmachan_start_dst_cmdbuf(&cu->rx_channel);
-                callback_devib(cu, devib);
+                callback_devib(devib);
                 return;
         }
 
@@ -83,23 +84,20 @@ static void cus_handle_rx_chop_start_write(pch_cu_t *cu, pch_devib_t *devib, uin
         devib->flags |= PCH_DEVIB_FLAG_RX_DATA_REQUIRED;
         dmachan_start_dst_data(&cu->rx_channel,
                 devib->addr, (uint32_t)count);
-        cu->rx_active = (int16_t)pch_get_ua(cu, devib);
+        cu->rx_active = (int16_t)pch_dev_get_ua(devib);
         // rx completion of incoming data will do Start callback
 }
 
-static void cus_handle_rx_chop_start(pch_cu_t *cu, pch_devib_t *devib, proto_packet_t p) {
+static void cus_handle_rx_chop_start(pch_devib_t *devib, proto_packet_t p) {
         assert(!(devib->flags & PCH_DEVIB_FLAG_STARTED));
         devib->flags |= PCH_DEVIB_FLAG_STARTED;
         uint8_t ccwcmd = p.p0;
         uint16_t count = proto_decode_esize_payload(p);
 
-	if (pch_is_ccw_cmd_write(ccwcmd)) {
-                cus_handle_rx_chop_start_write(cu, devib, ccwcmd,
-                        count);
-        } else {
-                cus_handle_rx_chop_start_read(cu, devib, ccwcmd,
-                        count);
-        }
+	if (pch_is_ccw_cmd_write(ccwcmd))
+                cus_handle_rx_chop_start_write(devib, ccwcmd, count);
+        else
+                cus_handle_rx_chop_start_read(devib, ccwcmd, count);
 }
 
 static void cus_handle_rx_command_complete(pch_cu_t *cu) {
@@ -108,20 +106,20 @@ static void cus_handle_rx_command_complete(pch_cu_t *cu) {
         pch_unit_addr_t ua = p.unit_addr;
 	assert(ua < NUM_DEVIBS);
         pch_devib_t *devib = pch_get_devib(cu, ua);
-	trace_dev_packet(PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE, cu, devib, p);
+	trace_dev_packet(PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE, devib, p);
         devib->op = p.chop;
         devib->payload = proto_get_payload(p);
 	switch (proto_chop_cmd(p.chop)) {
 	case PROTO_CHOP_START:
-		cus_handle_rx_chop_start(cu, devib, p);
+		cus_handle_rx_chop_start(devib, p);
                 break;
 
 	case PROTO_CHOP_DATA:
-		cus_handle_rx_chop_data(cu, devib, p);
+		cus_handle_rx_chop_data(devib, p);
                 break;
 
 	case PROTO_CHOP_ROOM:
-		cus_handle_rx_chop_room(cu, devib, p);
+		cus_handle_rx_chop_room(devib, p);
                 break;
 
 	default:
@@ -134,10 +132,10 @@ static void cus_handle_rx_data_complete(pch_cu_t *cu, pch_unit_addr_t ua) {
 	cu->rx_active = -1;
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
         pch_devib_t *devib = pch_get_devib(cu, ua);
-	trace_dev(PCH_TRC_RT_CUS_RX_DATA_COMPLETE, cu, devib);
+	trace_dev(PCH_TRC_RT_CUS_RX_DATA_COMPLETE, devib);
         assert(devib->flags & PCH_DEVIB_FLAG_RX_DATA_REQUIRED);
 	devib->flags &= ~PCH_DEVIB_FLAG_RX_DATA_REQUIRED;
-	callback_devib(cu, devib);
+	callback_devib(devib);
 }
 
 void __time_critical_func(cus_handle_rx_complete)(pch_cu_t *cu) {

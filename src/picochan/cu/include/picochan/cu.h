@@ -161,21 +161,8 @@ static inline pch_devib_t *pch_get_devib(pch_cu_t *cu, pch_unit_addr_t ua) {
         return &cu->devibs[ua];
 }
 
-/*! \brief Look up the unit address of a device from its CU and devib
- *  \ingroup picochan_cu
- *
- * This is address arithmetic based on the knowledge that the devib
- * pointer lies within the fixed array of pch_devib_t structs within
- * the pch_cu_t structure.
- */
-static inline pch_unit_addr_t pch_get_ua(pch_cu_t *cu, pch_devib_t *devib) {
-        valid_params_if(PCH_CUS,
-                devib >= &cu->devibs[0]
-                && devib < &cu->devibs[NUM_DEVIBS]);
-        return devib - cu->devibs;
-}
-
-static inline bool cu_or_devib_is_traced(pch_cu_t *cu, pch_devib_t *devib) {
+static inline bool cu_or_devib_is_traced(pch_devib_t *devib) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
         return cu->traced || pch_devib_is_traced(devib);
 }
 
@@ -339,28 +326,4 @@ dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum);
 
 void __isr pch_cus_handle_dma_irq(void);
 
-/*! \brief Helper to call pch_dev_call_or_reject_then when the
- * caller has a devib but not the ua.
- *
- * This declaration would be more at home in dev_api.h but it needs
- * to know the size of pch_cu_t in order to do the address
- * arithmetic in pch_get_ua so it currently lives in cu.h instead.
- */
-static inline int pch_dev_call_devib_or_reject_then(pch_cu_t *cu, pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt) {
-        pch_unit_addr_t ua = pch_get_ua(cu, devib);
-        return pch_dev_call_or_reject_then(cu, ua, f,
-                reject_cbindex_opt);
-}
-
-/*! \brief Helper to call pch_dev_call_final_then when the
- * caller has a devib but not the ua.
- *
- * This declaration would be more at home in dev_api.h but it needs
- * to know the size of pch_cu_t in order to do the address
- * arithmetic in pch_get_ua so it currently lives in cu.h instead.
- */
-static inline void pch_dev_call_devib_final_then(pch_cu_t *cu, pch_devib_t *devib, pch_dev_call_func_t f, int cbindex_opt) {
-        pch_unit_addr_t ua = pch_get_ua(cu, devib);
-        return pch_dev_call_final_then(cu, ua, f, cbindex_opt);
-}
 #endif

@@ -16,11 +16,6 @@ struct pch_trdata_byte {
         uint8_t         byte;
 };
 
-struct pch_trdata_dev {
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
-};
-
 struct pch_trdata_cu_init {
         uint16_t        num_devices;
         pch_cunum_t     cunum;
@@ -40,15 +35,13 @@ struct pch_trdata_cu_byte {
 };
 
 struct pch_trdata_dev_byte {
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
+        pch_dev_id_t    devid;
         uint8_t         byte;
 };
 
 struct pch_trdata_word_dev {
         uint32_t        word;
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
+        pch_dev_id_t    devid;
 };
 
 struct pch_trdata_word_sid_byte {
@@ -131,8 +124,7 @@ struct pch_trdata_cus_tx_complete {
 };
 
 struct pch_trdata_cus_call_callback {
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
+        pch_dev_id_t    devid;
         uint8_t         cbindex;
 };
 

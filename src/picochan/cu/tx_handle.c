@@ -28,8 +28,8 @@ static void make_update_status(pch_devib_t *devib) {
 	}
 }
 
-static void make_data_command(pch_cu_t *cu, pch_devib_t *devib) {
-	pch_unit_addr_t ua = pch_get_ua(cu, devib);
+static void make_data_command(pch_devib_t *devib) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
         uint16_t count = proto_parse_count_payload(devib->payload);
 
         assert(!(devib->flags & PCH_DEVIB_FLAG_CMD_WRITE));
@@ -41,7 +41,7 @@ static void make_data_command(pch_cu_t *cu, pch_devib_t *devib) {
         // send then arrange for callback immediately after tx of data
 	if (!(op & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
                 && !(op & PROTO_CHOP_FLAG_END)) {
-		cu->tx_callback_ua = (int16_t)ua;
+		cu->tx_callback_ua = (int16_t)pch_dev_get_ua(devib);
         } else {
 		cu->tx_callback_ua = -1;
         }
@@ -61,8 +61,7 @@ static void make_request_read(pch_devib_t *devib) {
         assert(devib->flags & PCH_DEVIB_FLAG_CMD_WRITE);
 }
 
-proto_packet_t __time_critical_func(cus_make_packet)(pch_cu_t *cu, pch_unit_addr_t ua) {
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+proto_packet_t __time_critical_func(cus_make_packet)(pch_devib_t *devib) {
 	proto_chop_t op = devib->op;
 
 	switch (proto_chop_cmd(op)) {
@@ -71,7 +70,7 @@ proto_packet_t __time_critical_func(cus_make_packet)(pch_cu_t *cu, pch_unit_addr
                 break;
 
 	case PROTO_CHOP_DATA:
-		make_data_command(cu, devib);
+		make_data_command(devib);
                 break;
 
 	case PROTO_CHOP_REQUEST_READ:
@@ -83,6 +82,7 @@ proto_packet_t __time_critical_func(cus_make_packet)(pch_cu_t *cu, pch_unit_addr
                 // fallthrough
 	}
 
+        pch_unit_addr_t ua = pch_dev_get_ua(devib);
         return proto_make_packet(op, ua, devib->payload);
 }
 
@@ -102,7 +102,7 @@ void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {
 		if (tx_callback_uaopt != -1) {
                         pch_unit_addr_t ua = (pch_unit_addr_t)tx_callback_uaopt;
                         pch_devib_t *devib = pch_get_devib(cu, ua);
-			callback_devib(cu, devib);
+			callback_devib(devib);
 		}
 		try_tx_next_command(cu);
 		return;
@@ -116,7 +116,7 @@ void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {
 	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
         pch_devib_t *devib = pch_get_devib(cu, ua);
         if (devib->flags & PCH_DEVIB_FLAG_TX_CALLBACK)
-                callback_devib(cu, devib);
+                callback_devib(devib);
 
 	pop_tx_list(cu);
 	try_tx_next_command(cu);
