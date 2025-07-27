@@ -210,15 +210,15 @@ bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace) {
         return old_trace;
 }
 
-bool pch_cus_trace_dev_id(pch_dev_id_t devid, bool trace) {
-        pch_cu_t *cu = pch_get_cu(devid.cunum);
-        pch_devib_t *devib = pch_get_devib(cu, devid.ua);
+bool pch_cus_trace_devno(pch_devno_t devno, bool trace) {
+        pch_devib_t *devib = pch_get_devib_by_devno(devno);
+        pch_cu_t *cu = pch_dev_get_cu(devib);
         bool old_trace = pch_devib_set_traced(devib, trace);
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_DEV_TRACED,
                 cu->traced || trace || old_trace,
                 ((struct pch_trdata_dev_byte){
-                        .devid = devid,
+                        .devno = devno,
                         .byte = (uint8_t)trace
                 }));
 

@@ -36,14 +36,24 @@ typedef uint8_t pch_cunum_t;
  */
 typedef uint8_t pch_unit_addr_t;
 
-/*! \brief a device id that identifies a device by its control unit
- * number and its unit address on that CU.
+/*! \brief a device number that identifies a device by its
+ * control unit number in the most significant byte and its
+ * unit address on that CU in the least significant byte.
  *  \ingroup picochan_base
  */
-typedef struct pch_dev_id {
-        pch_cunum_t     cunum;
-        pch_unit_addr_t ua;
-} pch_dev_id_t;
+typedef uint16_t pch_devno_t;
+
+static inline pch_cunum_t pch_devno_get_cunum(pch_devno_t devno) {
+        return devno >> 8;
+}
+
+static inline pch_unit_addr_t pch_devno_get_ua(pch_devno_t devno) {
+        return devno & 0xff;
+}
+
+static inline pch_devno_t pch_make_devno(pch_cunum_t cunum, pch_unit_addr_t ua) {
+        return ((pch_devno_t)cunum << 8) | ua;
+}
 
 /*! \brief a DMA id used by CSS or CU
  *  \ingroup picochan_base

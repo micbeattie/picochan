@@ -142,13 +142,10 @@ static inline pch_unit_addr_t pch_dev_get_ua(pch_devib_t *devib) {
         return (pch_unit_addr_t)(devib - cu->devibs);
 }
 
-static inline pch_dev_id_t pch_dev_get_dev_id(pch_devib_t *devib) {
+static inline pch_devno_t pch_dev_get_devno(pch_devib_t *devib) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
         pch_unit_addr_t ua = (pch_unit_addr_t)(devib - cu->devibs);
-        return ((pch_dev_id_t){
-                .cunum = cu->cunum,
-                .ua = ua
-        });
+        return pch_make_devno(cu->cunum, ua);
 }
 
 /*! \brief Look up the pch_devib_t of a device from its CU and unit address
@@ -182,6 +179,13 @@ static inline pch_cu_t *pch_get_cu(pch_cunum_t cunum) {
         pch_cu_t *cu = pch_cus[cunum];
         assert(cu != NULL);
         return cu;
+}
+
+static inline pch_devib_t *pch_get_devib_by_devno(pch_devno_t devno) {
+        pch_cunum_t cunum = pch_devno_get_cunum(devno);
+        pch_cu_t *cu = pch_get_cu(cunum);
+        pch_unit_addr_t ua = pch_devno_get_ua(devno);
+        return pch_get_devib(cu, ua);
 }
 
 /*! \brief Initialise CU subsystem

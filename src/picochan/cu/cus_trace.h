@@ -21,13 +21,13 @@ extern pch_trc_bufferset_t pch_cus_trace_bs;
 
 static inline void trace_dev(pch_trc_record_type_t rt, pch_devib_t *devib) {
         PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),
-                ((struct { pch_dev_id_t devid; }){pch_dev_get_dev_id(devib)}));
+                ((struct { pch_devno_t devno; }){pch_dev_get_devno(devib)}));
 }
 
 static inline void trace_dev_byte(pch_trc_record_type_t rt, pch_devib_t *devib, uint8_t byte) {
         PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_dev_byte){
-                        .devid = pch_dev_get_dev_id(devib),
+                        .devno = pch_dev_get_devno(devib),
                         .byte = byte
                 }));
 }
@@ -37,7 +37,7 @@ static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_devib_t *devib
                 cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_word_dev){
                         .word = proto_packet_as_word(p),
-                        .devid = pch_dev_get_dev_id(devib)
+                        .devno = pch_dev_get_devno(devib)
                 }));
 }
 
@@ -59,7 +59,7 @@ static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *de
         PCH_CUS_TRACE_COND(rt,
                 cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_cus_call_callback){
-                        .devid = pch_dev_get_dev_id(devib),
+                        .devno = pch_dev_get_devno(devib),
                         .cbindex = (uint8_t)cbindex
                 }));
 }

@@ -139,6 +139,22 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
+        case PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER:
+        case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
+                const char *side = (rt == PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER) ?
+                        "CSS-side" : "dev-side";
+                struct pch_trdata_word_byte *td = vd;
+                printf("%s initialises IRQ %d (DMA) ISR addr:%08x",
+                        side, td->byte, td->word);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_CU_INIT: {
+                struct pch_trdata_cu_init *td = vd;
+                printf("dev-side CU=%d initialises with %d devices using DMA_IRQ_%d\n",
+                        td->cunum, td->num_devices, td->dmairqix);
+        }
+
         case PCH_TRC_RT_CUS_CU_TX_DMA_INIT:
         case PCH_TRC_RT_CUS_CU_RX_DMA_INIT: {
                 struct pch_trdata_cu_dma *td = vd;
@@ -257,15 +273,14 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_CALL_CALLBACK: {
                 struct pch_trdata_cus_call_callback *td = vd;
-                printf("dev-side CU=%d calls callback %d for UA=%d",
-                        td->cunum, td->cbindex, td->ua);
+                printf("dev-side devno:%04X callback %d",
+                        td->devno, td->cbindex);
                 break;
         }
 
         case PCH_TRC_RT_CUS_SEND_TX_PACKET: {
                 struct pch_trdata_word_dev *td = vd;
-                printf("dev-side CU=%d UA=%d sends ",
-                        td->cunum, td->ua);
+                printf("dev-side devno:%04X sends ", td->devno);
                 print_packet(td->word, true);
                 break;
         }
@@ -285,18 +300,23 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE: {
                 struct pch_trdata_word_dev *td = vd;
-                printf("dev-side CU=%d UA=%d received ",
-                        td->cunum, td->ua);
+                printf("dev-side devno:%04X received ", td->devno);
                 print_packet(td->word, true);
                 break;
         }
 
         case PCH_TRC_RT_CUS_RX_DATA_COMPLETE: {
-                struct pch_trdata_dev *td = vd;
-                printf("dev-side CU=%d UA=%d rx data complete",
-                        td->cunum, td->ua);
+                pch_devno_t *td = vd;
+                printf("dev-side devno:%04X rx data complete", *td);
                 break;
         }
+
+	case PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE: {
+		struct pch_trdata_dmachan *td = vd;
+                printf("CU rx channel DMAid=%d reset in progress",
+                        td->dmaid);
+                break;
+	}
 
 	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE: {
 		struct pch_trdata_dmachan *td = vd;
@@ -340,6 +360,13 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 printf("MemCU rx channel DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
                         td->dmaid, td->count);
                 print_mem_src_state(td->state);
+                break;
+	}
+
+	case PCH_TRC_RT_DMACHAN_SRC_RESET_REMOTE: {
+		struct pch_trdata_dmachan *td = vd;
+                printf("CU tx channel DMAid=%d reset in progress",
+                        td->dmaid);
                 break;
 	}
 
