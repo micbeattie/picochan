@@ -7,7 +7,7 @@
 #include "callback.h"
 #include "cus_trace.h"
 
-static void cus_handle_rx_chop_data(pch_devib_t *devib, proto_packet_t p) {
+static void __not_in_flash_func(cus_handle_rx_chop_data)(pch_devib_t *devib, proto_packet_t p) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
         pch_unit_addr_t ua = pch_dev_get_ua(devib);
 	assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
@@ -25,7 +25,7 @@ static void cus_handle_rx_chop_data(pch_devib_t *devib, proto_packet_t p) {
 	cu->rx_active = (int16_t)ua;
 }
 
-static void cus_handle_rx_chop_room(pch_devib_t *devib, proto_packet_t p) {
+static void __not_in_flash_func(cus_handle_rx_chop_room)(pch_devib_t *devib, proto_packet_t p) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
         assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
         devib->size = proto_get_count(p);
@@ -33,7 +33,7 @@ static void cus_handle_rx_chop_room(pch_devib_t *devib, proto_packet_t p) {
 	callback_devib(devib);
 }
 
-static void cus_handle_rx_chop_start_read_sense(pch_devib_t *devib, uint16_t count) {
+static void __not_in_flash_func(cus_handle_rx_chop_start_read_sense)(pch_devib_t *devib, uint16_t count) {
         if (count > sizeof(devib->sense))
                 count = sizeof(devib->sense);
 
@@ -41,7 +41,7 @@ static void cus_handle_rx_chop_start_read_sense(pch_devib_t *devib, uint16_t cou
         assert(rc >= 0);
 }
 
-static void cus_handle_rx_chop_start_read_reserved(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void __not_in_flash_func(cus_handle_rx_chop_start_read_reserved)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         switch (ccwcmd) {
         case PCH_CCW_CMD_SENSE:
                 cus_handle_rx_chop_start_read_sense(devib, count);
@@ -56,7 +56,7 @@ static void cus_handle_rx_chop_start_read_reserved(pch_devib_t *devib, uint8_t c
         }
 }
 
-static void cus_handle_rx_chop_start_read(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void __not_in_flash_func(cus_handle_rx_chop_start_read)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
         devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
         devib->size = count; // advertised window we can write to
@@ -70,7 +70,7 @@ static void cus_handle_rx_chop_start_read(pch_devib_t *devib, uint8_t ccwcmd, ui
                 callback_devib(devib);
 }
 
-static void cus_handle_rx_chop_start_write(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
         devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
 
@@ -88,7 +88,7 @@ static void cus_handle_rx_chop_start_write(pch_devib_t *devib, uint8_t ccwcmd, u
         // rx completion of incoming data will do Start callback
 }
 
-static void cus_handle_rx_chop_start(pch_devib_t *devib, proto_packet_t p) {
+static void __not_in_flash_func(cus_handle_rx_chop_start)(pch_devib_t *devib, proto_packet_t p) {
         assert(!(devib->flags & PCH_DEVIB_FLAG_STARTED));
         devib->flags |= PCH_DEVIB_FLAG_STARTED;
         uint8_t ccwcmd = p.p0;
@@ -100,7 +100,7 @@ static void cus_handle_rx_chop_start(pch_devib_t *devib, proto_packet_t p) {
                 cus_handle_rx_chop_start_read(devib, ccwcmd, count);
 }
 
-static void cus_handle_rx_command_complete(pch_cu_t *cu) {
+static void __not_in_flash_func(cus_handle_rx_command_complete)(pch_cu_t *cu) {
 	// DMA has received a command packet from CSS into RxBuf
         proto_packet_t p = get_rx_packet(cu);
         pch_unit_addr_t ua = p.unit_addr;
@@ -128,7 +128,7 @@ static void cus_handle_rx_command_complete(pch_cu_t *cu) {
 	}
 }
 
-static void cus_handle_rx_data_complete(pch_cu_t *cu, pch_unit_addr_t ua) {
+static void __not_in_flash_func(cus_handle_rx_data_complete)(pch_cu_t *cu, pch_unit_addr_t ua) {
 	cu->rx_active = -1;
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
         pch_devib_t *devib = pch_get_devib(cu, ua);

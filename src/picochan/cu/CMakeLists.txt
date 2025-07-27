@@ -10,7 +10,6 @@ target_sources(picochan_cu INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/dev_api.c
         ${CMAKE_CURRENT_LIST_DIR}/irq.c
         ${CMAKE_CURRENT_LIST_DIR}/rx_handle.c
-        ${CMAKE_CURRENT_LIST_DIR}/tx_commands.c
         ${CMAKE_CURRENT_LIST_DIR}/tx_handle.c
 ) 
 

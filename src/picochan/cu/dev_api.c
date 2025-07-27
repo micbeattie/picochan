@@ -5,6 +5,27 @@
 #include "cu_internal.h"
 #include "cus_trace.h"
 
+// push_tx_list pushes ua onto the singly-linked list with head and
+// tail cu->tx_head and cu->tx_tail and returns the old tail.
+// All manipulation is done under the devibs_lock.
+static int16_t __no_inline_not_in_flash_func(push_tx_list)(pch_cu_t *cu, pch_unit_addr_t ua) {
+        uint32_t status = devibs_lock();
+        int16_t tx_tail = cu->tx_tail;
+        if (tx_tail < 0) {
+                cu->tx_head = (uint16_t)ua;
+                cu->tx_tail = (uint16_t)ua;
+        } else {
+                // There's already a pending list: add ourselves at the end
+                pch_unit_addr_t tx_tail_ua = (pch_unit_addr_t)tx_tail;
+                pch_devib_t *tx_tail_devib = pch_get_devib(cu, tx_tail_ua);
+                tx_tail_devib->next = ua;
+                cu->tx_tail = (int16_t)ua;
+        }
+
+        devibs_unlock(status);
+        return tx_tail;
+}
+
 // Low-level "pch_devib_" API for dev implementations. These take a
 // devib and simply update its fields.
 

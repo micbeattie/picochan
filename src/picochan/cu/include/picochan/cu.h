@@ -166,8 +166,6 @@ static inline bool cu_or_devib_is_traced(pch_devib_t *devib) {
         return cu->traced || pch_devib_is_traced(devib);
 }
 
-int16_t push_tx_list(pch_cu_t *cu, pch_unit_addr_t ua);
-
 extern pch_cu_t *pch_cus[NUM_CUS];
 
 extern bool pch_cus_init_done;

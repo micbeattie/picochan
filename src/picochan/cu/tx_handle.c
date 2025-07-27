@@ -7,6 +7,27 @@
 #include "callback.h"
 #include "cus_trace.h"
 
+static inline void try_tx_next_command(pch_cu_t *cu) {
+        if (cu->tx_head > -1)
+                cus_send_command_to_css(cu);
+}
+
+static void __no_inline_not_in_flash_func(pop_tx_list)(pch_cu_t *cu) {
+        int16_t current = cu->tx_head;
+        assert(current != -1);
+        pch_unit_addr_t ua = (pch_unit_addr_t)current;
+        pch_devib_t *devib = pch_get_devib(cu, ua);
+
+        pch_unit_addr_t next = devib->next;
+        if (next == ua) {
+                cu->tx_head = -1;
+                cu->tx_tail = -1;
+        } else {
+                cu->tx_head = (int16_t)next;
+                devib->next = ua; // remove from list by pointing at self
+        }
+}
+
 // make_update_status verifies the prepared UpdateStatus in devib is
 // valid for sending to the CSS. It then unsets the Started flag if
 // the dev.Status being sent include DeviceEnd (indicating end of
@@ -61,7 +82,7 @@ static void make_request_read(pch_devib_t *devib) {
         assert(devib->flags & PCH_DEVIB_FLAG_CMD_WRITE);
 }
 
-proto_packet_t __time_critical_func(cus_make_packet)(pch_devib_t *devib) {
+static proto_packet_t cus_make_packet(pch_devib_t *devib) {
 	proto_chop_t op = devib->op;
 
 	switch (proto_chop_cmd(op)) {
@@ -120,4 +141,15 @@ void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {
 
 	pop_tx_list(cu);
 	try_tx_next_command(cu);
+}
+
+void __no_inline_not_in_flash_func(cus_send_command_to_css)(pch_cu_t *cu) {
+	int16_t tx_head = cu->tx_head;
+        assert(tx_head >= 0);
+	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
+        pch_devib_t *devib = pch_get_devib(cu, ua);
+        proto_packet_t p = cus_make_packet(devib);
+        DMACHAN_LINK_CMD_COPY(&cu->tx_channel.link, &p);
+        trace_dev_packet(PCH_TRC_RT_CUS_SEND_TX_PACKET, devib, p);
+        dmachan_start_src_cmdbuf(&cu->tx_channel);
 }

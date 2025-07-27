@@ -26,8 +26,5 @@ static inline proto_packet_t get_rx_packet(pch_cu_t *cu) {
 void cus_send_command_to_css(pch_cu_t *cu);
 void cus_handle_rx_complete(pch_cu_t *cu);
 void cus_handle_tx_complete(pch_cu_t *cu);
-proto_packet_t cus_make_packet(pch_devib_t *devib);
-void pop_tx_list(pch_cu_t *cu);
-void try_tx_next_command(pch_cu_t *cu);
 
 #endif
