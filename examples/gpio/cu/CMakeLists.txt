@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.13)
 
-set(PICO_BOARD pico)
+#set(PICO_BOARD pico)
 
 #include(pico_sdk_import.cmake)
 include ($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_BUILD_TYPE Release)
 
 project(gdtest1cu C CXX ASM)
@@ -22,15 +22,18 @@ add_executable(gdtest1cu
 #set(PCH_COMPILE_ENABLE_STRICT_WARNINGS 1)
 include($ENV{PICOCHAN_PATH}/CMakeLists.txt)
 
+set(PCH_CONFIG_ENABLE_MEMCHAN 0 CACHE STRING "Enable/disable memchan (1 or 0)")
+set(PCH_CONFIG_ENABLE_TRACE 1 CACHE STRING "Enable/disable tracing (1 or 0)")
+
 target_compile_definitions(gdtest1cu PRIVATE
         PARAM_ASSERTIONS_ENABLED_PCH_CUS=1
         PARAM_ASSERTIONS_ENABLED_PCH_DMACHAN=1
         PARAM_ASSERTIONS_ENABLED_PCH_TRC=1
         PARAM_ASSERTIONS_ENABLED_PCH_TXSM=1
-        PCH_CONFIG_ENABLE_TRACE=1
+        PCH_CONFIG_ENABLE_TRACE=${PCH_CONFIG_ENABLE_TRACE}
         PCH_NUM_CUS=1
         PCH_MAX_DEVIBS_PER_CU=8
-        PCH_CONFIG_ENABLE_MEMCHAN=0
+        PCH_CONFIG_ENABLE_MEMCHAN=${PCH_CONFIG_ENABLE_MEMCHAN}
 #        GD_ENABLE_DEBUG_PRINTF=1
 #        GD_ENABLE_GPIO_VERBOSE=1
 #        GD_ENABLE_GPIO_WRITES=0
