@@ -97,6 +97,7 @@ static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
 void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         css_cu_t *cu = get_cu(cunum);
         assert(cu->claimed && !cu->started);
+        (void)cu;
 
         css_cu_dma_tx_init(cunum, &dc->tx);
         css_cu_dma_rx_init(cunum, &dc->rx);

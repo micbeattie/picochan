@@ -19,12 +19,12 @@
 void __time_critical_func(send_command_with_data)(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p, uint16_t count) {
         assert(!cu->tx_active);
 
-	uint32_t addr; // not used if zeroes is set
+	uint32_t addr = 0; // not used if zeroes is set
 
         bool zeroes = (get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_SKP) != 0;
 	if (zeroes)
 		p.chop |= PROTO_CHOP_FLAG_SKIP;
-	else
+        else
 		addr = schib->mda.data_addr;
 
         assert(count != 0);
