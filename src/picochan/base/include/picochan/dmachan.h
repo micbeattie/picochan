@@ -151,6 +151,10 @@ typedef struct __aligned(4) dmachan_link {
         DMACHAN_CMD_COPY(&__l->cmd, p); \
 } while (0)
 
+static inline void dmachan_set_link_bs(dmachan_link_t *l, pch_trc_bufferset_t *bs) {
+        l->bs = bs;
+}
+
 static inline void dmachan_link_cmd_set_zero(dmachan_link_t *l) {
         dmachan_cmd_set_zero(&l->cmd);
 }

@@ -194,13 +194,10 @@ bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace) {
         pch_cu_t *cu = pch_get_cu(cunum);
         bool old_trace = cu->traced;
         cu->traced = trace;
-        if (trace) {
-                cu->tx_channel.link.bs = &pch_cus_trace_bs;
-                cu->rx_channel.link.bs = &pch_cus_trace_bs;
-        } else {
-                cu->tx_channel.link.bs = 0;
-                cu->rx_channel.link.bs = 0;
-        }
+        pch_trc_bufferset_t *bs = trace ? &pch_cus_trace_bs : 0;
+
+        dmachan_set_link_bs(&cu->tx_channel.link, bs);
+        dmachan_set_link_bs(&cu->rx_channel.link, bs);
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,
                 trace || old_trace,
