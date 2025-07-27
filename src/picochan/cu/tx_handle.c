@@ -80,6 +80,7 @@ static void make_data_command(pch_devib_t *devib) {
 
 static void make_request_read(pch_devib_t *devib) {
         assert(devib->flags & PCH_DEVIB_FLAG_CMD_WRITE);
+        (void)devib;
 }
 
 static proto_packet_t pch_cus_make_packet(pch_devib_t *devib) {

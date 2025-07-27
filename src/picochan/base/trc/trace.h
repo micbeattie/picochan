@@ -41,6 +41,11 @@ static inline void *pch_trc_write(pch_trc_bufferset_t *bs, bool cond, pch_trc_re
                 return NULL;
 
         return pch_trc_write_uncond(bs, rt, data_size);
+#else
+        (void)bs;
+        (void)cond;
+        (void)rt;
+        (void)data_size;
 #endif
         return NULL;
 }

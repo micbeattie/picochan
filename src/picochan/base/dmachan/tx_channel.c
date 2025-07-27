@@ -65,6 +65,7 @@ static void write_src_reset_remote(dmachan_tx_channel_t *tx) {
 
 #if PCH_CONFIG_ENABLE_MEMCHAN
 static void write_src_reset_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *rxpeer) {
+        (void)rxpeer;
         trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_RESET_MEM, &tx->link);
 }
 #endif

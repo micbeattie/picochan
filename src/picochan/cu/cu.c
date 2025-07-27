@@ -103,6 +103,7 @@ static void cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
 void pch_cus_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         pch_cu_t *cu = pch_get_cu(cunum);
         assert(!cu->started);
+        (void)cu;
 
         cu_dma_tx_init(cunum, &dc->tx);
         cu_dma_rx_init(cunum, &dc->rx);

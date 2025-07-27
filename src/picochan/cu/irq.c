@@ -6,7 +6,7 @@
 #include "cus_trace.h"
 
 static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
-        assert(cu->corenum == get_core_num());
+        assert((uint)cu->corenum == get_core_num());
         dmachan_tx_channel_t *tx = &cu->tx_channel;
         dmachan_irq_state_t tx_irq_state = dmachan_handle_tx_irq(tx);
         dmachan_rx_channel_t *rx = &cu->rx_channel;

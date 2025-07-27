@@ -25,6 +25,8 @@ static inline uint32_t mem_peer_lock(void) {
 static inline void mem_peer_unlock(uint32_t saved_irq) {
 #if PCH_CONFIG_ENABLE_MEMCHAN
         spin_unlock(dmachan_mem_peer_spin_lock, saved_irq);
+#else
+        (void)saved_irq;
 #endif
 }
 

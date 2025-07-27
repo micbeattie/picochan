@@ -39,6 +39,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_read_sense)(pch_devib_t
 
         int rc = pch_dev_send_final(devib, &devib->sense, count);
         assert(rc >= 0);
+        (void)rc;
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start_read_reserved)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
@@ -71,6 +72,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_read)(pch_devib_t *devi
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
+        (void)ccwcmd; // we don't handle any reserved Write CCWs yet
         pch_cu_t *cu = pch_dev_get_cu(devib);
         devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
 

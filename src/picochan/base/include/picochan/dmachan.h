@@ -230,7 +230,7 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_m
 
 dmachan_irq_state_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx);
 
-void dmachan_panic_unless_memchan_initialised();
+void dmachan_panic_unless_memchan_initialised(void);
 
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);
 void dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx);
@@ -266,6 +266,6 @@ static inline dma_channel_config dmachan_uartcu_make_rxctrl(uart_inst_t *uart, d
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or
 // pch_css_memcu_configure
-void pch_memchan_init();
+void pch_memchan_init(void);
 
 #endif
