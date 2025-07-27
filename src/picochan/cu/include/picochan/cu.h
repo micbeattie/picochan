@@ -44,7 +44,7 @@ static_assert(__builtin_constant_p(PCH_CU_ALIGN),
  */
 
 /*!
- * \def NUM_CUS
+ * \def PCH_NUM_CUS
  * \ingroup picochan_cu
  * \hideinitializer
  * \brief The number of control units
@@ -53,11 +53,11 @@ static_assert(__builtin_constant_p(PCH_CU_ALIGN),
  * Defines the size of the global array of pch_cu_t structures
  * running on this Pico.
  */
-#ifndef NUM_CUS
-#define NUM_CUS 4
+#ifndef PCH_NUM_CUS
+#define PCH_NUM_CUS 4
 #endif
-static_assert(NUM_CUS >= 1 && NUM_CUS <= 256,
-        "NUM_CUS must be between 1 and 256");
+static_assert(PCH_NUM_CUS >= 1 && PCH_NUM_CUS <= 256,
+        "PCH_NUM_CUS must be between 1 and 256");
 
 #ifndef NUM_DEVIBS
 #define NUM_DEVIBS 32
@@ -166,7 +166,7 @@ static inline bool cu_or_devib_is_traced(pch_devib_t *devib) {
         return cu->traced || pch_devib_is_traced(devib);
 }
 
-extern pch_cu_t *pch_cus[NUM_CUS];
+extern pch_cu_t *pch_cus[PCH_NUM_CUS];
 
 extern bool pch_cus_init_done;
 
@@ -174,11 +174,11 @@ extern bool pch_cus_init_done;
  *  \ingroup picochan_cu
  *
  * For a Debug build, asserts when cunum exceeds the
- * (compile-time defined) number of CUs, NUM_CUS, or if
+ * (compile-time defined) number of CUs, PCH_NUM_CUS, or if
  * the CU has not been initialised with pch_cus_cu_init.
  */
 static inline pch_cu_t *pch_get_cu(pch_cunum_t cunum) {
-        valid_params_if(PCH_CUS, cunum < NUM_CUS);
+        valid_params_if(PCH_CUS, cunum < PCH_NUM_CUS);
         pch_cu_t *cu = pch_cus[cunum];
         assert(cu != NULL);
         return cu;

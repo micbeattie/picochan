@@ -80,7 +80,7 @@ typedef struct pch_dev_sense pch_dev_sense_t;
 ### Compile-time constants and definitions - examples:
 
 ```
-#define NUM_CUS 2
+#define PCH_NUM_CUS 2
 ```
 
 ### Debugging assertions:
