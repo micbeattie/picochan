@@ -100,6 +100,7 @@ static void process_schib_resume(pch_schib_t *schib) {
 // point we'll probably need to implement Resume, Halt and Clear too
 // (and maybe Stop for some errors will come via this path too).
 void __time_critical_func(process_schib_func)(pch_schib_t *schib) {
+        schib->scsw.schs = 0;
         uint16_t ctrl_flags = schib->scsw.ctrl_flags;
         if (ctrl_flags & PCH_AC_START_PENDING) {
 		process_schib_start(schib);
