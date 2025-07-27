@@ -33,7 +33,7 @@ static uart_inst_t *prepare_uart_gpios(void) {
         return UART_INSTANCE(GDCU_UART_NUM);
 }
 
-static void light_led_for_three_seconds() {
+static void light_led_for_three_seconds(void) {
         gpio_init(PICO_DEFAULT_LED_PIN);
         gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
         gpio_put(PICO_DEFAULT_LED_PIN, true);

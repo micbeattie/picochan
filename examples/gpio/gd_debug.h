@@ -18,7 +18,10 @@
 #else
 
 #include <stdbool.h>
-static inline void __attribute__((format(printf, 1, 2))) dprintf(const char *format, ...) {}
+static inline void __attribute__((format(printf, 1, 2))) dprintf(const char *format, ...) {
+        (void)format;
+}
+
 static inline bool stdio_init_all(void) {
         return false;
 }

@@ -41,6 +41,7 @@ static void gd_add_repeating_timer(gpio_dev_t *gd, repeating_timer_callback_t ca
         bool ok = alarm_pool_add_repeating_timer_us(gd_alarm_pool,
                  delay_us, callback, devib, &gd->rt);
         assert(ok); // alarm slots available to create the timer?
+        (void)ok;
 }
 
 // CCW command implementations
@@ -65,7 +66,7 @@ static int setconf_clock_period_us(gpio_dev_t *gd, uint16_t n) {
         if (n < sizeof gd->cfg.clock_period_us)
                 return -EBUFFERTOOSHORT;
 
-        gd->cfg.clock_period_us = *(uint32_t *)gd->cfgbuf;
+        gd->cfg.clock_period_us = gd->cfgbuf.clock_period_us;
         return 0;
 }
 
@@ -73,7 +74,7 @@ static int setconf_out_pins(gpio_dev_t *gd, uint16_t n) {
         if (n < sizeof gd->cfg.out_pins)
                 return -EBUFFERTOOSHORT;
 
-        gd_pins_t *p = (gd_pins_t *)gd->cfgbuf;
+        gd_pins_t *p = &gd->cfgbuf.pins;
         if (p->base > 31 || p->count > 7)
                 return -EINVALIDVALUE;
 
@@ -85,7 +86,7 @@ static int setconf_in_pins(gpio_dev_t *gd, uint16_t n) {
         if (n < sizeof gd->cfg.in_pins)
                 return -EBUFFERTOOSHORT;
 
-        gd_pins_t *p = (gd_pins_t *)gd->cfgbuf;
+        gd_pins_t *p = &gd->cfgbuf.pins;
         if (p->base > 31 || p->count > 7)
                 return -EINVALIDVALUE;
 
@@ -97,7 +98,7 @@ static int setconf_filter(gpio_dev_t *gd, uint16_t n) {
         if (n < sizeof gd->cfg.filter)
                 return -EBUFFERTOOSHORT;
 
-        gd->cfg.filter = *(gd_filter_t *)gd->cfgbuf;
+        gd->cfg.filter = gd->cfgbuf.filter;
         return 0;
 }
 
@@ -105,7 +106,7 @@ static int setconf_irq_config(gpio_dev_t *gd, uint16_t n) {
         if (n < sizeof gd->cfg.irq)
                 return -EBUFFERTOOSHORT;
 
-        gd_irq_t *p = (gd_irq_t *)gd->cfgbuf;
+        gd_irq_t *p = &gd->cfgbuf.irq;
         if (p->pin > 31 || (p->flags & ~GD_IRQ_FLAGS_MASK))
                 return -EINVALIDVALUE;
 
@@ -154,6 +155,7 @@ static void gd_setconf(pch_devib_t *devib) {
 static bool read_in_pins_rt_callback(repeating_timer_t *rt) {
         pch_devib_t *devib = (pch_devib_t *)rt->user_data;
         gpio_dev_t *gd = get_gpio_dev(devib);
+        assert(gd);
         gd->values.data[gd->values.offset++] = gd_read_in_pins(gd);
         uint16_t count = gd->values.count;
         if (gd->values.offset < count)
@@ -194,6 +196,7 @@ static int do_ccw_write(pch_devib_t *devib, gpio_dev_t *gd) {
 static bool write_out_pins_rt_callback(repeating_timer_t *rt) {
         pch_devib_t *devib = (pch_devib_t *)rt->user_data;
         gpio_dev_t *gd = get_gpio_dev(devib);
+        assert(gd);
         uint8_t val = gd->values.data[gd->values.offset++];
         gd_write_out_pins(gd, val);
 
