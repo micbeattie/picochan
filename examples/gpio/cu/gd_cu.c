@@ -204,7 +204,7 @@ static bool write_out_pins_rt_callback(repeating_timer_t *rt) {
         if (gd->values.offset < count)
                 return true; // continue with repeating timer
 
-        pch_dev_update_status_ok(devib);
+        pch_dev_update_status_ok_then(devib, gd_start_cbindex);
         return false; // stop repeating timer
 }
 
@@ -228,7 +228,8 @@ static int do_gd_write(pch_devib_t *devib) {
         gd_write_out_pins(gd, val);
         
         if (size == 1) {
-                pch_dev_update_status_ok(devib);
+                pch_dev_update_status_ok_then(devib,
+                        gd_start_cbindex);
                 return 0;
         }
 
