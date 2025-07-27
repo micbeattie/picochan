@@ -21,12 +21,12 @@ static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
         while (rxl->complete || txl->complete) {
                 if (rxl->complete) {
                         rxl->complete = false;
-                        cus_handle_rx_complete(cu);
+                        pch_cus_handle_rx_complete(cu);
                 }
 
                 if (txl->complete) {
                         txl->complete = false;
-                        cus_handle_tx_complete(cu);
+                        pch_cus_handle_tx_complete(cu);
                 }
         }
 }

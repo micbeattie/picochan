@@ -138,7 +138,7 @@ static void __not_in_flash_func(cus_handle_rx_data_complete)(pch_cu_t *cu, pch_u
 	callback_devib(devib);
 }
 
-void __time_critical_func(cus_handle_rx_complete)(pch_cu_t *cu) {
+void __time_critical_func(pch_cus_handle_rx_complete)(pch_cu_t *cu) {
         int16_t rx_active = cu->rx_active;
 	if (rx_active >= 0) {
 		pch_unit_addr_t ua = (pch_unit_addr_t)rx_active;

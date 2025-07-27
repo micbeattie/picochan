@@ -63,12 +63,12 @@ void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_devib_t 
         int16_t tx_tail = push_tx_list(cu, ua);
 	if (tx_tail == -1) {
 		// List was empty
-		cus_send_command_to_css(cu);
+		pch_cus_send_command_to_css(cu);
                 // Process any resulting immediate tx completions
                 dmachan_link_t *txl = &cu->tx_channel.link;
                 while (txl->complete) {
                         txl->complete = false;
-                        cus_handle_tx_complete(cu);
+                        pch_cus_handle_tx_complete(cu);
                 }
 	} else {
 		trace_dev_byte(PCH_TRC_RT_CUS_QUEUE_COMMAND,

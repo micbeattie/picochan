@@ -9,10 +9,10 @@
 
 static inline void try_tx_next_command(pch_cu_t *cu) {
         if (cu->tx_head > -1)
-                cus_send_command_to_css(cu);
+                pch_cus_send_command_to_css(cu);
 }
 
-static void __no_inline_not_in_flash_func(pop_tx_list)(pch_cu_t *cu) {
+static void __no_inline_not_in_flash_func(pch_pop_tx_list)(pch_cu_t *cu) {
         int16_t current = cu->tx_head;
         assert(current != -1);
         pch_unit_addr_t ua = (pch_unit_addr_t)current;
@@ -82,7 +82,7 @@ static void make_request_read(pch_devib_t *devib) {
         assert(devib->flags & PCH_DEVIB_FLAG_CMD_WRITE);
 }
 
-static proto_packet_t cus_make_packet(pch_devib_t *devib) {
+static proto_packet_t pch_cus_make_packet(pch_devib_t *devib) {
 	proto_chop_t op = devib->op;
 
 	switch (proto_chop_cmd(op)) {
@@ -107,7 +107,7 @@ static proto_packet_t cus_make_packet(pch_devib_t *devib) {
         return proto_make_packet(op, ua, devib->payload);
 }
 
-void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {
+void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
 	pch_txsm_t *txpend = &cu->tx_pending;
 	int16_t tx_callback_uaopt = cu->tx_callback_ua;
 	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu,
@@ -119,7 +119,7 @@ void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {
 		return;
 
         case PCH_TXSM_FINISHED:
-		pop_tx_list(cu);
+		pch_pop_tx_list(cu);
 		if (tx_callback_uaopt != -1) {
                         pch_unit_addr_t ua = (pch_unit_addr_t)tx_callback_uaopt;
                         pch_devib_t *devib = pch_get_devib(cu, ua);
@@ -139,16 +139,16 @@ void __time_critical_func(cus_handle_tx_complete)(pch_cu_t *cu) {
         if (devib->flags & PCH_DEVIB_FLAG_TX_CALLBACK)
                 callback_devib(devib);
 
-	pop_tx_list(cu);
+	pch_pop_tx_list(cu);
 	try_tx_next_command(cu);
 }
 
-void __no_inline_not_in_flash_func(cus_send_command_to_css)(pch_cu_t *cu) {
+void __no_inline_not_in_flash_func(pch_cus_send_command_to_css)(pch_cu_t *cu) {
 	int16_t tx_head = cu->tx_head;
         assert(tx_head >= 0);
 	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
         pch_devib_t *devib = pch_get_devib(cu, ua);
-        proto_packet_t p = cus_make_packet(devib);
+        proto_packet_t p = pch_cus_make_packet(devib);
         DMACHAN_LINK_CMD_COPY(&cu->tx_channel.link, &p);
         trace_dev_packet(PCH_TRC_RT_CUS_SEND_TX_PACKET, devib, p);
         dmachan_start_src_cmdbuf(&cu->tx_channel);

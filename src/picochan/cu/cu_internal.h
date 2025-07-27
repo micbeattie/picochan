@@ -23,8 +23,8 @@ static inline proto_packet_t get_rx_packet(pch_cu_t *cu) {
         return *pp;
 }
 
-void cus_send_command_to_css(pch_cu_t *cu);
-void cus_handle_rx_complete(pch_cu_t *cu);
-void cus_handle_tx_complete(pch_cu_t *cu);
+void pch_cus_send_command_to_css(pch_cu_t *cu);
+void pch_cus_handle_rx_complete(pch_cu_t *cu);
+void pch_cus_handle_tx_complete(pch_cu_t *cu);
 
 #endif
