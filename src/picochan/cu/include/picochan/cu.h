@@ -59,12 +59,6 @@ static_assert(__builtin_constant_p(PCH_CU_ALIGN),
 static_assert(PCH_NUM_CUS >= 1 && PCH_NUM_CUS <= 256,
         "PCH_NUM_CUS must be between 1 and 256");
 
-#ifndef NUM_DEVIBS
-#define NUM_DEVIBS 32
-#endif
-static_assert(NUM_DEVIBS >= 1 && NUM_DEVIBS <= 256,
-        "NUM_DEVIBS must be between 1 and 256");
-
 #define PCH_CUS_BUFFERSET_MAGIC 0x70437553
 
 /*! \brief pch_cu_t is a Control Unit (CU)

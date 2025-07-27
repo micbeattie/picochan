@@ -106,7 +106,7 @@ static void __not_in_flash_func(cus_handle_rx_command_complete)(pch_cu_t *cu) {
 	// DMA has received a command packet from CSS into RxBuf
         proto_packet_t p = get_rx_packet(cu);
         pch_unit_addr_t ua = p.unit_addr;
-	assert(ua < NUM_DEVIBS);
+	assert(ua < cu->num_devibs);
         pch_devib_t *devib = pch_get_devib(cu, ua);
 	trace_dev_packet(PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE, devib, p);
         devib->op = p.chop;

@@ -42,7 +42,7 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
 void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, cunum < PCH_NUM_CUS);
         valid_params_if(PCH_CUS, dmairqix < NUM_DMA_IRQS);
-        valid_params_if(PCH_CUS, num_devibs < NUM_DEVIBS);
+        valid_params_if(PCH_CUS, num_devibs <= PCH_MAX_DEVIBS_PER_CU);
 
         memset(cu, 0, sizeof(*cu) + num_devibs * sizeof(pch_devib_t));
         cu->cunum = cunum;
