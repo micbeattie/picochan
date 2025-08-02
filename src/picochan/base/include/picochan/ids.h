@@ -18,27 +18,36 @@
  */
 typedef uint16_t pch_sid_t;
 
-/*! \brief a control unit number between 0 and PCH_NUM_CSS_CUS-1
- * (at most 255) that identifies a control unit
+/*! \brief a control unit address between 0 and PCH_NUM_CUS-1
+ * (at most 255) that identifies a control unit from the CU side.
  *  \ingroup picochan_base
- *
- * Both CSS and CU use a value of this type to index into their
- * respective arrays of CU structures. Currently, it is expected that
- * the numbers match meaning that even for a CSS with channels to two
- * independent CUs, the CUs must use different CU numbers.
  */
-typedef uint8_t pch_cunum_t;
+typedef uint8_t pch_cuaddr_t;
 
-/*! \brief a unit address that identifies a device on a given CU on the control unit side
+/*! \brief a unit address that identifies a device on a given CU on
+ * the control unit side.
  *  \ingroup picochan_base
  *
  *  Must be between 0 and cu->num_devibs-1 (which is at most 255).
  */
 typedef uint8_t pch_unit_addr_t;
 
-/*! \brief a device number that identifies a device by its
- * control unit number in the most significant byte and its
- * unit address on that CU in the least significant byte.
+/*! \brief a control unit number between 0 and PCH_NUM_CSS_CUS-1
+ * (at most 255) that identifies a control unit from the CSS side
+ *  \ingroup picochan_base
+ *
+ * The CSS may have multiple channels each to an entirely independent
+ * remote CU. In this situation, each CU-side CU may refer to itself
+ * with a control unit address (pch_cuaddr_t) of 0 whereas each
+ * corresponding CSS-side CU (css_cu_t) will have a unique control
+ * unit number (pch_cunum_t).
+ */
+typedef uint8_t pch_cunum_t;
+
+/*! \brief a device number that identifies a device by its (CSS-side)
+ * control unit number (pch_cunum_t_ in the most significant byte and
+ * its unit address (pch_unit_addr_t) on the corresponding CU-side CU
+ * in the least significant byte.
  *  \ingroup picochan_base
  */
 typedef uint16_t pch_devno_t;

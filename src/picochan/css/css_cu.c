@@ -72,7 +72,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dma
         PCH_CSS_TRACE(rt, ((struct pch_trdata_cu_dma){
                 .addr = d1c->addr,
                 .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
-                .cunum = cunum,
+                .cu = cunum,
                 .dmaid = d1c->dmaid,
                 .dmairqix = d1c->dmairqix
         }));
@@ -111,7 +111,7 @@ void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured) {
 
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CONFIGURED,
                 ((struct pch_trdata_cu_byte){
-                        .cunum = cunum,
+                        .cu = cunum,
                         .byte = (uint8_t)configured
                 }));
 }
@@ -180,7 +180,7 @@ bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace) {
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_TRACED,
                 trace || old_trace,
 		((struct pch_trdata_cu_byte){
-                        .cunum = cunum,
+                        .cu = cunum,
                         .byte = (uint8_t)trace
         }));
 
@@ -197,7 +197,7 @@ void pch_css_cu_start(pch_cunum_t cunum) {
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CU_STARTED,
                 cu->traced,
 		((struct pch_trdata_cu_byte){
-                        .cunum = cunum,
+                        .cu = cunum,
                         .byte = 1
         }));
 

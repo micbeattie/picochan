@@ -18,30 +18,37 @@ struct pch_trdata_byte {
 
 struct pch_trdata_cu_init {
         uint16_t        num_devices;
-        pch_cunum_t     cunum;
+        pch_cuaddr_t    cuaddr;
         uint8_t         dmairqix;
 };
 
 struct pch_trdata_cu_irq {
-        pch_cunum_t     cunum;
+        uint8_t         cu;
         uint8_t         dmairqix;
         uint8_t         tx_state;
         uint8_t         rx_state;
 };
 
 struct pch_trdata_cu_byte {
-        pch_cunum_t     cunum;
+        uint8_t         cu;
         uint8_t         byte;
 };
 
+struct pch_trdata_dev {
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+};
+
 struct pch_trdata_dev_byte {
-        pch_devno_t     devno;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
         uint8_t         byte;
 };
 
 struct pch_trdata_word_dev {
         uint32_t        word;
-        pch_devno_t     devno;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
 };
 
 struct pch_trdata_word_sid_byte {
@@ -85,7 +92,7 @@ struct pch_trdata_scsw_sid_cc {
 struct pch_trdata_cu_dma {
         uint32_t                addr;
         uint32_t                ctrl;
-        pch_cunum_t             cunum;
+        uint8_t                 cu;
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
 };
@@ -112,19 +119,20 @@ struct pch_trdata_func_irq {
 };
 
 struct pch_trdata_cus_init_mem_channel {
-        pch_cunum_t     cunum;
+        pch_cuaddr_t    cuaddr;
         pch_dmaid_t     txdmaid;
         pch_dmaid_t     rxdmaid;
 };
 
 struct pch_trdata_cus_tx_complete {
         int16_t         uaopt;
-        pch_cunum_t     cunum;
+        pch_cuaddr_t    cuaddr;
         uint8_t         txpstate;
 };
 
 struct pch_trdata_cus_call_callback {
-        pch_devno_t     devno;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
         uint8_t         cbindex;
 };
 

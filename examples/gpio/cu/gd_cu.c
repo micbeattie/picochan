@@ -354,11 +354,11 @@ static void gd_start(pch_devib_t *devib) {
                 gd_start_cbindex);
 }
 
-void gd_cu_init(pch_cunum_t cunum, uint8_t dmairqix) {
+void gd_cu_init(pch_cuaddr_t cua, uint8_t dmairqix) {
         assert(!gd_cu_done_init);
 
-        pch_cus_cu_init(&gd_cu, cunum, dmairqix, NUM_GPIO_DEVS);
-        pch_cus_trace_cu(cunum, (bool)GD_ENABLE_TRACE);
+        pch_cus_cu_init(&gd_cu, cua, dmairqix, NUM_GPIO_DEVS);
+        pch_cus_trace_cu(cua, (bool)GD_ENABLE_TRACE);
 
         memset(gpio_devs, 0, sizeof(gpio_devs));
         gd_start_cbindex =

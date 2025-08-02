@@ -101,7 +101,7 @@ void print_devib_callback(uint8_t cbindex, uint32_t cbaddr) {
 
 void print_dma_irq_init(struct pch_trdata_cu_dma *td) {
         printf("CU=%d initialises DMAid=%d DMA_IRQ_%d addr:%08x ctrl:%08x",
-                td->cunum, td->dmaid, td->dmairqix,
+                td->cu, td->dmaid, td->dmairqix,
                 td->addr, td->ctrl);
 }
 

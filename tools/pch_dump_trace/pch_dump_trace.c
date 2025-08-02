@@ -152,7 +152,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CUS_CU_INIT: {
                 struct pch_trdata_cu_init *td = vd;
                 printf("dev-side CU=%d initialises with %d devices using DMA_IRQ_%d\n",
-                        td->cunum, td->num_devices, td->dmairqix);
+                        td->cuaddr, td->num_devices, td->dmairqix);
         }
 
         case PCH_TRC_RT_CUS_CU_TX_DMA_INIT:
@@ -166,42 +166,42 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CSS_CU_CONFIGURED: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("CSS-side CU=%d is now %s",
-                        td->cunum, td->byte ? "configured" : "unconfigured");
+                        td->cu, td->byte ? "configured" : "unconfigured");
                 break;
         }
 
         case PCH_TRC_RT_CSS_CU_TRACED: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("CSS-side CU=%d is now %s",
-                        td->cunum, td->byte ? "traced" : "untraced");
+                        td->cu, td->byte ? "traced" : "untraced");
                 break;
         }
 
         case PCH_TRC_RT_CSS_CU_STARTED: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("CSS-side CU=%d is now %s",
-                        td->cunum, td->byte ? "started" : "stopped");
+                        td->cu, td->byte ? "started" : "stopped");
                 break;
         }
 
         case PCH_TRC_RT_CUS_CU_CONFIGURED: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("dev-side CU=%d is now %s",
-                        td->cunum, td->byte ? "configured" : "unconfigured");
+                        td->cu, td->byte ? "configured" : "unconfigured");
                 break;
         }
 
         case PCH_TRC_RT_CUS_CU_TRACED: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("dev-side CU=%d is now %s",
-                        td->cunum, td->byte ? "traced" : "untraced");
+                        td->cu, td->byte ? "traced" : "untraced");
                 break;
         }
 
         case PCH_TRC_RT_CUS_CU_STARTED: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("dev-side CU=%d is now %s",
-                        td->cunum, td->byte ? "started" : "stopped");
+                        td->cu, td->byte ? "started" : "stopped");
                 break;
         }
 
@@ -211,7 +211,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                         "CSS-side" : "dev-side";
                 struct pch_trdata_cu_irq *td = vd;
                 printf("IRQ for %s CU=%d with DMA_IRQ_%d tx:irq_state=",
-                       side, td->cunum, td->dmairqix);
+                       side, td->cu, td->dmairqix);
                 print_dma_irq_state(td->tx_state >> 4);
                 printf(",mem_src_state=");
                 print_mem_src_state(td->tx_state & 0xf);
@@ -234,7 +234,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CSS_TX_COMPLETE: {
                 struct pch_trdata_cu_byte *td = vd;
                 printf("CSS-side CU=%d handling tx complete while txsm is ",
-                        td->cunum);
+                        td->cu);
                 print_txpending_state(td->byte);
                 break;
         }
@@ -273,14 +273,15 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_CALL_CALLBACK: {
                 struct pch_trdata_cus_call_callback *td = vd;
-                printf("dev-side devno:%04X callback %d",
-                        td->devno, td->cbindex);
+                printf("dev-side CU=%d UA=%d callback %d",
+                        td->cuaddr, td->ua, td->cbindex);
                 break;
         }
 
         case PCH_TRC_RT_CUS_SEND_TX_PACKET: {
                 struct pch_trdata_word_dev *td = vd;
-                printf("dev-side devno:%04X sends ", td->devno);
+                printf("dev-side CU=%d UA=%d sends ",
+                        td->cuaddr, td->ua);
                 print_packet(td->word, true);
                 break;
         }
@@ -289,10 +290,10 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 struct pch_trdata_cus_tx_complete *td = vd;
                 if (td->txpstate == PCH_TXSM_FINISHED && td->uaopt != -1) {
                         printf("dev-side CU=%d handling tx complete for UA=%d while txsm is ",
-                                td->cunum, td->uaopt);
+                                td->cuaddr, td->uaopt);
                 } else {
                         printf("dev-side CU=%d handling tx complete while txsm is ",
-                                td->cunum);
+                                td->cuaddr);
                 }
                 print_txpending_state(td->txpstate);
                 break;
@@ -300,14 +301,16 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE: {
                 struct pch_trdata_word_dev *td = vd;
-                printf("dev-side devno:%04X received ", td->devno);
+                printf("dev-side CU=%d UA=%d received ",
+                        td->cuaddr, td->ua);
                 print_packet(td->word, true);
                 break;
         }
 
         case PCH_TRC_RT_CUS_RX_DATA_COMPLETE: {
-                pch_devno_t *td = vd;
-                printf("dev-side devno:%04X rx data complete", *td);
+                struct pch_trdata_dev *td = vd;
+                printf("dev-side CU=%d UA=%d rx data complete",
+                        td->cuaddr, td->ua);
                 break;
         }
 

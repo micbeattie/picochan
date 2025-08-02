@@ -162,7 +162,7 @@ pch_sch_modify_flags(sid, flags);
 immediately after `pch_cus_init()`.
 
 - To enable trace records related to a given CU and all its
-devices to be written, call `pch_cus_trace_cu(cunum, true)`.
+devices to be written, call `pch_cus_trace_cu(cua, true)`.
 Unlike for the CSS API, setting the trace flag at CU level
 enables trace records for all its devices.
 
@@ -173,4 +173,4 @@ With the `PCH_DEVIB_FLAG_TRACED` bit present in the `flags`
 field of a `devib` and the CU-global trace flag set
 (with `pch_cus_set_trace()`), records will be written for events
 related to the device regardless of whether the trace flag for
-its CU has been set with `pch_cus_trace_cu(cunum, val)`.
+its CU has been set with `pch_cus_trace_cu(cua, val)`.

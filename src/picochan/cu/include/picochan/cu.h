@@ -92,7 +92,7 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;
         pch_txsm_t              tx_pending;
-        pch_cunum_t             cunum;
+        pch_cuaddr_t            cuaddr;
 	//! when tx_pending in use, the ua to callback or -1
 	int16_t                 tx_callback_ua;
 	//! active ua for rx data to dev or -1 if none
@@ -131,15 +131,14 @@ static inline pch_cu_t *pch_dev_get_cu(pch_devib_t *devib) {
         return (pch_cu_t *)p;
 }
 
+static inline pch_cuaddr_t pch_dev_get_cuaddr(pch_devib_t *devib) {
+        pch_cu_t *cu = pch_dev_get_cu(devib);
+        return cu->cuaddr;
+}
+
 static inline pch_unit_addr_t pch_dev_get_ua(pch_devib_t *devib) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
         return (pch_unit_addr_t)(devib - cu->devibs);
-}
-
-static inline pch_devno_t pch_dev_get_devno(pch_devib_t *devib) {
-        pch_cu_t *cu = pch_dev_get_cu(devib);
-        pch_unit_addr_t ua = (pch_unit_addr_t)(devib - cu->devibs);
-        return pch_make_devno(cu->cunum, ua);
 }
 
 /*! \brief Look up the pch_devib_t of a device from its CU and unit address
@@ -161,25 +160,18 @@ extern pch_cu_t *pch_cus[PCH_NUM_CUS];
 
 extern bool pch_cus_init_done;
 
-/*! \brief Get the CU for a given control unit number
+/*! \brief Get the CU for a given control unit address
  *  \ingroup picochan_cu
  *
- * For a Debug build, asserts when cunum exceeds the
+ * For a Debug build, asserts when cua exceeds the
  * (compile-time defined) number of CUs, PCH_NUM_CUS, or if
  * the CU has not been initialised with pch_cus_cu_init.
  */
-static inline pch_cu_t *pch_get_cu(pch_cunum_t cunum) {
-        valid_params_if(PCH_CUS, cunum < PCH_NUM_CUS);
-        pch_cu_t *cu = pch_cus[cunum];
+static inline pch_cu_t *pch_get_cu(pch_cuaddr_t cua) {
+        valid_params_if(PCH_CUS, cua < PCH_NUM_CUS);
+        pch_cu_t *cu = pch_cus[cua];
         assert(cu != NULL);
         return cu;
-}
-
-static inline pch_devib_t *pch_get_devib_by_devno(pch_devno_t devno) {
-        pch_cunum_t cunum = pch_devno_get_cunum(devno);
-        pch_cu_t *cu = pch_get_cu(cunum);
-        pch_unit_addr_t ua = pch_devno_get_ua(devno);
-        return pch_get_devib(cu, ua);
 }
 
 /*! \brief Initialise CU subsystem
@@ -210,24 +202,24 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
 
 // CU initialisation and configuration
 
-/*! \brief Initialises CU cunum with up to num_devibs devices.
+/*! \brief Initialises CU cua with up to num_devibs devices.
  *  \ingroup picochan_cu
  *
  * \param cu Must be a pointer to enough space to hold the
  * pch_cu_t structure including its flexible array that must
  * itself have room for num_devibs pch_devib_t structures.
- * \param cunum control unit number to initialise
+ * \param cua control unit address to initialise
  * \param dmairqix Must be a DMA IRQ index on which
  * pch_cus_init_dma_irq_handler() has been invoked.
  * \param num_devibs The number of devices to initialise
  */
-void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t num_devibs);
+void pch_cus_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
 
 /*! \brief Configure a UART control unit
  * \ingroup picochan_cu
  *
  * Configure the hardware UART instance uart as a channel from
- * CU cunum to the CSS. The UART must have been initialised already,
+ * CU cua to the CSS. The UART must have been initialised already,
  * be connected to the CSS using the same baud rate as the CSS has
  * configured and the hardware flow control pins, CTS and RTS MUST be
  * enabled and connected between CU and CSS.
@@ -243,7 +235,7 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cunum_t cunum, uint8_t dmairqix, uint16_t
  * control register settings (no SNIFF_EN and no HIGH_PRIORITY), you
  * can use pch_cus_uartcu_init_and_configure() instead.
  */
-void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl);
 
 /*! \brief Initialise and configure a UART control unit with default
  * dma_channel_config control register.
@@ -255,7 +247,7 @@ void pch_cus_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
  * The CSS on the other side of the channel MUST use the same baud
  * rate and uart settings set pch_uart_init().
  */
-void pch_cus_uartcu_init_and_configure(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate);
+void pch_cus_uartcu_init_and_configure(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate);
 
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_cu
@@ -273,40 +265,42 @@ void pch_cus_uartcu_init_and_configure(pch_cunum_t cunum, uart_inst_t *uart, uin
  * dmachan_tx_channel_t of the peer CSS for passing to
  * pch_cus_memcu_configure.
  */
-void pch_cus_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
+void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
 
-/*! \brief Starts the channel from CU cunum to the CSS
+/*! \brief Starts the channel from CU cua to the CSS
  * \ingroup picochan_cu
  *
  * The CU must be already configured but not have been started.
  * Marks the CU as started and starts the channel to the CSS,
  * allowing it to receive commands from the CSS.
  */
-void pch_cus_cu_start(pch_cunum_t cunum);
+void pch_cus_cu_start(pch_cuaddr_t cua);
 
-/*! \brief Sets whether tracing is enabled for CU cunum
+/*! \brief Sets whether tracing is enabled for CU cua
  * \ingroup picochan_cu
  *
  * If this flag is not set to be true then no CU trace records are
  * written for this CU and no device trace records, regardless
  * of any per-device trace flags.
  */
-bool pch_cus_trace_cu(pch_cunum_t cunum, bool trace);
+bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
 
 /*! \brief Sets whether tracing is enabled for device
  * \ingroup picochan_cu
  *
  * If this flag is set to true and the trace flag is set for the
  * CU subsystem as a whole (with pch_cus_set_trace) and the trace
- * flag is set for CU cnum (with pch_cus_trace_cu) then device
- * trace records are written for the device with unit address ua
- * on this CU.
+ * flag is set for the device's CU (with pch_cus_trace_cu) then
+ * device trace records are written for this device. If this
+ * function changes the setting of the device's trace flag then a
+ * trace record is written to indicate this (unlike using the
+ * low-level pch_devib_set_traced() function).
  */
-bool pch_cus_trace_dev(pch_cunum_t cunum, pch_unit_addr_t ua, bool trace);
+bool pch_cus_trace_dev(pch_devib_t *devib, bool trace);
 
 // CU initialisation low-level helpers
-void pch_cus_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
-void pch_cus_cu_set_configured(pch_cunum_t cunum, bool configured);
+void pch_cus_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc);
+void pch_cus_cu_set_configured(pch_cuaddr_t cua, bool configured);
 
 /*! \brief Fetch the internal tx side of a channel from CU to CSS
  * \ingroup picochan_cu
@@ -316,9 +310,9 @@ void pch_cus_cu_set_configured(pch_cunum_t cunum, bool configured);
  * initialisation procedure uses this function to find its peer
  * CU structure in order to cross-connect the channels.
  */
-dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cunum_t cunum);
+dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cuaddr_t cua);
 
-dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cunum_t cunum);
+dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cuaddr_t cua);
 
 void __isr pch_cus_handle_dma_irq(void);
 
