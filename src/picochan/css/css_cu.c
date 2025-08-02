@@ -7,22 +7,48 @@
 
 dmachan_tx_channel_t *pch_css_cu_get_tx_channel(pch_cunum_t cunum) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed);
+        assert(cu->allocated);
 
         return &cu->tx_channel;
 }
 
 dmachan_rx_channel_t *pch_css_cu_get_rx_channel(pch_cunum_t cunum) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed);
+        assert(cu->allocated);
 
         return &cu->rx_channel;
 }
 
-static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
+void pch_css_cu_claim(pch_cunum_t cunum) {
+        css_cu_t *cu = get_cu(cunum);
+        if (cu->allocated)
+                panic("CU already allocated");
+
+        if (cu->claimed)
+                panic("CU already claimed");
+
+        cu->claimed = true;
+}
+
+int pch_css_cu_claim_unused(bool required) {
+        for (int i = 0; i < PCH_NUM_CSS_CUS; i++) {
+                css_cu_t *cu = get_cu(i);
+                if (!cu->claimed && !cu->allocated) {
+                        cu->claimed = true;
+                        return i;
+                }
+        }
+
+        if (required)
+                panic("No CUs are available");
+
+        return -1;
+}
+
+pch_sid_t pch_css_cu_init(pch_cunum_t cunum, uint16_t num_devices) {
         assert(css_is_started());
 	css_cu_t *cu = get_cu(cunum);
-        assert(!cu->claimed);
+        assert(!cu->allocated);
 
 	pch_sid_t first_sid = CSS.next_sid;
 	valid_params_if(PCH_CSS,
@@ -42,7 +68,7 @@ static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
 	cu->ua_func_dlist = -1;
         cu->ua_response_slist.head = -1;
         cu->ua_response_slist.tail = -1;
-        cu->claimed = true;
+        cu->allocated = true;
 
 	for (int i = 0; i < num_devices; i++) {
 		pch_unit_addr_t ua = (pch_unit_addr_t)i;
@@ -52,20 +78,14 @@ static css_cu_t *css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
 		schib->pmcw.unit_addr = ua;
 	}
 
-        PCH_CSS_TRACE(PCH_TRC_RT_CSS_CU_CLAIM,
-                ((struct pch_trdata_css_cu_claim){
+        PCH_CSS_TRACE(PCH_TRC_RT_CSS_SCH_ALLOC,
+                ((struct pch_trdata_css_sch_alloc){
                         .first_sid = first_sid,
                         .num_devices = num_devices,
                         .cunum = cunum
                 }));
 
-        return cu;
-}
-
-void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices) {
-        // Same as css_cu_claim but drop the return value since
-        // the public API only uses cunum not the css_cu_t*.
-        css_cu_claim(cunum, num_devices);
+        return first_sid;
 }
 
 static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
@@ -80,7 +100,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cunum_t cunum, dma
 
 static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->started);
+        assert(cu->allocated && !cu->started);
 
         dmachan_init_tx_channel(&cu->tx_channel, d1c);
         trace_cu_dma(PCH_TRC_RT_CSS_CU_TX_DMA_INIT, cunum, d1c);
@@ -88,7 +108,7 @@ static void css_cu_dma_tx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
 
 static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->started);
+        assert(cu->allocated && !cu->started);
 
         dmachan_init_rx_channel(&cu->rx_channel, d1c);
         trace_cu_dma(PCH_TRC_RT_CSS_CU_RX_DMA_INIT, cunum, d1c);
@@ -96,7 +116,7 @@ static void css_cu_dma_rx_init(pch_cunum_t cunum, dmachan_1way_config_t *d1c) {
 
 void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->started);
+        assert(cu->allocated && !cu->started);
         (void)cu;
 
         css_cu_dma_tx_init(cunum, &dc->tx);
@@ -105,7 +125,7 @@ void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc) {
 
 void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed);
+        assert(cu->allocated);
 
         cu->configured = configured;
 
@@ -118,7 +138,7 @@ void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured) {
 
 void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl) {
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->started);
+        assert(cu->allocated && !cu->started);
 
         dma_channel_config txctrl = dmachan_uartcu_make_txctrl(uart, ctrl);
         dma_channel_config rxctrl = dmachan_uartcu_make_rxctrl(uart, ctrl);
@@ -131,7 +151,7 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
         pch_css_cu_set_configured(cunum, true);
 }
 
-void pch_css_uartcu_init_and_configure(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate) {
+void pch_css_init_uartchan(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate) {
         pch_uart_init(uart, baudrate);
 
         // Argument 0 is ok here (as would be any DMA id) because it
@@ -148,7 +168,7 @@ void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t
         dmachan_panic_unless_memchan_initialised();
 
         css_cu_t *cu = get_cu(cunum);
-        assert(cu->claimed && !cu->started);
+        assert(cu->allocated && !cu->started);
 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);

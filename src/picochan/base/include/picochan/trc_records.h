@@ -97,7 +97,7 @@ struct pch_trdata_cu_dma {
         pch_dma_irq_index_t     dmairqix;
 };
 
-struct pch_trdata_css_cu_claim {
+struct pch_trdata_css_sch_alloc {
         pch_sid_t       first_sid;
         uint16_t        num_devices;
         pch_cunum_t     cunum;

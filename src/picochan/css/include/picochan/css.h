@@ -160,18 +160,34 @@ void pch_css_cu_start(pch_cunum_t cunum);
 
 // CSS CU initialisation
 
-/*! \brief Claims num_devices schibs for use by CU cunum.
+/*! \brief Mark CU cunum as claimed. Panics if the CU is already
+ * claimed or allocated.
+ * \ingroup picochan_css
+ */
+void pch_css_cu_claim(pch_cunum_t cunum);
+
+/*! \brief Claims the next unclaimed and unallocated CU and returns
+ * its CU number. If no CU is available, panics if required is true
+ * or else returns -1.
+ * \ingroup picochan_css
+ */
+int pch_css_cu_claim_unused(bool required);
+
+/*! \brief Initialises num_devices schibs for use by CU cunum.
  * \ingroup picochan_css
  *
- * Starting with the first unclaimed schib in the CSS array of
- * schibs, claims num_devices consecutive schibs and initialises
+ * Starting with the first uninitialised schib in the CSS array of
+ * schibs, allocates num_devices consecutive schibs and initialises
  * them to reference the devices with unit addresses 0 through
  * num_devices-1 respectively on CU cunum. The total number of
- * claimed schibs must not exceed the size of the array,
- * PCH_NUM_SCHIBS. A check for this and other sanity checks on
- * the arguments are made only if assertions are enabled.
+ * allocated schibs must not exceed the size of the array,
+ * PCH_NUM_SCHIBS. A check for this and other sanity checks on the
+ * arguments are made only if assertions are enabled. CSS must have
+ * been started (pch_css_start()) but a channel to this CU must not
+ * have been started yet (pch_css_cu_start()).
+ * Returns the SID of the first allocated schib.
  */
-void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
+pch_sid_t pch_css_cu_init(pch_cunum_t cunum, uint16_t num_devices);
 
 /*! \brief Configure a UART control unit
  * \ingroup picochan_css
@@ -196,8 +212,8 @@ void pch_css_cu_claim(pch_cunum_t cunum, uint16_t num_devices);
 
 void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
 
-/*! \brief Initialise and configure a UART control unit with default
- * dma_channel_config control register.
+/*! \brief Initialise and configure a UART channel to a control unit
+ * with default dma_channel_config control register.
  * \ingroup picochan_css
  *
  * Calls pch_uart_init() with baud rate \param baudrate and
@@ -206,7 +222,7 @@ void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_
  * The CU on the other side of the channel MUST use the same baud
  * rate and uart settings set pch_uart_init().
  */
-void pch_css_uartcu_init_and_configure(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate);
+void pch_css_init_uartchan(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate);
 
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_css
@@ -397,6 +413,24 @@ int pch_sch_modify_enabled(pch_sid_t sid, bool enabled);
  * only modifies the traced flag of the subchannel.
  */
 int pch_sch_modify_traced(pch_sid_t sid, bool traced);
+
+/*! \brief Calls pch_sch_modify_isc() on count subchannels starting
+ * from sid, panicking if any call fails
+ * \ingroup picochan_css
+ */
+void __time_critical_func(pch_sch_modify_isc_range)(pch_sid_t sid, uint count, uint8_t isc);
+
+/*! \brief Calls pch_sch_modify_enabled() on count subchannels
+ * starting from sid, panicking if any call fails
+ * \ingroup picochan_css
+ */
+void __time_critical_func(pch_sch_modify_enabled_range)(pch_sid_t sid, uint count, bool enabled);
+
+/*! \brief Calls pch_sch_modify_traced() on count subchannels starting
+ * from sid, panicking if any call fails
+ * \ingroup picochan_css
+ */
+void __time_critical_func(pch_sch_modify_traced_range)(pch_sid_t sid, uint count, bool traced);
 
 // These functions should only be called while the ISC for the
 // subchannel has been disabled

@@ -55,6 +55,7 @@ typedef struct __aligned(4) css_cu {
         bool                    rx_response_required;
         bool                    traced;
         bool                    claimed;
+        bool                    allocated;
         bool                    configured;
         bool                    started;
         // tx_active: tx dma is active

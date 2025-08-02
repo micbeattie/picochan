@@ -11,8 +11,6 @@ unsigned char d[8192] __aligned(1024); // we'll put test data in here
 
 #define NUM_GPIO_DEVS      8
 
-#define GDCU_NUM 0
-
 // Use uart0 via GPIO pins 0-3 for CSS side
 #define GDTEST1_UART_NUM 0
 #define GDTEST1_UART_TX_PIN 0
@@ -139,23 +137,19 @@ int main(void) {
         dprintf("Initialising CSS\n");
 	init_css();
 
-        pch_css_cu_claim(GDCU_NUM, NUM_GPIO_DEVS);
+        pch_cunum_t cunum = pch_css_cu_claim_unused(true);
+        pch_sid_t first_sid = pch_css_cu_init(cunum, NUM_GPIO_DEVS);
         uart_inst_t *uart = prepare_uart_gpios();
-        dprintf("Configuring CSS channel via UART%u to CU %u\n",
-                UART_NUM(uart), GDCU_NUM);
-        pch_css_uartcu_init_and_configure(GDCU_NUM, uart, BAUDRATE);
-        pch_css_set_trace_cu(GDCU_NUM, (bool)GD_ENABLE_TRACE);
+        dprintf("Configuring CSS channel via UART%u\n", UART_NUM(uart));
+        pch_css_init_uartchan(cunum, uart, BAUDRATE);
+        pch_css_set_trace_cu(cunum, (bool)GD_ENABLE_TRACE);
 
         dprintf("Enabling subchannels 0-%u\n", NUM_GPIO_DEVS-1);
-        for (pch_sid_t sid = 0; sid < NUM_GPIO_DEVS; sid++) {
-                uint16_t flags = PCH_PMCW_ENABLED;
-                if (GD_ENABLE_TRACE)
-                        flags |= PCH_PMCW_TRACED;
-                pch_sch_modify_flags(sid, flags);
-        }
+        pch_sch_modify_enabled_range(first_sid, NUM_GPIO_DEVS, true);
+        pch_sch_modify_traced_range(first_sid, NUM_GPIO_DEVS, true);
 
-        dprintf("Starting channel to CU %u\n", GDCU_NUM);
-        pch_css_cu_start(GDCU_NUM);
+        dprintf("Starting channel %u\n", cunum);
+        pch_css_cu_start(cunum);
         dprintf("CSS is ready\n");
 
         while (1)

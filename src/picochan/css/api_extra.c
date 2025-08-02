@@ -84,6 +84,24 @@ int __time_critical_func(pch_sch_modify_traced)(pch_sid_t sid, bool traced) {
         return pch_sch_modify(sid, &schib.pmcw);
 }
 
+void __time_critical_func(pch_sch_modify_isc_range)(pch_sid_t sid, uint count, uint8_t isc) {
+        while (count--)
+                if (pch_sch_modify_isc(sid++, isc))
+                        panic("pch_sch_modify_isc failed");
+}
+
+void __time_critical_func(pch_sch_modify_enabled_range)(pch_sid_t sid, uint count, bool enabled) {
+        while (count--)
+                if (pch_sch_modify_enabled(sid++, enabled))
+                        panic("pch_sch_modify_enabled failed");
+}
+
+void __time_critical_func(pch_sch_modify_traced_range)(pch_sid_t sid, uint count, bool traced) {
+        while (count--)
+                if (pch_sch_modify_traced(sid++, traced))
+                        panic("pch_sch_modify_traced failed");
+}
+
 int __time_critical_func(pch_sch_wait)(pch_sid_t sid, pch_scsw_t *scsw) {
         while (1) {
                 int cc = pch_sch_test(sid, scsw);
