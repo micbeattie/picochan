@@ -87,7 +87,7 @@ pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices);
 
 ```
 // Initialise and configure a UART channel with default parameters...
-void pch_chp_init_and_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
+void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
 // ...or, less commonly, configure with non-default DMA control
 // register flags after initialising the UART beforehand
 void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);

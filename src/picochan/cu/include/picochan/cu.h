@@ -233,7 +233,7 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t 
  * If you want to initialise and configure the UART channel using a
  * given baud rate, suggested UART settings (8E1) and default DMA
  * control register settings (no SNIFF_EN and no HIGH_PRIORITY), you
- * can use pch_cus_uartcu_init_and_configure() instead.
+ * can use pch_cus_auto_configure_uartcu() instead.
  */
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl);
 
@@ -247,7 +247,7 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_c
  * The CSS on the other side of the channel MUST use the same baud
  * rate and uart settings set pch_uart_init().
  */
-void pch_cus_uartcu_init_and_configure(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate);
+void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate);
 
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_cu

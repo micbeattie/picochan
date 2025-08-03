@@ -66,7 +66,7 @@ int main(void) {
         uart_inst_t *uart = prepare_uart_gpios();
         dprintf("Configuring channel via UART%u for CU %u\n",
                 UART_NUM(uart), GDCU_NUM);
-        pch_cus_uartcu_init_and_configure(GDCU_NUM, uart, BAUDRATE);
+        pch_cus_auto_configure_uartcu(GDCU_NUM, uart, BAUDRATE);
 
         pch_cu_t *cu = gd_get_cu();
         dprintf("Initialising %u gpio_dev devices\n", NUM_GPIO_DEVS);

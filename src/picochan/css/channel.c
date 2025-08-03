@@ -150,7 +150,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
         pch_chp_set_configured(chpid, true);
 }
 
-void pch_chp_init_and_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate) {
+void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate) {
         pch_uart_init(uart, baudrate);
 
         // Argument 0 is ok here (as would be any DMA id) because it

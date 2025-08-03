@@ -276,7 +276,7 @@ pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices);
  * If you want to initialise and configure the UART channel using a
  * given baud rate, suggested UART settings (8E1) and default DMA
  * control register settings (no SNIFF_EN and no HIGH_PRIORITY), you
- * can use pch_chp_init_and_configure_uartchan() instead.
+ * can use pch_chp_auto_configure_uartchan() instead.
  */
 
 void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
@@ -292,7 +292,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
  * The CU on the other side of the channel *MUST* use the same baud
  * rate and uart settings.
  */
-void pch_chp_init_and_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate);
+void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate);
 
 /*! \brief Configure a memchan channel
  * \ingroup picochan_css

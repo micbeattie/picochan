@@ -106,7 +106,7 @@ int main(void) {
         uart_inst_t *uart = prepare_uart_gpios();
         dprintf("Configuring CSS channel CHPID=%u via UART%u\n",
                 chpid, UART_NUM(uart));
-        pch_chp_init_and_configure_uartchan(chpid, uart, BAUDRATE);
+        pch_chp_auto_configure_uartchan(chpid, uart, BAUDRATE);
         pch_chp_set_trace(chpid, (bool)GD_ENABLE_TRACE);
 
         dprintf("Enabling subchannels %u through %u\n",

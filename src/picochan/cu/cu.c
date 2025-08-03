@@ -135,7 +135,7 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_c
         pch_cus_cu_set_configured(cua, true);
 }
 
-void pch_cus_uartcu_init_and_configure(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate) {
+void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate) {
         pch_uart_init(uart, baudrate);
 
         // Argument 0 is ok here (as would be any DMA id) because it
