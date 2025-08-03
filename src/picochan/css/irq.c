@@ -66,7 +66,7 @@ void __time_critical_func(handle_func_irq_cu)(css_cu_t *cu) {
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_FUNC_IRQ,
                 cu->traced, ((struct pch_trdata_func_irq){
                 .ua_opt = peek_ua_dlist(&cu->ua_func_dlist),
-                .cunum = cu->cunum,
+                .cunum = get_cunum(cu),
                 .tx_active = (int8_t)cu->tx_active
                 }));
 

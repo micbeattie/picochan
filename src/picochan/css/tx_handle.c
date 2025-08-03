@@ -81,7 +81,7 @@ void __time_critical_func(css_handle_tx_complete)(css_cu_t *cu) {
         pch_txsm_t *txpend = &cu->tx_pending;
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_TX_COMPLETE,
                 cu->traced, ((struct pch_trdata_cu_byte){
-                        .cu = cu->cunum,
+                        .cu = get_cunum(cu),
                         .byte = (uint8_t)txpend->state
                 }));
 

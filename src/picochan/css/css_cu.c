@@ -61,7 +61,6 @@ pch_sid_t pch_css_cu_init(pch_cunum_t cunum, uint16_t num_devices) {
 	CSS.next_sid += (pch_sid_t)num_devices;
 
         memset(cu, 0, sizeof *cu);
-	cu->cunum = cunum;
 	cu->first_sid = first_sid;
 	cu->num_devices = num_devices;
 	cu->rx_data_for_ua = -1;

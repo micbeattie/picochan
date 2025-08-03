@@ -57,6 +57,12 @@ static inline css_cu_t *get_cu(pch_cunum_t cunum) {
         return &CSS.cus[cunum];
 }
 
+static inline pch_cunum_t get_cunum(css_cu_t *cu) {
+        int32_t n = cu - &CSS.cus[0];
+        assert(n >= 0 && n < PCH_NUM_CSS_CUS);
+        return (pch_cunum_t)n;
+}
+
 static inline schib_dlist_t *get_isc_dlist(uint8_t iscnum) {
         valid_params_if(PCH_CSS, iscnum < PCH_NUM_ISCS);
         return &CSS.isc_dlists[iscnum];

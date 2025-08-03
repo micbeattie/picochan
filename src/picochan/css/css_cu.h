@@ -43,7 +43,6 @@ typedef struct __aligned(4) css_cu {
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;
         pch_txsm_t              tx_pending;
-        pch_cunum_t             cunum;
         pch_sid_t               first_sid;
         uint16_t                num_devices; // [0, 256]
         // rx_data_for_ua: rx dma is active writing to CCW for this ua
@@ -51,6 +50,7 @@ typedef struct __aligned(4) css_cu {
         // rx_data_end_ds: if non-zero then, when rx data complete,
         // treat as an immediate implicit device status for update_status
         uint8_t                 rx_data_end_ds;
+        // TODO combine following bools into a uint8_t flags
         // rx_response_required: when rx data complete, peer wants response
         bool                    rx_response_required;
         bool                    traced;
