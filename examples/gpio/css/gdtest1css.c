@@ -98,9 +98,7 @@ int main(void) {
         dprintf("Initialising CSS\n");
         pch_css_init();
         pch_css_set_trace((bool)GD_ENABLE_TRACE);
-        pch_css_start(io_callback);
-        // enable all ISCs (ignores non-existing ones)
-        pch_css_set_isc_enable_mask(0xff);
+        pch_css_start(io_callback, 0xff);
 
         pch_chpid_t chpid = pch_chp_claim_unused(true);
         pch_sid_t first_sid = pch_chp_alloc(chpid, NUM_GPIO_DEVS);

@@ -144,17 +144,18 @@ void pch_css_auto_configure_io_irq(bool required);
 /*! \brief Low-level function to set the I/O callback function that
  * the CSS invokes if its I/O interrupt handler has been set to
  * pch_css_io_irq_handler.
- * pch_css_start(io_callback) with io_callback non-NULL).
+ * pch_css_start(io_callback, isc_mask) with io_callback non-NULL).
  * \ingroup picochan_css
  *
  * Typically, this should instead be set implicitly by calling
- * pch_css_start(io_callback) with io_callback non-NULL.
+ * pch_css_start(io_callback, isc_mask) with io_callback non-NULL.
  */
 io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
 
 /*! \brief Starts CSS operation after setting the io_callback
- * (if non-NULL) and after configuring and enabling any needed CSS
- * IRQ handlers that have not yet been set.
+ * (if non-NULL), configuring and enabling any needed CSS
+ * IRQ handlers that have not yet been set and setting the mask
+ * of ISCs that trigger I/O interrupts to be isc_mask.
  * \ingroup picochan_css
  *
  * pch_css_init() must be called before calling this function.
@@ -169,7 +170,7 @@ io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
  * from this function are added using irq_add_shared_handler() with an
  * order_priority of PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY.
  */
-void pch_css_start(io_callback_t io_callback);
+void pch_css_start(io_callback_t io_callback, uint8_t isc_mask);
 
 /*! \brief Sets whether CSS tracing is enabled
  * \ingroup picochan_css

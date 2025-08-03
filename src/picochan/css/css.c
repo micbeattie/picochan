@@ -228,7 +228,9 @@ io_callback_t pch_css_set_io_callback(io_callback_t io_callback) {
 	return old_io_callback;
 }
 
-void pch_css_start(io_callback_t io_callback) {
+void pch_css_start(io_callback_t io_callback, uint8_t isc_mask) {
+        CSS.isc_enable_mask = isc_mask;
+
         if (CSS.dmairqix == -1)
                 pch_css_auto_configure_dma_irq_index();
 
