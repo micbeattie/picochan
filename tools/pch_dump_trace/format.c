@@ -14,6 +14,11 @@ void print_cc(uint8_t cc) {
         printf("cc=%d", cc);
 }
 
+void print_address_change(struct pch_trdata_address_change *td, const char *s) {
+        printf("%s address changes from %08x to %08x",
+                s, td->old_addr, td->new_addr);
+}
+
 void print_ccwaddr(uint32_t ccwaddr) {
         printf("CCW address=%08x", ccwaddr);
 }

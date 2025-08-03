@@ -10,6 +10,7 @@
 
 void print_sid(pch_sid_t sid);
 void print_cc(uint8_t cc);
+void print_address_change(struct pch_trdata_address_change *td, const char *s);
 void print_ccwaddr(uint32_t ccwaddr);
 void print_ccw(pch_ccw_t ccw);
 void print_mem_src_state(dmachan_mem_src_state_t srcstate);

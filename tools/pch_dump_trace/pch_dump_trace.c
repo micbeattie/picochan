@@ -45,7 +45,7 @@ static const char *pick_idtype(uint rt, uint cssrt) {
 }
 
 static const char *pick_side(uint rt, uint cssrt) {
-        return (rt == cssrt) ? "CSS-side" : "CU-side";
+        return (rt == cssrt) ? "CSS" : "CU-side";
 }
 
 void hexdump(unsigned char *data, int data_size) {
@@ -224,7 +224,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CSS_SEND_TX_PACKET: {
                 struct pch_trdata_word_sid *td = vd;
-                printf("CSS-side ");
+                printf("CSS ");
                 print_sid(td->sid);
                 printf(" sends ");
                 print_packet(td->word, true);
@@ -239,9 +239,31 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
+        case PCH_TRC_RT_CSS_SET_FUNC_IRQ:
+        case PCH_TRC_RT_CSS_SET_IO_IRQ: {
+                const char *irqtype = (rt == PCH_TRC_RT_CSS_SET_FUNC_IRQ) ?
+                        "function" : "I/O";
+                struct pch_trdata_irqnum_opt *td = vd;
+                int16_t irqnum_opt = td->irqnum_opt;
+                if (irqnum_opt == -1) {
+                        printf("CSS unsets %s IRQ number", irqtype);
+                } else {
+                        printf("CSS sets %s IRQ number to %d",
+                                irqtype, irqnum_opt);
+                }
+
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SET_IO_CALLBACK: {
+                struct pch_trdata_address_change *td = vd;
+                print_address_change(td, "I/O callback");
+                break;
+        }
+
         case PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE: {
                 struct pch_trdata_word_sid *td = vd;
-                printf("CSS-side ");
+                printf("CSS ");
                 print_sid(td->sid);
                 printf(" received ");
                 print_packet(td->word, false);
