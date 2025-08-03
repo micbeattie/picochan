@@ -38,20 +38,21 @@ static_assert(PCH_NUM_SCHIBS >= 1 && PCH_NUM_SCHIBS <= 65536,
         "PCH_NUM_SCHIBS must be between 1 and 65536");
 
 /*!
- * \def PCH_NUM_CSS_CUS
+ * \def PCH_NUM_CHANNELS
  * \ingroup picochan_css
  * \hideinitializer
- * \brief The number of control units that the CSS can use.
+ * \brief The number of channels that the CSS can use.
  *
  * Must be a compile-time constant between 1 and 256. Default 4.
- * Defines the size of the global array of CSS-side CU structures
- * (see \ref css_cu_t).
+ * One channel is needed to connect to each CU.
+ * Defines the size of the global array of CSS-side channel
+ * structures (see \ref pch_chp_t).
  */
-#ifndef PCH_NUM_CSS_CUS
-#define PCH_NUM_CSS_CUS 4
+#ifndef PCH_NUM_CHANNELS
+#define PCH_NUM_CHANNELS 4
 #endif
-static_assert(PCH_NUM_CSS_CUS >= 1 && PCH_NUM_CSS_CUS <= 256,
-        "PCH_NUM_CSS_CUS must be between 1 and 256");
+static_assert(PCH_NUM_CHANNELS >= 1 && PCH_NUM_CHANNELS <= 256,
+        "PCH_NUM_CHANNELS must be between 1 and 256");
 
 /*!
  * \def PCH_NUM_ISCS
@@ -89,9 +90,9 @@ void pch_css_init(void);
  * \ingroup picochan_css
  *
  * Adds an IRQ handler and enables this DMA interrupt to be called on
- * the core that calls this function. The CSS uses this handler to drive
- * its channel program, CU and callback activity. If a CU is to be used
- * on the same Pico, it must be initialised on a different core, using a
+ * the core that calls this function. The CSS uses this handler to
+ * drive its channel and callback activity. If a CU is to be used on
+ * the same Pico, it must be initialised on a different core, using a
  * different DMA IRQ index.
  */
 void pch_css_start(uint8_t dmairqix);
@@ -109,18 +110,19 @@ void pch_css_set_func_irq(irq_num_t irqnum);
  * \ingroup picochan_css
  *
  * If this flag is not set to be true then no CSS trace records are
- * written, regardless of any per-CU or per-subchannel trace flags.
+ * written, regardless of any per-channel or per-subchannel trace
+ * flags.
  */
 bool pch_css_set_trace(bool trace);
 
-/*! \brief Sets whether CSS tracing is enabled for CU cunum
+/*! \brief Sets whether CSS tracing is enabled for channel chpid
  * \ingroup picochan_css
  *
- * If this flag is not set to be true then no CU trace records are
- * written for this CU and no subchannel trace records, regardless
- * of any per-subchannel trace flags.
+ * If this flag is not set to be true then no channel trace records
+ * are written for this channel and no subchannel trace records,
+ * regardless of any per-subchannel trace flags.
  */
-bool pch_css_set_trace_cu(pch_cunum_t cunum, bool trace);
+bool pch_chp_set_trace(pch_chpid_t chpid, bool trace);
 
 void __isr pch_css_schib_func_irq_handler(void);
 void __isr pch_css_io_irq_handler(void);
@@ -149,54 +151,55 @@ void pch_css_set_io_irq(irq_num_t irqnum);
  */
 io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
 
-/*! \brief Starts the channel to CU cunum
+/*! \brief Starts channel chpid connection to its remote CU
  * \ingroup picochan_css
  *
- * The CU must be already configured but not have been started.
- * Marks the CU as started and starts the channel to it, allowing
- * it to receive commands from the CU.
+ * The channel must be already configured but not have been started.
+ * Marks the channel as started and starts it, allowing it to receive
+ * commands from its remote CU.
  */
-void pch_css_cu_start(pch_cunum_t cunum);
+void pch_chp_start(pch_chpid_t chpid);
 
-// CSS CU initialisation
+// Channel initialisation
 
-/*! \brief Mark CU cunum as claimed. Panics if the CU is already
- * claimed or allocated.
+/*! \brief Mark channel path chpid as claimed. Panics if it is
+ * already claimed or allocated.
  * \ingroup picochan_css
  */
-void pch_css_cu_claim(pch_cunum_t cunum);
+void pch_chp_claim(pch_chpid_t chpid);
 
-/*! \brief Claims the next unclaimed and unallocated CU and returns
- * its CU number. If no CU is available, panics if required is true
- * or else returns -1.
+/*! \brief Claims the next unclaimed and unallocated channel path and
+ * returns its CHPID (a pch_chpid_t cast to int). If no channel path
+ * is available, panics if required is true or else returns -1.
  * \ingroup picochan_css
  */
-int pch_css_cu_claim_unused(bool required);
+int pch_chp_claim_unused(bool required);
 
-/*! \brief Initialises num_devices schibs for use by CU cunum.
+/*! \brief Allocates num_devices schibs for use by channel chpid.
  * \ingroup picochan_css
  *
- * Starting with the first uninitialised schib in the CSS array of
+ * Starting with the first unallocated schib in the CSS array of
  * schibs, allocates num_devices consecutive schibs and initialises
  * them to reference the devices with unit addresses 0 through
- * num_devices-1 respectively on CU cunum. The total number of
- * allocated schibs must not exceed the size of the array,
- * PCH_NUM_SCHIBS. A check for this and other sanity checks on the
- * arguments are made only if assertions are enabled. CSS must have
- * been started (pch_css_start()) but a channel to this CU must not
- * have been started yet (pch_css_cu_start()).
+ * num_devices-1 respectively on the CU to which channel chpid will
+ * connect. The total number of allocated schibs must not exceed the
+ * size of the array, PCH_NUM_SCHIBS. A check for this and other
+ * sanity checks on the arguments are made only if assertions are
+ * enabled. CSS must have been started (\ref pch_css_start()) but
+ * this channel must not have been started yet (\ref pch_chp_start()).
  * Returns the SID of the first allocated schib.
  */
-pch_sid_t pch_css_cu_init(pch_cunum_t cunum, uint16_t num_devices);
+pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices);
 
-/*! \brief Configure a UART control unit
+/*! \brief Configure a UART channel
  * \ingroup picochan_css
  *
- * Configure the hardware UART instance uart as a channel to CU cunum.
- * The UART must have been initialised already, be connected to a CU
- * using the same baud rate as the CU has configured and the hardware
- * flow control pins, CTS and RTS MUST be enabled and connected
- * between CSS and CU.
+ * Configure the hardware UART instance uart as a channel to the
+ * remote CU to which it is connected. The UART must have been
+ * initialised already, be connected to a CU using the same baud
+ * rate as this channel has configured and the hardware flow control
+ * pins, CTS and RTS *MUST* be enabled and connected between channel
+ * and CU.
  * ctrl should typically be a default dma_channel_config as returned
  * from dma_channel_get_default_config(dmaid) invoked on any DMA id.
  * Most bits in that dma_channel_config are overridden by the CSS
@@ -207,27 +210,28 @@ pch_sid_t pch_css_cu_init(pch_cunum_t cunum, uint16_t num_devices);
  * If you want to initialise and configure the UART channel using a
  * given baud rate, suggested UART settings (8E1) and default DMA
  * control register settings (no SNIFF_EN and no HIGH_PRIORITY), you
- * can use pch_css_uartcu_init_and_configure() instead.
+ * can use pch_chp_init_and_configure_uartchan() instead.
  */
 
-void pch_css_uartcu_configure(pch_cunum_t cunum, uart_inst_t *uart, dma_channel_config ctrl);
+void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
 
-/*! \brief Initialise and configure a UART channel to a control unit
- * with default dma_channel_config control register.
+/*! \brief Initialise and configure a hardware UART instance as a
+ * channel to the remote CU to which it is connected. Uses a
+ * default dma_channel_config control register.
  * \ingroup picochan_css
  *
  * Calls pch_uart_init() with baud rate \param baudrate and
- * pch_css_uartcu_configure with ctrl argument bits taken from
+ * pch_chp_configure_uartchan with ctrl argument bits taken from
  * an appropriate dma_channel_get_default_config() value.
- * The CU on the other side of the channel MUST use the same baud
- * rate and uart settings set pch_uart_init().
+ * The CU on the other side of the channel *MUST* use the same baud
+ * rate and uart settings.
  */
-void pch_css_init_uartchan(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate);
+void pch_chp_init_and_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate);
 
-/*! \brief Configure a memchan control unit
+/*! \brief Configure a memchan channel
  * \ingroup picochan_css
  *
- * A memchan control unit allows the CSS to run on one core of a
+ * A memchan channel allows the CSS to run on one core of a
  * Pico while a CU runs on the other core. Instead of using physical
  * pins or connections between CU and CSS, picochan uses the DMA
  * channels to copy memory-to-memory between CSS and CU and an
@@ -238,13 +242,13 @@ void pch_css_init_uartchan(pch_cunum_t cunum, uart_inst_t *uart, uint baudrate);
  * cross-connect the sides in memory, the CU API function
  * pch_cus_cu_get_tx_channel() must be used to fetch the internal
  * dmachan_tx_channel_t of the peer CU for passing to
- * pch_css_memcu_configure.
+ * pch_chp_configure_memchan.
  */
-void pch_css_memcu_configure(pch_cunum_t cunum, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
+void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
 
-// CSS CU initialisation low-level helpers
-void pch_css_cu_dma_configure(pch_cunum_t cunum, dmachan_config_t *dc);
-void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured);
+// Channel initialisation low-level helpers
+void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc);
+void pch_chp_set_configured(pch_chpid_t chpid, bool configured);
 /*! \brief Fetch the internal tx side of a channel from CSS to CU
  * \ingroup picochan_css
  *
@@ -253,8 +257,8 @@ void pch_css_cu_set_configured(pch_cunum_t cunum, bool configured);
  * initialisation procedure uses this function to find its peer
  * CSS structure in order to cross-connect the channels.
  */
-dmachan_tx_channel_t *pch_css_cu_get_tx_channel(pch_cunum_t cunum);
-dmachan_rx_channel_t *pch_css_cu_get_rx_channel(pch_cunum_t cunum);
+dmachan_tx_channel_t *pch_chp_get_tx_channel(pch_chpid_t chpid);
+dmachan_rx_channel_t *pch_chp_get_rx_channel(pch_chpid_t chpid);
 
 // Architectural API for subchannels and channel programs
 

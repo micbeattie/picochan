@@ -16,8 +16,8 @@
 // field as needed. If the Skip op flag is not set then it also
 // arranges for the TxPending state machine to transmit the actual
 // data immediately after the command itself is transmitted.
-void __time_critical_func(send_command_with_data)(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p, uint16_t count) {
-        assert(!cu->tx_active);
+void __time_critical_func(send_command_with_data)(pch_chp_t *chp, pch_schib_t *schib, proto_packet_t p, uint16_t count) {
+        assert(!chp->tx_active);
 
 	uint32_t addr = 0; // not used if zeroes is set
 
@@ -48,13 +48,13 @@ void __time_critical_func(send_command_with_data)(css_cu_t *cu, pch_schib_t *sch
 	}
 
 	if (!zeroes)
-                pch_txsm_set_pending(&cu->tx_pending, addr, count);
+                pch_txsm_set_pending(&chp->tx_pending, addr, count);
 
         trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET, schib, p);
-	send_tx_packet(cu, p);
+	send_tx_packet(chp, p);
 }
 
-void __time_critical_func(send_data_response)(css_cu_t *cu, pch_schib_t *schib) {
+void __time_critical_func(send_data_response)(pch_chp_t *chp, pch_schib_t *schib) {
         proto_chop_flags_t chopfl = 0;
         uint16_t count = schib->mda.devcount;
 
@@ -76,11 +76,11 @@ void __time_critical_func(send_data_response)(css_cu_t *cu, pch_schib_t *schib) 
         proto_chop_t chop = PROTO_CHOP_DATA | chopfl;
         pch_unit_addr_t ua = schib->pmcw.unit_addr;
         proto_packet_t p = proto_make_count_packet(chop, ua, count);
-	send_command_with_data(cu, schib, p, count);
+	send_command_with_data(chp, schib, p, count);
 }
 
-void __time_critical_func(send_update_room)(css_cu_t *cu, pch_schib_t *schib) {
-        assert(!cu->tx_active);
+void __time_critical_func(send_update_room)(pch_chp_t *chp, pch_schib_t *schib) {
+        assert(!chp->tx_active);
 
 	proto_chop_t op = PROTO_CHOP_ROOM;
         if (schib->scsw.schs != 0)
@@ -90,11 +90,11 @@ void __time_critical_func(send_update_room)(css_cu_t *cu, pch_schib_t *schib) {
 	proto_packet_t p = proto_make_count_packet(op, ua,
                 schib->scsw.count);
         trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET, schib, p);
-        send_tx_packet(cu, p);
+        send_tx_packet(chp, p);
 }
 
-void __time_critical_func(do_command_chain_and_send_start)(css_cu_t *cu, pch_schib_t *schib) {
-        assert(!cu->tx_active);
+void __time_critical_func(do_command_chain_and_send_start)(pch_chp_t *chp, pch_schib_t *schib) {
+        assert(!chp->tx_active);
 
         uint8_t ccwcmd = fetch_chain_command_ccw(schib);
         if (schib->scsw.schs != 0) {
@@ -112,18 +112,18 @@ void __time_critical_func(do_command_chain_and_send_start)(css_cu_t *cu, pch_sch
 		css_notify(schib, 0);
 	}
 
-	suspend_or_send_start_packet(cu, schib, ccwcmd);
+	suspend_or_send_start_packet(chp, schib, ccwcmd);
 }
 
-void __time_critical_func(process_schib_response)(css_cu_t *cu, pch_schib_t *schib) {
-	assert(!cu->tx_active);
+void __time_critical_func(process_schib_response)(pch_chp_t *chp, pch_schib_t *schib) {
+	assert(!chp->tx_active);
         uint16_t ctrl_flags = schib->scsw.ctrl_flags;
         if (!(ctrl_flags & PCH_AC_DEVICE_ACTIVE)) {
 		// no active device means the device must have sent
 		// an UpdateStatus with DeviceEnd, and the response
 		// we need to generate is a command-chain followed
 		// by sending a Start command with that new CCW.
-		do_command_chain_and_send_start(cu, schib);
+		do_command_chain_and_send_start(chp, schib);
         } else if (ctrl_flags & PCH_SCSW_CCW_WRITE) {
 		// CCW is Write-type so the response we need to
 		// generate must be to an incoming RequestRead.
@@ -132,13 +132,13 @@ void __time_critical_func(process_schib_response)(css_cu_t *cu, pch_schib_t *sch
 		// in schib.mda.devcount) and do a chain-data if
 		// our sent data is going to empty the segment and
 		// the CCW has the ChainData flag present.
-		send_data_response(cu, schib);
+		send_data_response(chp, schib);
 	} else {
 		// CCW is Read-type so the response we need to
 		// generate must be to an incoming Data+data. That
 		// means we need to send an UpdateRoom with the
 		// size of the new segment (or zero if there was no
 		// chain-data or the chain-data failed).
-		send_update_room(cu, schib);
+		send_update_room(chp, schib);
 	}
 }

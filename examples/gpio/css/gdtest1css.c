@@ -137,19 +137,20 @@ int main(void) {
         dprintf("Initialising CSS\n");
 	init_css();
 
-        pch_cunum_t cunum = pch_css_cu_claim_unused(true);
-        pch_sid_t first_sid = pch_css_cu_init(cunum, NUM_GPIO_DEVS);
+        pch_chpid_t chpid = pch_chp_claim_unused(true);
+        pch_sid_t first_sid = pch_chp_alloc(chpid, NUM_GPIO_DEVS);
         uart_inst_t *uart = prepare_uart_gpios();
         dprintf("Configuring CSS channel via UART%u\n", UART_NUM(uart));
-        pch_css_init_uartchan(cunum, uart, BAUDRATE);
-        pch_css_set_trace_cu(cunum, (bool)GD_ENABLE_TRACE);
+        pch_chp_init_and_configure_uartchan(chpid, uart, BAUDRATE);
+        pch_chp_set_trace(chpid, (bool)GD_ENABLE_TRACE);
 
-        dprintf("Enabling subchannels 0-%u\n", NUM_GPIO_DEVS-1);
+        dprintf("Enabling subchannels %u through %u\n",
+                first_sid, first_sid + NUM_GPIO_DEVS - 1);
         pch_sch_modify_enabled_range(first_sid, NUM_GPIO_DEVS, true);
         pch_sch_modify_traced_range(first_sid, NUM_GPIO_DEVS, true);
 
-        dprintf("Starting channel %u\n", cunum);
-        pch_css_cu_start(cunum);
+        dprintf("Starting channel %u\n", chpid);
+        pch_chp_start(chpid);
         dprintf("CSS is ready\n");
 
         while (1)

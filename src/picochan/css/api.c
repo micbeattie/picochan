@@ -12,8 +12,8 @@ static inline void raise_func_irq(void) {
 }
 
 // push_func_dlist must be called with schibs_lock held.
-static inline void push_func_dlist(css_cu_t *cu, pch_schib_t *schib) {
-        push_ua_dlist_unsafe(&cu->ua_func_dlist, cu, schib);
+static inline void push_func_dlist(pch_chp_t *chp, pch_schib_t *schib) {
+        push_ua_dlist_unsafe(&chp->ua_func_dlist, chp, schib);
 }
 
 static int schib_is_ready_for_start_or_resume(pch_schib_t *schib) {
@@ -37,11 +37,11 @@ static int do_sch_start(pch_schib_t *schib, pch_ccw_t *ccw_addr) {
                 goto out;
 
         assert(schib->mda.nextsid == get_sid(schib)); // shouldn't be on a list
-	pch_cunum_t cunum = schib->pmcw.cu_number;
-	css_cu_t *cu = get_cu(cunum);
+	pch_chpid_t chpid = schib->pmcw.chpid;
+	pch_chp_t *chp = pch_get_chp(chpid);
 	schib->scsw.ccw_addr = (uint32_t)ccw_addr;
 	schib->scsw.ctrl_flags |= PCH_AC_START_PENDING;
-        push_func_dlist(cu, schib);
+        push_func_dlist(chp, schib);
 	raise_func_irq();
 
 out:
@@ -69,10 +69,10 @@ static int do_sch_resume(pch_schib_t *schib) {
 
         assert(schib->mda.nextsid == get_sid(schib)); // shouldn't be on a list
 
-        pch_cunum_t cunum = schib->pmcw.cu_number;
-        css_cu_t *cu = get_cu(cunum);
+        pch_chpid_t chpid = schib->pmcw.chpid;
+        pch_chp_t *chp = pch_get_chp(chpid);
 	schib->scsw.ctrl_flags |= PCH_AC_RESUME_PENDING;
-        push_func_dlist(cu, schib);
+        push_func_dlist(chp, schib);
         raise_func_irq();
 
 out:
@@ -113,11 +113,11 @@ static int schib_is_valid_for_cancel(pch_schib_t *schib) {
 
 // remove_from_func_dlist must be called with schibs_lock held.
 static void remove_from_func_dlist(pch_schib_t *schib) {
-        pch_cunum_t cunum = schib->pmcw.cu_number;
-        css_cu_t *cu = get_cu(cunum);
-        ua_dlist_t *l = &cu->ua_func_dlist;
+        pch_chpid_t chpid = schib->pmcw.chpid;
+        pch_chp_t *chp = pch_get_chp(chpid);
+        ua_dlist_t *l = &chp->ua_func_dlist;
         pch_unit_addr_t ua = schib->pmcw.unit_addr;
-        remove_from_ua_dlist_unsafe(l, cu, ua);
+        remove_from_ua_dlist_unsafe(l, chp, ua);
 }
 
 static void remove_from_notify_list(pch_schib_t *schib) {
@@ -136,7 +136,7 @@ static int do_sch_cancel(pch_schib_t *schib) {
         // remove schib from whichever list it is on: if schib is
         // suspended, it is on the notify list, otherwise it is
         // either start pending or resume pending in which case it
-        // is on the function list of its CU
+        // is on the function list of its channel
         if (ctrl_flags & PCH_AC_SUSPENDED)
                 remove_from_notify_list(schib);
         else

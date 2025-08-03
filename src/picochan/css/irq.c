@@ -6,26 +6,26 @@
 #include "css_trace.h"
 
 void process_schib_func(pch_schib_t *schib);
-void process_schib_response(css_cu_t *cu, pch_schib_t *schib);
+void process_schib_response(pch_chp_t *chp, pch_schib_t *schib);
 
-static inline pch_schib_t *pop_ua_func_dlist(css_cu_t *cu) {
-        return pop_ua_dlist(&cu->ua_func_dlist, cu);
+static inline pch_schib_t *pop_ua_func_dlist(pch_chp_t *chp) {
+        return pop_ua_dlist(&chp->ua_func_dlist, chp);
 }
 
 // process_a_schib_waiting_for_tx return value is progress,
 // true when progress has been made and there may be another
 // schib waiting for tx
-static bool process_a_schib_waiting_for_tx(css_cu_t *cu) {
-        if (cu->tx_active)
+static bool process_a_schib_waiting_for_tx(pch_chp_t *chp) {
+        if (chp->tx_active)
                 return false; // tx busy
 
-        pch_schib_t *schib = pop_ua_response_slist(cu);
+        pch_schib_t *schib = pop_ua_response_slist(chp);
         if (schib) {
-                process_schib_response(cu, schib);
+                process_schib_response(chp, schib);
                 return true;
         }
 
-        schib = pop_ua_func_dlist(cu);
+        schib = pop_ua_func_dlist(chp);
         if (schib) {
                 process_schib_func(schib);
                 return true;
@@ -34,13 +34,13 @@ static bool process_a_schib_waiting_for_tx(css_cu_t *cu) {
         return false;
 }
 
-static void css_handle_dma_irq_cu(css_cu_t *cu) {
-        dmachan_tx_channel_t *tx = &cu->tx_channel;
+static void handle_dma_irq_chp(pch_chp_t *chp) {
+        dmachan_tx_channel_t *tx = &chp->tx_channel;
         dmachan_irq_state_t tx_irq_state = dmachan_handle_tx_irq(tx);
-        dmachan_rx_channel_t *rx = &cu->rx_channel;
+        dmachan_rx_channel_t *rx = &chp->rx_channel;
         dmachan_irq_state_t rx_irq_state = dmachan_handle_rx_irq(rx);
 
-        trace_css_cu_irq(PCH_TRC_RT_CSS_CU_IRQ, cu, CSS.dmairqix,
+        trace_chp_irq(PCH_TRC_RT_CSS_CHP_IRQ, chp, CSS.dmairqix,
                 tx_irq_state, rx_irq_state);
 
         dmachan_link_t *txl = &tx->link;
@@ -50,28 +50,28 @@ static void css_handle_dma_irq_cu(css_cu_t *cu) {
         while (rxl->complete || txl->complete || progress) {
                 if (rxl->complete) {
                         rxl->complete = false;
-                        css_handle_rx_complete(cu);
+                        css_handle_rx_complete(chp);
                 }
 
                 if (txl->complete) {
                         txl->complete = false;
-                        css_handle_tx_complete(cu);
+                        css_handle_tx_complete(chp);
                 }
 
-                progress = process_a_schib_waiting_for_tx(cu);
+                progress = process_a_schib_waiting_for_tx(chp);
         }
 }
 
-void __time_critical_func(handle_func_irq_cu)(css_cu_t *cu) {
+void __time_critical_func(handle_func_irq_chp)(pch_chp_t *chp) {
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_FUNC_IRQ,
-                cu->traced, ((struct pch_trdata_func_irq){
-                .ua_opt = peek_ua_dlist(&cu->ua_func_dlist),
-                .cunum = get_cunum(cu),
-                .tx_active = (int8_t)cu->tx_active
+                chp->traced, ((struct pch_trdata_func_irq){
+                .ua_opt = peek_ua_dlist(&chp->ua_func_dlist),
+                .chpid = pch_get_chpid(chp),
+                .tx_active = (int8_t)chp->tx_active
                 }));
 
-	while (!cu->tx_active) {
-                pch_schib_t *schib = pop_ua_func_dlist(cu);
+	while (!chp->tx_active) {
+                pch_schib_t *schib = pop_ua_func_dlist(chp);
 		if (!schib)
 			break;
 
@@ -86,15 +86,15 @@ void __isr __time_critical_func(pch_css_schib_func_irq_handler)(void) {
 
 	irq_clear(irqnum);
 
-        for (int i = 0; i < PCH_NUM_CSS_CUS; i++) {
-		css_cu_t *cu = &CSS.cus[i];
-		if (!cu->started)
+        for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
+		pch_chp_t *chp = &CSS.chps[i];
+		if (!chp->started)
 			continue;
 
-		if (cu->tx_active)
+		if (chp->tx_active)
 			continue;
 
-		handle_func_irq_cu(cu);
+		handle_func_irq_chp(chp);
 	}
 }
 
@@ -106,11 +106,11 @@ void __isr __time_critical_func(css_handle_dma_irq)() {
         if (dmairqix != CSS.dmairqix)
                 return;
 
-        for (int i = 0; i < PCH_NUM_CSS_CUS; i++) {
-		css_cu_t *cu = &CSS.cus[i];
-                if (!cu->started)
+        for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
+		pch_chp_t *chp = &CSS.chps[i];
+                if (!chp->started)
 			continue;
 
-		css_handle_dma_irq_cu(cu);
+		handle_dma_irq_chp(chp);
 	}
 }

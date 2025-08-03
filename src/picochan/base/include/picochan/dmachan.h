@@ -247,7 +247,7 @@ void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstadd
 // Convenience functions for configuring UART channels
 void pch_uart_init(uart_inst_t *uart, uint baudrate);
 
-static inline dma_channel_config dmachan_uartcu_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl) {
+static inline dma_channel_config dmachan_uart_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl) {
         channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
         channel_config_set_write_increment(&ctrl, false);
         uint txdreq = uart_get_dreq_num(uart, true);
@@ -255,7 +255,7 @@ static inline dma_channel_config dmachan_uartcu_make_txctrl(uart_inst_t *uart, d
         return ctrl;
 }
 
-static inline dma_channel_config dmachan_uartcu_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl) {
+static inline dma_channel_config dmachan_uart_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl) {
         channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
         channel_config_set_read_increment(&ctrl, false);
         uint rxdreq = uart_get_dreq_num(uart, false);
@@ -265,7 +265,7 @@ static inline dma_channel_config dmachan_uartcu_make_rxctrl(uart_inst_t *uart, d
 
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or
-// pch_css_memcu_configure
+// pch_chp_configure_memchan
 void pch_memchan_init(void);
 
 #endif

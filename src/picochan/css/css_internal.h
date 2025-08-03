@@ -18,7 +18,7 @@
 #include "schibs_lock.h"
 #include "schib_internal.h"
 #include "schib_dlist.h"
-#include "css_cu.h"
+#include "channel.h"
 #include "picochan/dmachan.h"
 #include "trc/trace.h"
 
@@ -41,9 +41,9 @@ struct css {
         uint8_t         isc_enable_mask;
         uint8_t         isc_status_mask;
         int8_t          dmairqix; //!< completions raise irq dma.IRQ_BASE+dmairqix
-        pch_sid_t       next_sid; //!< starting SID for next pch_css_cu_claim
+        pch_sid_t       next_sid; //!< starting SID for next pch_chp_claim
         pch_trc_bufferset_t trace_bs;
-        css_cu_t        cus[PCH_NUM_CSS_CUS];
+        pch_chp_t       chps[PCH_NUM_CHANNELS];
         pch_schib_t     schibs[PCH_NUM_SCHIBS];
 };
 
@@ -53,14 +53,14 @@ static inline pch_schib_t *get_schib(pch_sid_t sid) {
         return &CSS.schibs[sid];
 }
 
-static inline css_cu_t *get_cu(pch_cunum_t cunum) {
-        return &CSS.cus[cunum];
+static inline pch_chp_t *pch_get_chp(pch_chpid_t chpid) {
+        return &CSS.chps[chpid];
 }
 
-static inline pch_cunum_t get_cunum(css_cu_t *cu) {
-        int32_t n = cu - &CSS.cus[0];
-        assert(n >= 0 && n < PCH_NUM_CSS_CUS);
-        return (pch_cunum_t)n;
+static inline pch_chpid_t pch_get_chpid(pch_chp_t *chp) {
+        int32_t n = chp - &CSS.chps[0];
+        assert(n >= 0 && n < PCH_NUM_CHANNELS);
+        return (pch_chpid_t)n;
 }
 
 static inline schib_dlist_t *get_isc_dlist(uint8_t iscnum) {
@@ -68,9 +68,9 @@ static inline schib_dlist_t *get_isc_dlist(uint8_t iscnum) {
         return &CSS.isc_dlists[iscnum];
 }
 
-static inline pch_schib_t *get_schib_by_cu(css_cu_t *cu, pch_unit_addr_t ua) {
-        valid_params_if(PCH_CSS, (uint16_t)ua < cu->num_devices);
-        return get_schib(cu->first_sid + (pch_sid_t)ua);
+static inline pch_schib_t *get_schib_by_chp(pch_chp_t *chp, pch_unit_addr_t ua) {
+        valid_params_if(PCH_CSS, (uint16_t)ua < chp->num_devices);
+        return get_schib(chp->first_sid + (pch_sid_t)ua);
 }
 
 static inline pch_sid_t get_sid(pch_schib_t *schib) {
@@ -115,13 +115,13 @@ static inline void css_clear_pending_subchannel(pch_schib_t *schib) {
 
 void __isr css_handle_dma_irq(void);
 
-void suspend_or_send_start_packet(css_cu_t *cu, pch_schib_t *schib, uint8_t ccwcmd);
-void do_command_chain_and_send_start(css_cu_t *cu, pch_schib_t *schib);
-void send_command_with_data(css_cu_t *cu, pch_schib_t *schib, proto_packet_t p, uint16_t count);
-void send_update_room(css_cu_t *cu, pch_schib_t *schib);
-void send_data_response(css_cu_t *cu, pch_schib_t *schib);
-void css_handle_rx_complete(css_cu_t *cu);
-void css_handle_tx_complete(css_cu_t *cu);
+void suspend_or_send_start_packet(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd);
+void do_command_chain_and_send_start(pch_chp_t *chp, pch_schib_t *schib);
+void send_command_with_data(pch_chp_t *chp, pch_schib_t *schib, proto_packet_t p, uint16_t count);
+void send_update_room(pch_chp_t *chp, pch_schib_t *schib);
+void send_data_response(pch_chp_t *chp, pch_schib_t *schib);
+void css_handle_rx_complete(pch_chp_t *chp);
+void css_handle_tx_complete(pch_chp_t *chp);
 
 //
 // isc dlists

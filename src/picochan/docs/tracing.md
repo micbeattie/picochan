@@ -140,11 +140,12 @@ different compile-time constants, e.g.
 immediately after `pch_css_init()`. With this enabled, trace
 records for CSS-global events are written.
 
-- To enable trace records related to a given CU to be written,
-call `pch_css_set_trace_cu(cunum, true)`. If the trace flag is
-not set for a CU then no trace records for any subchannel on
-that CU are written. With the trace flag for a CU enabled,
-non-subchannel-specific trace records related to the CU are written.
+- To enable trace records related to a given channel to be written,
+call `pch_chp_set_trace(chpid, true)`. If the trace flag is not set
+for a channel then no trace records for any subchannel on that
+channel are written. With the trace flag for a channel enabled,
+non-subchannel-specific trace records related to the channel are
+written.
 
 - To enable trace records related to a given subchannel, set the
 `PCH_PMCW_TRACED` flag bit in the subchannel's `PMCW`, e.g. to set

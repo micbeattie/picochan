@@ -32,37 +32,13 @@ typedef uint8_t pch_cuaddr_t;
  */
 typedef uint8_t pch_unit_addr_t;
 
-/*! \brief a control unit number between 0 and PCH_NUM_CSS_CUS-1
- * (at most 255) that identifies a control unit from the CSS side
+/*! \brief a channel path identifier between 0 and PCH_NUM_CHANNELS-1
+ * (at most 255) that identifies a channel from the CSS side
  *  \ingroup picochan_base
  *
- * The CSS may have multiple channels each to an entirely independent
- * remote CU. In this situation, each CU-side CU may refer to itself
- * with a control unit address (pch_cuaddr_t) of 0 whereas each
- * corresponding CSS-side CU (css_cu_t) will have a unique control
- * unit number (pch_cunum_t).
+ * Each channel connects to a single remote CU.
  */
-typedef uint8_t pch_cunum_t;
-
-/*! \brief a device number that identifies a device by its (CSS-side)
- * control unit number (pch_cunum_t_ in the most significant byte and
- * its unit address (pch_unit_addr_t) on the corresponding CU-side CU
- * in the least significant byte.
- *  \ingroup picochan_base
- */
-typedef uint16_t pch_devno_t;
-
-static inline pch_cunum_t pch_devno_get_cunum(pch_devno_t devno) {
-        return devno >> 8;
-}
-
-static inline pch_unit_addr_t pch_devno_get_ua(pch_devno_t devno) {
-        return devno & 0xff;
-}
-
-static inline pch_devno_t pch_make_devno(pch_cunum_t cunum, pch_unit_addr_t ua) {
-        return ((pch_devno_t)cunum << 8) | ua;
-}
+typedef uint8_t pch_chpid_t;
 
 /*! \brief a DMA id used by CSS or CU
  *  \ingroup picochan_base

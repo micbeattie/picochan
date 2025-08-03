@@ -9,7 +9,7 @@ target_sources(picochan_css INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/api_extra.c
         ${CMAKE_CURRENT_LIST_DIR}/ccw_fetch.c
         ${CMAKE_CURRENT_LIST_DIR}/css.c
-        ${CMAKE_CURRENT_LIST_DIR}/css_cu.c
+        ${CMAKE_CURRENT_LIST_DIR}/channel.c
         ${CMAKE_CURRENT_LIST_DIR}/irq.c
         ${CMAKE_CURRENT_LIST_DIR}/isc.c
         ${CMAKE_CURRENT_LIST_DIR}/notify.c

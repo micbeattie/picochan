@@ -16,22 +16,22 @@ struct pch_trdata_byte {
         uint8_t         byte;
 };
 
+struct pch_trdata_id_byte {
+        uint8_t         id;
+        uint8_t         byte;
+};
+
 struct pch_trdata_cu_init {
         uint16_t        num_devices;
         pch_cuaddr_t    cuaddr;
         uint8_t         dmairqix;
 };
 
-struct pch_trdata_cu_irq {
-        uint8_t         cu;
+struct pch_trdata_id_irq {
+        uint8_t         id;
         uint8_t         dmairqix;
         uint8_t         tx_state;
         uint8_t         rx_state;
-};
-
-struct pch_trdata_cu_byte {
-        uint8_t         cu;
-        uint8_t         byte;
 };
 
 struct pch_trdata_dev {
@@ -89,18 +89,18 @@ struct pch_trdata_scsw_sid_cc {
         uint8_t         cc;
 };
 
-struct pch_trdata_cu_dma {
+struct pch_trdata_dma_init {
         uint32_t                addr;
         uint32_t                ctrl;
-        uint8_t                 cu;
+        uint8_t                 id;
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
 };
 
-struct pch_trdata_css_sch_alloc {
+struct pch_trdata_chp_alloc {
         pch_sid_t       first_sid;
         uint16_t        num_devices;
-        pch_cunum_t     cunum;
+        pch_chpid_t     chpid;
 };
 
 struct pch_trdata_irqnum_opt {
@@ -114,7 +114,7 @@ struct pch_trdata_address_change {
 
 struct pch_trdata_func_irq {
         int16_t         ua_opt;
-        pch_cunum_t     cunum;
+        pch_chpid_t     chpid;
         uint8_t         tx_active;
 };
 

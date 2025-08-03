@@ -32,26 +32,24 @@
  * Although for a mainframe channel subsystem, the addressing
  * information in the PMCW contains 8 x 8-bit channel path id numbers
  * referencing one or more channels that can reach the control unit,
- * for picochan, the addressing information is simply a control unit
- * number and the unit address of the device on that CU.
+ * for picochan, the addressing information is simply a single channel
+ * path id (CHPID) and and the unit address of the device on the
+ * single remote CU to which it is connected.
  *
- * The addressing information (cu_number and unit_addr) must be set
- * by the appliction (by using pch_css_modify or its variants)
- * before or at the same time as the Enabled flag is set in order for
- * attempts to start channel programs on this subchannel to be able
- * to reach the CU and its device.
+ * The addressing information (CHPID and UnitAddr) must be set by the
+ * application (by using pch_chp_alloc) before the channel is started.
 \verbatim
 PMCW    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         |               Interruption Parameter (Intparm)                |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        |                     |T|E| ISC |      CUNum    | UnitAddr      |
+        |                     |T|E| ISC |      CHPID    | UnitAddr      |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 \endverbatim
  */
 typedef struct pch_pmcw {
         uint32_t        intparm;
         uint16_t        flags;
-        pch_cunum_t     cu_number;
+        pch_chpid_t     chpid;
         pch_unit_addr_t unit_addr;
 } pch_pmcw_t;
 

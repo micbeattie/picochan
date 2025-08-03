@@ -12,7 +12,7 @@
 // functions such as Start Subchannel). The user API uses a
 // critical section protected by schibs_lock()/schibs_unlock() to
 // update the Function Control flags in the target schib with the
-// request, add itself to the ua_func_dlist headed by the CU
+// request, add itself to the ua_func_dlist headed by the channel
 // responsible for the subchannel (linked via mda.prevua/nextua) and
 // ping the CSS with raise_func_irq.
 // At the moment, we assume the user API invocations and the CSS

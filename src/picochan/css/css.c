@@ -93,8 +93,8 @@ bool pch_css_set_trace(bool trace) {
         return pch_trc_set_enable(&CSS.trace_bs, trace);
 }
 
-void __time_critical_func(send_tx_packet)(css_cu_t *cu, proto_packet_t p) {
-        DMACHAN_LINK_CMD_COPY(&cu->tx_channel.link, &p);
-        cu->tx_active = true;
-        dmachan_start_src_cmdbuf(&cu->tx_channel);
+void __time_critical_func(send_tx_packet)(pch_chp_t *chp, proto_packet_t p) {
+        DMACHAN_LINK_CMD_COPY(&chp->tx_channel.link, &p);
+        chp->tx_active = true;
+        dmachan_start_src_cmdbuf(&chp->tx_channel);
 }

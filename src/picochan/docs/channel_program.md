@@ -18,11 +18,11 @@ an address that is divisible by 8.
 Each subchannel can be running a channel program independently,
 started (asynchronously) by the application API
 `pch_sch_start(sid, ccwaddr)` which starts a channel program
-sending CCW commands to the device addressed by SID `sid`
-(via its CU) starting with the CCW at address `ccwaddr`
+sending CCW commands to the device addressed by SID `sid` (via the
+channel to its CU) starting with the CCW at address `ccwaddr`
 
 When the CSS executes a CCW, it sends the device (via communication
-over the channel with the CU that owns the device) a request with
+over the channel to the CU that owns the device) a request with
 the given command code in the CCW. That can simply be a "Write"
 (command code 1) or "Read" (command code 2) - where Write and Read
 mean whatever the device driver chooses them to mean - or a

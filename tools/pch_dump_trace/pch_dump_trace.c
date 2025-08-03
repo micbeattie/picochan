@@ -40,6 +40,14 @@ const char *rtnames[] = {
 
 bool raw = false;
 
+static const char *pick_idtype(uint rt, uint cssrt) {
+        return (rt == cssrt) ? "CHPID" : "CU";
+}
+
+static const char *pick_side(uint rt, uint cssrt) {
+        return (rt == cssrt) ? "CSS-side" : "CU-side";
+}
+
 void hexdump(unsigned char *data, int data_size) {
         while (data_size--) {
                 printf("%02x", *data++);
@@ -116,7 +124,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CSS_FUNC_IRQ: {
                 struct pch_trdata_func_irq *td = vd;
                 printf("CSS Function IRQ raised for CU=%d with pending UA=%d while tx_active=%d",
-                        td->cunum, td->ua_opt, td->tx_active);
+                        td->chpid, td->ua_opt, td->tx_active);
                 break;
         }
 
@@ -131,18 +139,25 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
-        case PCH_TRC_RT_CSS_CU_TX_DMA_INIT:
-        case PCH_TRC_RT_CSS_CU_RX_DMA_INIT: {
-                struct pch_trdata_cu_dma *td = vd;
-                printf("CSS-side ");
+        case PCH_TRC_RT_CSS_CHP_ALLOC: {
+                struct pch_trdata_chp_alloc *td = vd;
+                printf("CHPID=%d allocates %d subchannels starting with ",
+                        td->chpid, td->num_devices);
+                print_sid(td->first_sid);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CHP_TX_DMA_INIT:
+        case PCH_TRC_RT_CSS_CHP_RX_DMA_INIT: {
+                struct pch_trdata_dma_init *td = vd;
+                printf("CHPID=");
                 print_dma_irq_init(td);
                 break;
         }
 
         case PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER:
         case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
-                const char *side = (rt == PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER) ?
-                        "CSS-side" : "dev-side";
+                const char *side = pick_side(rt, PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER);
                 struct pch_trdata_word_byte *td = vd;
                 printf("%s initialises IRQ %d (DMA) ISR addr:%08x",
                         side, td->byte, td->word);
@@ -151,67 +166,52 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_CU_INIT: {
                 struct pch_trdata_cu_init *td = vd;
-                printf("dev-side CU=%d initialises with %d devices using DMA_IRQ_%d\n",
+                printf("CU=%d initialises with %d devices using DMA_IRQ_%d",
                         td->cuaddr, td->num_devices, td->dmairqix);
+                break;
         }
 
         case PCH_TRC_RT_CUS_CU_TX_DMA_INIT:
         case PCH_TRC_RT_CUS_CU_RX_DMA_INIT: {
-                struct pch_trdata_cu_dma *td = vd;
-                printf("dev-side ");
+                struct pch_trdata_dma_init *td = vd;
+                printf("CU=");
                 print_dma_irq_init(td);
                 break;
         }
 
-        case PCH_TRC_RT_CSS_CU_CONFIGURED: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("CSS-side CU=%d is now %s",
-                        td->cu, td->byte ? "configured" : "unconfigured");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CU_TRACED: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("CSS-side CU=%d is now %s",
-                        td->cu, td->byte ? "traced" : "untraced");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CU_STARTED: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("CSS-side CU=%d is now %s",
-                        td->cu, td->byte ? "started" : "stopped");
-                break;
-        }
-
+        case PCH_TRC_RT_CSS_CHP_CONFIGURED:
         case PCH_TRC_RT_CUS_CU_CONFIGURED: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("dev-side CU=%d is now %s",
-                        td->cu, td->byte ? "configured" : "unconfigured");
+                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_CONFIGURED);
+                struct pch_trdata_id_byte *td = vd;
+                printf("%s=%d is now %s",
+                        idtype, td->id, td->byte ? "configured" : "unconfigured");
                 break;
         }
 
+        case PCH_TRC_RT_CSS_CHP_TRACED:
         case PCH_TRC_RT_CUS_CU_TRACED: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("dev-side CU=%d is now %s",
-                        td->cu, td->byte ? "traced" : "untraced");
+                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_TRACED);
+                struct pch_trdata_id_byte *td = vd;
+                printf("%s=%d is now %s",
+                        idtype, td->id, td->byte ? "traced" : "untraced");
                 break;
         }
 
+        case PCH_TRC_RT_CSS_CHP_STARTED:
         case PCH_TRC_RT_CUS_CU_STARTED: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("dev-side CU=%d is now %s",
-                        td->cu, td->byte ? "started" : "stopped");
+                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_STARTED);
+                struct pch_trdata_id_byte *td = vd;
+                printf("%s=%d is now %s",
+                        idtype, td->id, td->byte ? "started" : "stopped");
                 break;
         }
 
-        case PCH_TRC_RT_CSS_CU_IRQ:
+        case PCH_TRC_RT_CSS_CHP_IRQ:
         case PCH_TRC_RT_CUS_CU_IRQ: {
-                const char *side = (rt == PCH_TRC_RT_CSS_CU_IRQ) ?
-                        "CSS-side" : "dev-side";
-                struct pch_trdata_cu_irq *td = vd;
-                printf("IRQ for %s CU=%d with DMA_IRQ_%d tx:irq_state=",
-                       side, td->cu, td->dmairqix);
+                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_IRQ);
+                struct pch_trdata_id_irq *td = vd;
+                printf("IRQ for %s=%d with DMA_IRQ_%d tx:irq_state=",
+                       idtype, td->id, td->dmairqix);
                 print_dma_irq_state(td->tx_state >> 4);
                 printf(",mem_src_state=");
                 print_mem_src_state(td->tx_state & 0xf);
@@ -232,9 +232,9 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         }
 
         case PCH_TRC_RT_CSS_TX_COMPLETE: {
-                struct pch_trdata_cu_byte *td = vd;
-                printf("CSS-side CU=%d handling tx complete while txsm is ",
-                        td->cu);
+                struct pch_trdata_id_byte *td = vd;
+                printf("CHPID=%d handling tx complete while txsm is ",
+                        td->id);
                 print_txpending_state(td->byte);
                 break;
         }
@@ -273,15 +273,14 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_CALL_CALLBACK: {
                 struct pch_trdata_cus_call_callback *td = vd;
-                printf("dev-side CU=%d UA=%d callback %d",
+                printf("CU=%d UA=%d callback %d",
                         td->cuaddr, td->ua, td->cbindex);
                 break;
         }
 
         case PCH_TRC_RT_CUS_SEND_TX_PACKET: {
                 struct pch_trdata_word_dev *td = vd;
-                printf("dev-side CU=%d UA=%d sends ",
-                        td->cuaddr, td->ua);
+                printf("CU=%d UA=%d sends ", td->cuaddr, td->ua);
                 print_packet(td->word, true);
                 break;
         }
@@ -289,10 +288,10 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CUS_TX_COMPLETE: {
                 struct pch_trdata_cus_tx_complete *td = vd;
                 if (td->txpstate == PCH_TXSM_FINISHED && td->uaopt != -1) {
-                        printf("dev-side CU=%d handling tx complete for UA=%d while txsm is ",
+                        printf("CU=%d handling tx complete for UA=%d while txsm is ",
                                 td->cuaddr, td->uaopt);
                 } else {
-                        printf("dev-side CU=%d handling tx complete while txsm is ",
+                        printf("CU=%d handling tx complete while txsm is ",
                                 td->cuaddr);
                 }
                 print_txpending_state(td->txpstate);
@@ -301,36 +300,35 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE: {
                 struct pch_trdata_word_dev *td = vd;
-                printf("dev-side CU=%d UA=%d received ",
-                        td->cuaddr, td->ua);
+                printf("CU=%d UA=%d received ", td->cuaddr, td->ua);
                 print_packet(td->word, true);
                 break;
         }
 
         case PCH_TRC_RT_CUS_RX_DATA_COMPLETE: {
                 struct pch_trdata_dev *td = vd;
-                printf("dev-side CU=%d UA=%d rx data complete",
+                printf("CU=%d UA=%d rx data complete",
                         td->cuaddr, td->ua);
                 break;
         }
 
 	case PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE: {
 		struct pch_trdata_dmachan *td = vd;
-                printf("CU rx channel DMAid=%d reset in progress",
+                printf("rx channel DMAid=%d reset in progress",
                         td->dmaid);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE: {
 		struct pch_trdata_dmachan *td = vd;
-                printf("CU rx channel DMAid=%d sets destination to cmdbuf",
+                printf("rx channel DMAid=%d sets destination to cmdbuf",
                         td->dmaid);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM: {
 		struct pch_trdata_dmachan_memstate *td = vd;
-                printf("MemCU rx channel DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
+                printf("rx memchan DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
                         td->dmaid);
                 print_mem_src_state(td->state);
                 break;
@@ -338,14 +336,14 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
 	case PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE: {
 		struct pch_trdata_dmachan_segment *td = vd;
-                printf("CU rx channel DMAid=%d sets destination to data address:%08x count=%u",
+                printf("rx channel DMAid=%d sets destination to data address:%08x count=%u",
                         td->dmaid, td->addr, td->count);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_DST_DATA_MEM: {
 		struct pch_trdata_dmachan_segment_memstate *td = vd;
-                printf("MemCU rx channel DMAid=%d sets destination to data address:%08x count=%u while txpeer mem_src_state=",
+                printf("rx memchan DMAid=%d sets destination to data address:%08x count=%u while txpeer mem_src_state=",
                         td->dmaid, td->addr, td->count);
                 print_mem_src_state(td->state);
                 break;
@@ -353,14 +351,14 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
 	case PCH_TRC_RT_DMACHAN_DST_DISCARD_REMOTE: {
 		struct pch_trdata_dmachan_segment *td = vd;
-                printf("CU rx channel DMAid=%d sets destination to discard data count=%u",
+                printf("rx channel DMAid=%d sets destination to discard data count=%u",
                         td->dmaid, td->count);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM: {
 		struct pch_trdata_dmachan_segment_memstate *td = vd;
-                printf("MemCU rx channel DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
+                printf("rx memchan DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
                         td->dmaid, td->count);
                 print_mem_src_state(td->state);
                 break;
@@ -368,21 +366,21 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
 	case PCH_TRC_RT_DMACHAN_SRC_RESET_REMOTE: {
 		struct pch_trdata_dmachan *td = vd;
-                printf("CU tx channel DMAid=%d reset in progress",
+                printf("tx channel DMAid=%d reset in progress",
                         td->dmaid);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE: {
 		struct pch_trdata_dmachan *td = vd;
-                printf("CU tx channel DMAid=%d sets source to cmdbuf",
+                printf("tx channel DMAid=%d sets source to cmdbuf",
                         td->dmaid);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM: {
 		struct pch_trdata_dmachan_memstate *td = vd;
-                printf("MemCU tx channel DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
+                printf("tx memchan DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
                         td->dmaid);
                 print_mem_dst_state(td->state);
                 break;
@@ -390,14 +388,14 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
 	case PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE: {
 		struct pch_trdata_dmachan_segment *td = vd;
-                printf("CU tx channel DMAid=%d sets source to data address:%08x count=%u",
+                printf("tx channel DMAid=%d sets source to data address:%08x count=%u",
                         td->dmaid, td->addr, td->count);
                 break;
 	}
 
 	case PCH_TRC_RT_DMACHAN_SRC_DATA_MEM: {
 		struct pch_trdata_dmachan_segment_memstate *td = vd;
-                printf("MemCU tx channel DMAid=%d sets source to data address:%08x count=%u while rxpeer mem_dst_state=",
+                printf("tx memchan DMAid=%d sets source to data address:%08x count=%u while rxpeer mem_dst_state=",
                         td->dmaid, td->addr, td->count);
                 print_mem_dst_state(td->state);
                 break;

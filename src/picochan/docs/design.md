@@ -68,4 +68,3 @@ cross-memory 32-bit load/store with cross-memory DMA for data segments
   * The schib has fields for the device's control unit number and unit
     address for the CSS to use to contact the device's CU and identify
     a chosen device to that CU
-

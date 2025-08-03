@@ -261,8 +261,8 @@ void pch_cus_uartcu_init_and_configure(pch_cuaddr_t cua, uart_inst_t *uart, uint
  * DMA ids, typically allocated using dma_claim_unused_channel().
  * In order for the CU to find the CSS-side information to
  * cross-connect the sides in memory, the CSS API function
- * pch_css_cu_get_tx_channel() must be used to fetch the internal
- * dmachan_tx_channel_t of the peer CSS for passing to
+ * pch_chp_get_tx_channel() must be used to fetch the internal
+ * dmachan_tx_channel_t of the peer CSS channel for passing to
  * pch_cus_memcu_configure.
  */
 void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);

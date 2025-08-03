@@ -36,12 +36,12 @@ static void css_handle_tx_data_after_data_complete(pch_schib_t *schib) {
 	}
 }
 
-static void css_handle_tx_data_complete(css_cu_t *cu) {
+static void css_handle_tx_data_complete(pch_chp_t *chp) {
 	// We've just completed sending data (not a command) to the CU
 	// for a device. Reread the packet to find out where we sent it.
-        proto_packet_t p = get_tx_packet(cu);
+        proto_packet_t p = get_tx_packet(chp);
 	pch_unit_addr_t ua = p.unit_addr;
-	pch_schib_t *schib = get_schib_by_cu(cu, ua);
+	pch_schib_t *schib = get_schib_by_chp(chp, ua);
 
 	// TODO Check DMA registers for errors and try to deal with any
 
@@ -61,13 +61,13 @@ static void css_handle_tx_data_complete(css_cu_t *cu) {
 	}
 }
 
-static void css_handle_tx_command_complete(css_cu_t *cu) {
+static void css_handle_tx_command_complete(pch_chp_t *chp) {
 	// We've just sent a command (without any following data)
-	// from TxBuf to a device on cu. Reread the packet to find out
+	// from TxBuf to a device on chp. Reread the packet to find out
 	// where we sent it and whether we need to do anything.
-        proto_packet_t p = get_tx_packet(cu);
+        proto_packet_t p = get_tx_packet(chp);
         pch_unit_addr_t ua = p.unit_addr;
-        pch_schib_t *schib = get_schib_by_cu(cu, ua);
+        pch_schib_t *schib = get_schib_by_chp(chp, ua);
 
 	if (p.chop == PROTO_CHOP_START)  {
 		// Start command sent with no immediate data
@@ -76,24 +76,24 @@ static void css_handle_tx_command_complete(css_cu_t *cu) {
 }
 
 // css_handle_tx_complete handles a tx completion interrupt for
-// cu->tx_channel.
-void __time_critical_func(css_handle_tx_complete)(css_cu_t *cu) {
-        pch_txsm_t *txpend = &cu->tx_pending;
+// chp->tx_channel.
+void __time_critical_func(css_handle_tx_complete)(pch_chp_t *chp) {
+        pch_txsm_t *txpend = &chp->tx_pending;
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_TX_COMPLETE,
-                cu->traced, ((struct pch_trdata_cu_byte){
-                        .cu = get_cunum(cu),
+                chp->traced, ((struct pch_trdata_id_byte){
+                        .id = pch_get_chpid(chp),
                         .byte = (uint8_t)txpend->state
                 }));
 
-        assert(cu->tx_active);
-        enum pch_txsm_run_result tr = pch_txsm_run(txpend, &cu->tx_channel);
+        assert(chp->tx_active);
+        enum pch_txsm_run_result tr = pch_txsm_run(txpend, &chp->tx_channel);
 	if (tr == PCH_TXSM_ACTED)
 		return; // tx dma not free - still sending pending data
 
-	cu->tx_active = false; // tx dma is now free again
+	chp->tx_active = false; // tx dma is now free again
 
 	if (tr == PCH_TXSM_FINISHED)
-		css_handle_tx_data_complete(cu);
+		css_handle_tx_data_complete(chp);
 	else
-		css_handle_tx_command_complete(cu);
+		css_handle_tx_command_complete(chp);
 }

@@ -23,7 +23,7 @@ static void suspend(pch_schib_t *schib) {
 // For a Read-type CCW, the count we encode into the payload is
 // the current CCW segment size which advertises how much data
 // the device can send us with Data+data.
-static void send_start_packet(css_cu_t *cu, pch_schib_t *schib, uint8_t ccwcmd) {
+static void send_start_packet(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd) {
         uint16_t count = schib->scsw.count;
 
         bool write = (schib->scsw.ctrl_flags & PCH_SCSW_CCW_WRITE) != 0;
@@ -39,21 +39,21 @@ static void send_start_packet(css_cu_t *cu, pch_schib_t *schib, uint8_t ccwcmd) 
                 ua, ccwcmd, esize);
 	if (write && count > 0) {
 		count = pch_bsize_decode(esize);
-		send_command_with_data(cu, schib, p, count);
+		send_command_with_data(chp, schib, p, count);
 	} else {
                 trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET,
                         schib, p);
-		send_tx_packet(cu, p);
+		send_tx_packet(chp, p);
 	}
 }
 
-void __time_critical_func(suspend_or_send_start_packet)(css_cu_t *cu, pch_schib_t *schib, uint8_t ccwcmd) {
-        assert(!cu->tx_active);
+void __time_critical_func(suspend_or_send_start_packet)(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd) {
+        assert(!chp->tx_active);
 
         if (get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_S)
 		suspend(schib); // CCW Suspend flag set
 	else
-		send_start_packet(cu, schib, ccwcmd);
+		send_start_packet(chp, schib, ccwcmd);
 }
 
 static void process_schib_start(pch_schib_t *schib) {
@@ -61,8 +61,8 @@ static void process_schib_start(pch_schib_t *schib) {
         schib->scsw.ctrl_flags &= ~PCH_AC_START_PENDING;
         schib->scsw.ctrl_flags |= PCH_FC_START;
 
-	pch_cunum_t cunum = schib->pmcw.cu_number;
-        css_cu_t *cu = get_cu(cunum);
+	pch_chpid_t chpid = schib->pmcw.chpid;
+        pch_chp_t *chp = pch_get_chp(chpid);
         uint8_t ccwcmd = fetch_first_command_ccw(schib);
         if (schib->scsw.schs != 0) {
                 // XXX something like the following but this is probably
@@ -74,7 +74,7 @@ static void process_schib_start(pch_schib_t *schib) {
                 return;
         }
 
-	suspend_or_send_start_packet(cu, schib, ccwcmd);
+	suspend_or_send_start_packet(chp, schib, ccwcmd);
 }
 
 static void process_schib_resume(pch_schib_t *schib) {
@@ -82,8 +82,8 @@ static void process_schib_resume(pch_schib_t *schib) {
         schib->scsw.ctrl_flags &= ~PCH_AC_RESUME_PENDING;
         schib->scsw.ctrl_flags |= PCH_FC_START; // XXX set this or not?
 
-	pch_cunum_t cunum = schib->pmcw.cu_number;
-        css_cu_t *cu = get_cu(cunum);
+	pch_chpid_t chpid = schib->pmcw.chpid;
+        pch_chp_t *chp = pch_get_chp(chpid);
         uint8_t ccwcmd = fetch_resume_ccw(schib);
         if (schib->scsw.schs != 0) {
                 schib->scsw.ctrl_flags |= PCH_SC_ALERT;
@@ -91,7 +91,7 @@ static void process_schib_resume(pch_schib_t *schib) {
                 return;
         }
 
-	suspend_or_send_start_packet(cu, schib, ccwcmd);
+	suspend_or_send_start_packet(chp, schib, ccwcmd);
 }
 
 // process_schib_func processes a schib which has been put on
