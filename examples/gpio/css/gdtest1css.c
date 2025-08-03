@@ -30,50 +30,11 @@ static uart_inst_t *prepare_uart_gpios(void) {
         return UART_INSTANCE(GDTEST1_UART_NUM);
 }
 
-// CSS IRQ definitions
-irq_num_t schib_func_irqnum = FIRST_USER_IRQ;
-irq_num_t io_irqnum = FIRST_USER_IRQ + 1;
-
-// io_callback is called from where CSS runs which is core 0 for us
 void io_callback(pch_intcode_t ic, pch_scsw_t scsw) {
-        // no-op	
-        (void)ic;
-        (void)scsw;
-}
-
-// We call init_css from core 0 so CSS runs there
-void init_css(void) {
-        pch_css_init();
-
-        uint corenum = get_core_num();
-        uint8_t dmairqix = (uint8_t)corenum;
-        dprintf("Starting CSS: core %u, DMA IRQ index %u\n",
-                corenum, dmairqix);
-
-        pch_css_set_trace((bool)GD_ENABLE_TRACE);
-        pch_css_start(dmairqix);
-
-	// Set CSS to use IRQ schib_func_irqnum internally for when an
-	// API call needs to trigger CSS to execute a function
-        irq_set_exclusive_handler(schib_func_irqnum,
-                pch_css_schib_func_irq_handler);
-        irq_set_enabled(schib_func_irqnum, true);
-        pch_css_set_func_irq(schib_func_irqnum);
-
-	// Set CSS to raise IRQ IoIrqnum when a schib is added to notify list
-        pch_css_set_io_irq(io_irqnum);
-
-	// Make CSS invoke io_callback(sid, scsw) on each schib in
-	// notify list when _callback_pending_schibs() is called
-        pch_css_set_io_callback(io_callback);
-
-	// Make CSS call callback_pending_schibs (and clear irq) when
-	// io_irqnum is raised
-        irq_set_exclusive_handler(io_irqnum, pch_css_io_irq_handler);
-        irq_set_enabled(io_irqnum, true);
-
-        // enable all ISCs (ignores non-existing ones)
-        pch_css_set_isc_enable_mask(0xff);
+        dprintf("io_callback for SID:%04X with IntParm:%08lx and SCSW:\n",
+                ic.sid, ic.intparm);
+        dprintf("  next_CCW_address:%08lx dev_status:%02x sch_status:%02x residual_count=%d\n",
+                scsw.ccw_addr, scsw.devs, scsw.schs, scsw.count);
 }
 
 // Quick and dirty way to force variables and functions to be
@@ -135,12 +96,18 @@ int main(void) {
         light_led_for_three_seconds();
 
         dprintf("Initialising CSS\n");
-	init_css();
+        pch_css_init();
+        pch_css_set_trace((bool)GD_ENABLE_TRACE);
+        pch_css_start(io_callback);
+        // enable all ISCs (ignores non-existing ones)
+        pch_css_set_isc_enable_mask(0xff);
 
         pch_chpid_t chpid = pch_chp_claim_unused(true);
         pch_sid_t first_sid = pch_chp_alloc(chpid, NUM_GPIO_DEVS);
+
         uart_inst_t *uart = prepare_uart_gpios();
-        dprintf("Configuring CSS channel via UART%u\n", UART_NUM(uart));
+        dprintf("Configuring CSS channel CHPID=%u via UART%u\n",
+                chpid, UART_NUM(uart));
         pch_chp_init_and_configure_uartchan(chpid, uart, BAUDRATE);
         pch_chp_set_trace(chpid, (bool)GD_ENABLE_TRACE);
 
@@ -149,7 +116,7 @@ int main(void) {
         pch_sch_modify_enabled_range(first_sid, NUM_GPIO_DEVS, true);
         pch_sch_modify_traced_range(first_sid, NUM_GPIO_DEVS, true);
 
-        dprintf("Starting channel %u\n", chpid);
+        dprintf("Starting channel CHPID=%u\n", chpid);
         pch_chp_start(chpid);
         dprintf("CSS is ready\n");
 

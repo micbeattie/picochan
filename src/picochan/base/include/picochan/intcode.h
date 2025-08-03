@@ -17,7 +17,7 @@
  * Subsystem-Identification Word which is 32 bits and includes some
  * bits of data beyond just the subchannel number. For Picochan we
  * only use the 16-bit subchannel number so calling this the SID is
- * more approriate.
+ * more appropriate.
  *
 \verbatim
 pch_intcode_t
@@ -26,11 +26,11 @@ pch_intcode_t
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         |  Subchannel ID (SID)          |      ISC      |           |cc |
         +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-The cc is the condition code which, for a return from
+\endverbatim
+cc is the condition code which, for a return from
 pch_test_pending_interruption, only uses two values: 0 means there was
 no interrupt pending and the rest of the pch_intcode_t is meaningless;
 1 means an interrupt was pending and its information has been returned.
-\endverbatim
  */
 typedef struct pch_intcode {
         uint32_t        intparm;

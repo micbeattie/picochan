@@ -79,7 +79,7 @@ void __time_critical_func(handle_func_irq_chp)(pch_chp_t *chp) {
 	}
 }
 
-void __isr __time_critical_func(pch_css_schib_func_irq_handler)(void) {
+void __isr __time_critical_func(pch_css_func_irq_handler)(void) {
         uint irqnum = __get_current_exception() - VTABLE_FIRST_IRQ;
         if ((int16_t)irqnum != CSS.func_irqnum)
                 return;
@@ -98,7 +98,7 @@ void __isr __time_critical_func(pch_css_schib_func_irq_handler)(void) {
 	}
 }
 
-void __isr __time_critical_func(css_handle_dma_irq)() {
+void __isr __time_critical_func(pch_css_dma_irq_handler)() {
         uint irqnum = __get_current_exception() - VTABLE_FIRST_IRQ;
 	// TODO deal with getting the Irq information and acking
 	// them in a batch instead of individually

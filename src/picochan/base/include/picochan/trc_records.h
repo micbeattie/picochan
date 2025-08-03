@@ -21,6 +21,12 @@ struct pch_trdata_id_byte {
         uint8_t         byte;
 };
 
+struct pch_trdata_irq_handler {
+        uint32_t        handler;
+        int16_t         order_priority; // -1 for exclusive
+        uint8_t         irqnum;
+};
+
 struct pch_trdata_cu_init {
         uint16_t        num_devices;
         pch_cuaddr_t    cuaddr;

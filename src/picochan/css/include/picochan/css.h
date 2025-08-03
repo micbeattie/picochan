@@ -86,25 +86,90 @@ typedef void(*io_callback_t)(pch_intcode_t, pch_scsw_t);
  */
 void pch_css_init(void);
 
-/*! \brief Initialise CSS DMA interrupt handling using this DMA IRQ index
- * \ingroup picochan_css
- *
- * Adds an IRQ handler and enables this DMA interrupt to be called on
- * the core that calls this function. The CSS uses this handler to
- * drive its channel and callback activity. If a CU is to be used on
- * the same Pico, it must be initialised on a different core, using a
- * different DMA IRQ index.
- */
-void pch_css_start(uint8_t dmairqix);
+// Accessor functions for basic CSS settings
+int8_t pch_css_get_core_num(void);
+int8_t pch_css_get_dma_irq_index(void);
+int16_t pch_css_get_func_irq(void);
+int16_t pch_css_get_io_irq(void);
 
-/*! \brief Sets the IRQ number that the CSS uses for API notification to CSS
+// A variety of different initialisation functions for configuring
+// CSS IRQ numbers and handlers for DMA IRQ index, function IRQ
+// and I/O IRQ.
+
+void pch_css_set_dma_irq_index(uint8_t dmairqix);
+void pch_css_configure_dma_irq_index_shared(uint8_t dmairqix, uint8_t order_priority);
+void pch_css_configure_dma_irq_index_exclusive(uint8_t dmairqix);
+void pch_css_configure_dma_irq_index_default_shared(uint8_t order_priority);
+void pch_css_configure_dma_irq_index_default_exclusive();
+void pch_css_auto_configure_dma_irq_index();
+
+/*! \brief Low-level function to set the IRQ number that the CSS uses
+ * for application API notification to CSS
  * \ingroup picochan_css
  *
- * Typically, should be a non-externally used IRQ (i.e. IRQ numbers
- * 26-31 on RP2040 and IRQ numbers 46-51 (SPAREIRQ_IRQ0 through
- * SPAREIRQ_IRQ5) on RP2350.
+ * Typically, should be a non-externally-used user IRQ (i.e. IRQ
+ * numbers 26-31 on RP2040 and IRQ numbers 46-51 (SPAREIRQ_IRQ0
+ * through SPAREIRQ_IRQ5) on RP2350.
+ * In general, either the high-level convenience function
+ * pch_css_auto_configure_func_irq() should be used instead or,
+ * for mid-level control of the handler, variants on
+ * pch_css_configure_func_irq...
  */
 void pch_css_set_func_irq(irq_num_t irqnum);
+void pch_css_configure_func_irq_shared(irq_num_t irqnum, uint8_t order_priority);
+void pch_css_configure_func_irq_exclusive(irq_num_t irqnum);
+void pch_css_configure_func_irq_unused_shared(bool required, uint8_t order_priority);
+void pch_css_configure_func_irq_unused_exclusive(bool required);
+void pch_css_auto_configure_func_irq(bool required);
+
+/*! \brief Low-level function to set the IRQ number that the CSS uses
+ * for I/O interrupt notification.
+ * \ingroup picochan_css
+ *
+ * Typically, should be a non-externally-used user IRQ (i.e. IRQ
+ * numbers 26-31 on RP2040 and IRQ numbers 46-51 (SPAREIRQ_IRQ0
+ * through SPAREIRQ_IRQ5) on RP2350.
+ * In general, either the high-level convenience function
+ * pch_css_auto_configure_io_irq() should be used instead or,
+ * for mid-level control of the handler, variants on
+ * pch_css_configure_io_irq...
+ */
+void pch_css_set_io_irq(irq_num_t irqnum);
+void pch_css_configure_io_irq_shared(irq_num_t irqnum, uint8_t order_priority);
+void pch_css_configure_io_irq_exclusive(irq_num_t irqnum);
+void pch_css_configure_io_irq_unused_shared(bool required, uint8_t order_priority);
+void pch_css_configure_io_irq_unused_exclusive(bool required);
+void pch_css_auto_configure_io_irq(bool required);
+
+/*! \brief Low-level function to set the I/O callback function that
+ * the CSS invokes if its I/O interrupt handler has been set to
+ * pch_css_io_irq_handler.
+ * pch_css_start(io_callback) with io_callback non-NULL).
+ * \ingroup picochan_css
+ *
+ * Typically, this should instead be set implicitly by calling
+ * pch_css_start(io_callback) with io_callback non-NULL.
+ */
+io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
+
+/*! \brief Starts CSS operation after setting the io_callback
+ * (if non-NULL) and after configuring and enabling any needed CSS
+ * IRQ handlers that have not yet been set.
+ * \ingroup picochan_css
+ *
+ * pch_css_init() must be called before calling this function.
+ * If the CSS DMA IRQ index is not yet set, it is configured using
+ * the index number corresponding to the current core number.
+ * If the function IRQ is not set, it is configured by claiming an
+ * unused user IRQ, setting the handler to pch_css_func_irq_handler
+ * and enabling the IRQ. If io_callback is non-NULL then it is set as
+ * the CSS io_callback function after, if the I/O IRQ is not set,
+ * configuring it by claiming an unused IRQ, settting the handler to
+ * pch_css_io_irq_handler and enabling the IRQ. Any IRQ handlers set
+ * from this function are added using irq_add_shared_handler() with an
+ * order_priority of PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY.
+ */
+void pch_css_start(io_callback_t io_callback);
 
 /*! \brief Sets whether CSS tracing is enabled
  * \ingroup picochan_css
@@ -124,7 +189,7 @@ bool pch_css_set_trace(bool trace);
  */
 bool pch_chp_set_trace(pch_chpid_t chpid, bool trace);
 
-void __isr pch_css_schib_func_irq_handler(void);
+void __isr pch_css_func_irq_handler(void);
 void __isr pch_css_io_irq_handler(void);
 
 /*! \brief Sets the IRQ number that the CSS raises when a subchannel becomes status pending

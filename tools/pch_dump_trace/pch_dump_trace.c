@@ -44,8 +44,22 @@ static const char *pick_idtype(uint rt, uint cssrt) {
         return (rt == cssrt) ? "CHPID" : "CU";
 }
 
-static const char *pick_side(uint rt, uint cssrt) {
-        return (rt == cssrt) ? "CSS" : "CU-side";
+static const char *pick_irqtype(uint rt) {
+        switch (rt) {
+        case PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER:
+        case PCH_TRC_RT_CSS_SET_DMA_IRQ:
+                return "DMA";
+
+        case PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER:
+        case PCH_TRC_RT_CSS_SET_FUNC_IRQ:
+                return "function";
+
+        case PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER:
+        case PCH_TRC_RT_CSS_SET_IO_IRQ:
+                return "I/O";
+        }
+
+        return "unknown";
 }
 
 void hexdump(unsigned char *data, int data_size) {
@@ -156,11 +170,19 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         }
 
         case PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER:
-        case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
-                const char *side = pick_side(rt, PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER);
+        case PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER:
+        case PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER: {
+                const char *irqtype = pick_irqtype(rt);
                 struct pch_trdata_word_byte *td = vd;
-                printf("%s initialises IRQ %d (DMA) ISR addr:%08x",
-                        side, td->byte, td->word);
+                printf("CSS initialises %s IRQ %d handler to ISR addr:%08x",
+                        irqtype, td->byte, td->word);
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
+                struct pch_trdata_word_byte *td = vd;
+                printf("CU-side initialises DMA IRQ %d handler to ISR addr:%08x",
+                        td->byte, td->word);
                 break;
         }
 
@@ -239,10 +261,16 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
+        case PCH_TRC_RT_CSS_CORE_NUM: {
+                struct pch_trdata_byte *td = vd;
+                printf("CSS is running on core number %d", td->byte);
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SET_DMA_IRQ:
         case PCH_TRC_RT_CSS_SET_FUNC_IRQ:
         case PCH_TRC_RT_CSS_SET_IO_IRQ: {
-                const char *irqtype = (rt == PCH_TRC_RT_CSS_SET_FUNC_IRQ) ?
-                        "function" : "I/O";
+                const char *irqtype = pick_irqtype(rt);
                 struct pch_trdata_irqnum_opt *td = vd;
                 int16_t irqnum_opt = td->irqnum_opt;
                 if (irqnum_opt == -1) {

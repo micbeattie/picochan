@@ -59,18 +59,12 @@ void pch_css_init(void);
 
 bool pch_css_set_trace(bool trace);
 
-void pch_css_start(uint8_t dmairqix);
+// Optionally use pch_css_auto_configure_..., pch_css_configure_...
+// or pch_css_set functions to choose, configure and enable IRQ
+// handlers for DMA, function and I/O IRQs, then auto-configure
+// and enable any remaining ones with:
 
-irq_set_exclusive_handler(schib_func_irqnum, pch_css_schib_func_irq_handler);
-irq_set_enabled(schib_func_irqnum, true);
-void pch_css_set_func_irq(irq_num_t irqnum);
-
-void pch_css_set_io_irq(irq_num_t irqnum);
-
-io_callback_t pch_css_set_io_callback(io_callback_t io_callback);
-
-irq_set_exclusive_handler(io_irqnum, pch_css_io_irq_handler);
-irq_set_enabled(io_irqnum, true);
+void pch_css_start(io_callback_t io_callback);
 
 void pch_css_set_isc_enable_mask(uint8_t mask);
 ```

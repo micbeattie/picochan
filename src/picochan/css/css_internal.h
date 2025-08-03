@@ -41,6 +41,7 @@ struct css {
         uint8_t         isc_enable_mask;
         uint8_t         isc_status_mask;
         int8_t          dmairqix; //!< completions raise irq dma.IRQ_BASE+dmairqix
+        int8_t          core_num;
         pch_sid_t       next_sid; //!< starting SID for next pch_chp_claim
         pch_trc_bufferset_t trace_bs;
         pch_chp_t       chps[PCH_NUM_CHANNELS];
@@ -113,7 +114,7 @@ static inline void css_clear_pending_subchannel(pch_schib_t *schib) {
         reset_subchannel_to_idle(schib);
 }
 
-void __isr css_handle_dma_irq(void);
+void __isr pch_css_dma_irq_handler(void);
 
 void suspend_or_send_start_packet(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd);
 void do_command_chain_and_send_start(pch_chp_t *chp, pch_schib_t *schib);
