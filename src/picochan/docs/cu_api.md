@@ -106,13 +106,13 @@ pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
 ### Initialisation of each CU
 
 ```
-void pch_cus_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
+void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
 
 bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
 
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl);
 
-void pch_cus_cu_start(pch_cuaddr_t cua);
+void pch_cu_start(pch_cuaddr_t cua);
 ```
 
 ### Convenience API for device driver to its CU

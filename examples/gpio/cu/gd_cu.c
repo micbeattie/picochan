@@ -357,7 +357,7 @@ static void gd_start(pch_devib_t *devib) {
 void gd_cu_init(pch_cuaddr_t cua, uint8_t dmairqix) {
         assert(!gd_cu_done_init);
 
-        pch_cus_cu_init(&gd_cu, cua, dmairqix, NUM_GPIO_DEVS);
+        pch_cu_init(&gd_cu, cua, dmairqix, NUM_GPIO_DEVS);
         pch_cus_trace_cu(cua, (bool)GD_ENABLE_TRACE);
 
         memset(gpio_devs, 0, sizeof(gpio_devs));

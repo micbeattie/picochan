@@ -20,7 +20,7 @@ void pch_cus_init() {
                 pch_default_devib_callback);
 
         pch_trc_init_bufferset(&pch_cus_trace_bs,
-                        PCH_CUS_BUFFERSET_MAGIC);
+                PCH_CUS_BUFFERSET_MAGIC);
         pch_trc_init_all_buffers(&pch_cus_trace_bs,
                 pch_cus_trace_buffer_space);
         pch_cus_init_done = true;
@@ -39,7 +39,7 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
                         (uint32_t)pch_cus_handle_dma_irq, irqnum}));
 }
 
-void pch_cus_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs) {
+void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, cua < PCH_NUM_CUS);
         valid_params_if(PCH_CUS, dmairqix < NUM_DMA_IRQS);
         valid_params_if(PCH_CUS, num_devibs <= PCH_MAX_DEVIBS_PER_CU);
@@ -68,12 +68,12 @@ void pch_cus_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t 
                 }));
 }
 
-dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cuaddr_t cua) {
+dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
         return &cu->tx_channel;
 }
 
-dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cuaddr_t cua) {
+dmachan_rx_channel_t *pch_cu_get_rx_channel(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
         return &cu->rx_channel;
 }
@@ -100,7 +100,7 @@ static void cu_dma_rx_init(pch_cuaddr_t cua, dmachan_1way_config_t *d1c) {
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, d1c);
 }
 
-void pch_cus_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
+void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!cu->started);
         (void)cu;
@@ -109,7 +109,7 @@ void pch_cus_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
         cu_dma_rx_init(cua, &dc->rx);
 }
 
-void pch_cus_cu_set_configured(pch_cuaddr_t cua, bool configured) {
+void pch_cu_set_configured(pch_cuaddr_t cua, bool configured) {
         pch_cu_t *cu = pch_get_cu(cua);
 
         cu->configured = true;
@@ -129,10 +129,10 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_c
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, cu->dmairqix);
 
-        pch_cus_cu_dma_configure(cua, &dc);
+        pch_cu_dma_configure(cua, &dc);
         dmachan_set_link_irq_enabled(&cu->tx_channel.link, true);
         dmachan_set_link_irq_enabled(&cu->rx_channel.link, true);
-        pch_cus_cu_set_configured(cua, true);
+        pch_cu_set_configured(cua, true);
 }
 
 void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate) {
@@ -156,7 +156,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, cu->dmairqix);
-        pch_cus_cu_dma_configure(cua, &dc);
+        pch_cu_dma_configure(cua, &dc);
         // Do not enable irq for tx channel link because Pico DMA
         // does not treat the INTSn bits separately. We enable only
         // the rx side for irqs and the rx irq handler propagates
@@ -166,10 +166,10 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         dmachan_set_link_irq_enabled(&rx->link, true);
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;
-        pch_cus_cu_set_configured(cua, true);
+        pch_cu_set_configured(cua, true);
 }
 
-void pch_cus_cu_start(pch_cuaddr_t cua) {
+void pch_cu_start(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(cu->configured);
 

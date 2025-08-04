@@ -98,7 +98,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
 ```
 void pch_memchan_init();
 
-dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_chpid_t chpid);
+dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_chpid_t chpid);
 
 void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
 ```

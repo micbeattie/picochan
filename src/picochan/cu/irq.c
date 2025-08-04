@@ -12,7 +12,7 @@ static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
         dmachan_rx_channel_t *rx = &cu->rx_channel;
         dmachan_irq_state_t rx_irq_state = dmachan_handle_rx_irq(rx);
 
-        trace_cus_cu_irq(PCH_TRC_RT_CUS_CU_IRQ, cu, cu->dmairqix,
+        trace_cu_irq(PCH_TRC_RT_CUS_CU_IRQ, cu, cu->dmairqix,
                 tx_irq_state, rx_irq_state);
 
         dmachan_link_t *txl = &tx->link;

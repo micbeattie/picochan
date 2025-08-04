@@ -306,7 +306,7 @@ void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint 
  * DMA ids, typically allocated using dma_claim_unused_channel().
  * In order for the CSS to find the CU-side information to
  * cross-connect the sides in memory, the CU API function
- * pch_cus_cu_get_tx_channel() must be used to fetch the internal
+ * pch_cu_get_tx_channel() must be used to fetch the internal
  * dmachan_tx_channel_t of the peer CU for passing to
  * pch_chp_configure_memchan.
  */

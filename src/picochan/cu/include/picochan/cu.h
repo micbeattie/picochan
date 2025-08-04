@@ -69,10 +69,10 @@ static_assert(PCH_NUM_CUS >= 1 && PCH_NUM_CUS <= 256,
  * the CSS. Immediately following that (ignoring internal padding) is
  * an array of pch_devib_t structures, one for each device on the CU.
  * The size of that array is held in the num_devibs field of the
- * pch_cu_t which is set at the time pch_cus_cu_init is called and
+ * pch_cu_t which is set at the time pch_cu_init is called and
  * cannot be changed afterwards. The allocation of memory for a
  * pch_cu_t, whether static or dynamic, is the responsibility of the
- * application before calling pch_cus_cu_init.
+ * application before calling pch_cu_init.
  *
  * The alignment of pch_cu_t is enforced to be PCH_CU_ALIGN which is
  * calculated at compile-time as PCH_MAX_DEVIBS_PER_CU multiplied by
@@ -165,7 +165,7 @@ extern bool pch_cus_init_done;
  *
  * For a Debug build, asserts when cua exceeds the
  * (compile-time defined) number of CUs, PCH_NUM_CUS, or if
- * the CU has not been initialised with pch_cus_cu_init.
+ * the CU has not been initialised with pch_cu_init.
  */
 static inline pch_cu_t *pch_get_cu(pch_cuaddr_t cua) {
         valid_params_if(PCH_CUS, cua < PCH_NUM_CUS);
@@ -213,7 +213,7 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
  * pch_cus_init_dma_irq_handler() has been invoked.
  * \param num_devibs The number of devices to initialise
  */
-void pch_cus_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
+void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
 
 /*! \brief Configure a UART control unit
  * \ingroup picochan_cu
@@ -274,7 +274,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
  * Marks the CU as started and starts the channel to the CSS,
  * allowing it to receive commands from the CSS.
  */
-void pch_cus_cu_start(pch_cuaddr_t cua);
+void pch_cu_start(pch_cuaddr_t cua);
 
 /*! \brief Sets whether tracing is enabled for CU cua
  * \ingroup picochan_cu
@@ -299,8 +299,8 @@ bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
 bool pch_cus_trace_dev(pch_devib_t *devib, bool trace);
 
 // CU initialisation low-level helpers
-void pch_cus_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc);
-void pch_cus_cu_set_configured(pch_cuaddr_t cua, bool configured);
+void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc);
+void pch_cu_set_configured(pch_cuaddr_t cua, bool configured);
 
 /*! \brief Fetch the internal tx side of a channel from CU to CSS
  * \ingroup picochan_cu
@@ -310,9 +310,9 @@ void pch_cus_cu_set_configured(pch_cuaddr_t cua, bool configured);
  * initialisation procedure uses this function to find its peer
  * CU structure in order to cross-connect the channels.
  */
-dmachan_tx_channel_t *pch_cus_cu_get_tx_channel(pch_cuaddr_t cua);
+dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_cuaddr_t cua);
 
-dmachan_rx_channel_t *pch_cus_cu_get_rx_channel(pch_cuaddr_t cua);
+dmachan_rx_channel_t *pch_cu_get_rx_channel(pch_cuaddr_t cua);
 
 void __isr pch_cus_handle_dma_irq(void);
 

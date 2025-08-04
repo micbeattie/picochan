@@ -76,7 +76,7 @@ int main(void) {
         }
 
         dprintf("Starting CU %u\n", GDCU_NUM);
-        pch_cus_cu_start(GDCU_NUM);
+        pch_cu_start(GDCU_NUM);
         dprintf("CU %u is ready\n", GDCU_NUM);
 
         while (1)
