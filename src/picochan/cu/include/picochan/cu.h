@@ -103,8 +103,6 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 	int16_t                 tx_tail;
 	//! completions raise irq dma.IRQ_BASE+dmairqix
 	uint8_t                 dmairqix;
-        //! set to current core at start, verified at irq time
-        int8_t                  corenum;
 	bool                    traced;
 	bool                    configured;
 	bool                    started;
