@@ -53,12 +53,13 @@ typedef uint8_t pch_dmaid_t;
 /*! \brief a DMA IRQ index
  *  \ingroup picochan_base
  *
- *  Must be between 0 and the number of DMA IRQs on the platform
- *  (e.g. 2 for RP2040 and 4 for RP2350).
- *  Pico SDK uses the uint type for DMA channel id arguments but
- *  picochan uses pch_dmaid_t type in its API and also for storing
- *  them so it can use a single byte instead of four.
+ *  Must be either -1 (meaning no DMA IRQ index set) or between 0 and
+ *  the number of DMA IRQs on the platform (e.g. 2 for RP2040 and 4
+ *  for RP2350). Pico SDK uses the uint type for DMA IRQ index
+ *  arguments but Picochan uses the pch_dma_irq_index_t type in its
+ *  API and also for storing them so it can use a single byte instead
+ *  of four.
  */
-typedef uint8_t pch_dma_irq_index_t;
+typedef int8_t pch_dma_irq_index_t;
 
 #endif

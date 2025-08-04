@@ -53,8 +53,8 @@ int main(void) {
         light_led_for_three_seconds();
 
         uint corenum = get_core_num();
-        uint8_t dmairqix = (uint8_t)corenum;
-        dprintf("Initialising CU side: core %u, DMA IRQ index %u\n",
+        pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)corenum;
+        dprintf("Initialising CU side: core %u, DMA IRQ index %d\n",
                 corenum, dmairqix);
         pch_cus_init();
         pch_cus_set_trace((bool)GD_ENABLE_TRACE);

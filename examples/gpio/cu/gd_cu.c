@@ -354,7 +354,7 @@ static void gd_start(pch_devib_t *devib) {
                 gd_start_cbindex);
 }
 
-void gd_cu_init(pch_cuaddr_t cua, uint8_t dmairqix) {
+void gd_cu_init(pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix) {
         assert(!gd_cu_done_init);
 
         pch_cu_init(&gd_cu, cua, dmairqix, NUM_GPIO_DEVS);

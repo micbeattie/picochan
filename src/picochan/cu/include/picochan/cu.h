@@ -101,8 +101,8 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 	int16_t                 tx_head;
 	//! tail ua on tx side pending list of -1 if none
 	int16_t                 tx_tail;
-	//! completions raise irq dma.IRQ_BASE+dmairqix
-	uint8_t                 dmairqix;
+	//! completions raise irq dma.IRQ_BASE+dmairqix, -1 before configuration
+	pch_dma_irq_index_t     dmairqix;
 	bool                    traced;
 	bool                    configured;
 	bool                    started;
@@ -196,7 +196,7 @@ bool pch_cus_set_trace(bool trace);
  * to be used on the same Pico, it must be initialised on a different
  * core, using a different DMA IRQ index.
 */
-void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
+void pch_cus_init_dma_irq_handler(pch_dma_irq_index_t dmairqix);
 
 // CU initialisation and configuration
 
@@ -211,7 +211,7 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
  * pch_cus_init_dma_irq_handler() has been invoked.
  * \param num_devibs The number of devices to initialise
  */
-void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
+void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix, uint16_t num_devibs);
 
 /*! \brief Configure a UART control unit
  * \ingroup picochan_cu

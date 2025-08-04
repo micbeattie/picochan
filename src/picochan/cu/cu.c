@@ -28,8 +28,9 @@ void pch_cus_init() {
 
 // CU interrupts and callbacks will be handled on the core that calls
 // this function
-void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
-        irq_num_t irqnum = dma_get_irq_num(dmairqix);
+void pch_cus_init_dma_irq_handler(pch_dma_irq_index_t dmairqix) {
+        assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
+        irq_num_t irqnum = dma_get_irq_num((uint)dmairqix);
         irq_add_shared_handler(irqnum, pch_cus_handle_dma_irq,
                 PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         irq_set_enabled(irqnum, true);
@@ -39,9 +40,10 @@ void pch_cus_init_dma_irq_handler(uint8_t dmairqix) {
                         (uint32_t)pch_cus_handle_dma_irq, irqnum}));
 }
 
-void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs) {
+void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, cua < PCH_NUM_CUS);
-        valid_params_if(PCH_CUS, dmairqix < NUM_DMA_IRQS);
+        valid_params_if(PCH_CUS,
+                dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         valid_params_if(PCH_CUS, num_devibs <= PCH_MAX_DEVIBS_PER_CU);
 
         memset(cu, 0, sizeof(*cu) + num_devibs * sizeof(pch_devib_t));

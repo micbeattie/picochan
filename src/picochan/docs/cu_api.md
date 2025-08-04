@@ -98,7 +98,7 @@ void pch_cus_init(void);
 
 bool pch_cus_set_trace(bool trace);
 
-void pch_cus_init_dma_irq_handler(uint8_t dmairqix);
+void pch_cus_init_dma_irq_handler(pch_dma_irq_index_t dmairqix);
 
 pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
 ```
@@ -106,7 +106,7 @@ pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
 ### Initialisation of each CU
 
 ```
-void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, uint8_t dmairqix, uint16_t num_devibs);
+void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix, uint16_t num_devibs);
 
 bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
 

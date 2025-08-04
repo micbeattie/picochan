@@ -28,16 +28,16 @@ struct pch_trdata_irq_handler {
 };
 
 struct pch_trdata_cu_init {
-        uint16_t        num_devices;
-        pch_cuaddr_t    cuaddr;
-        uint8_t         dmairqix;
+        uint16_t                num_devices;
+        pch_cuaddr_t            cuaddr;
+        pch_dma_irq_index_t     dmairqix;
 };
 
 struct pch_trdata_id_irq {
-        uint8_t         id;
-        uint8_t         dmairqix;
-        uint8_t         tx_state;
-        uint8_t         rx_state;
+        uint8_t                 id;
+        pch_dma_irq_index_t     dmairqix;
+        uint8_t                 tx_state;
+        uint8_t                 rx_state;
 };
 
 struct pch_trdata_dev {
