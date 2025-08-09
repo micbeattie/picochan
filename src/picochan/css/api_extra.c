@@ -61,9 +61,9 @@ int __time_critical_func(pch_sch_modify_enabled)(pch_sid_t sid, bool enabled) {
                 return cc;
 
         if (enabled)
-                schib.pmcw.flags |= 1 << PCH_PMCW_ENABLED;
+                schib.pmcw.flags |= PCH_PMCW_ENABLED;
         else
-                schib.pmcw.flags &= ~(1 << PCH_PMCW_ENABLED);
+                schib.pmcw.flags &= ~PCH_PMCW_ENABLED;
 
         return pch_sch_modify(sid, &schib.pmcw);
 }
@@ -77,9 +77,9 @@ int __time_critical_func(pch_sch_modify_traced)(pch_sid_t sid, bool traced) {
                 return cc;
 
         if (traced)
-                schib.pmcw.flags |= 1 << PCH_PMCW_TRACED;
+                schib.pmcw.flags |= PCH_PMCW_TRACED;
         else
-                schib.pmcw.flags &= ~(1 << PCH_PMCW_TRACED);
+                schib.pmcw.flags &= ~PCH_PMCW_TRACED;
 
         return pch_sch_modify(sid, &schib.pmcw);
 }
