@@ -164,7 +164,9 @@ static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *sr
 }
 
 static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
-        dma_irqn_set_channel_enabled(l->dmairqix, l->dmaid, enabled);
+        pch_dma_irq_index_t dmairqix = l->dmairqix;
+        assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
+        dma_irqn_set_channel_enabled(dmairqix, l->dmaid, enabled);
 }
 
 static inline bool dmachan_link_irq_raised(dmachan_link_t *l) {
