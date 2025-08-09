@@ -12,10 +12,6 @@
 static pch_cu_t gd_cu = PCH_CU_INIT(NUM_GPIO_DEVS);
 static bool gd_cu_done_init = false;
 
-pch_cu_t *gd_get_cu() {
-        return &gd_cu;
-}
-
 static alarm_pool_t *gd_alarm_pool; // Must run on same core as gd_cu
 
 static pch_cbindex_t gd_start_cbindex;
@@ -354,13 +350,12 @@ static void gd_start(pch_devib_t *devib) {
                 gd_start_cbindex);
 }
 
-void gd_cu_init(pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix) {
+void gd_cu_init(pch_cuaddr_t cua) {
         assert(!gd_cu_done_init);
 
-        pch_cu_init(&gd_cu, cua, dmairqix, NUM_GPIO_DEVS);
+        pch_cu_register(&gd_cu, cua);
         pch_cus_trace_cu(cua, (bool)GD_ENABLE_TRACE);
 
-        memset(gpio_devs, 0, sizeof(gpio_devs));
         gd_start_cbindex =
                 pch_register_unused_devib_callback(gd_start);
         gd_setconf_cbindex =
@@ -371,13 +366,12 @@ void gd_cu_init(pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix) {
                 pch_register_unused_devib_callback(gd_complete_test);
 
         gd_alarm_pool = alarm_pool_create_with_unused_hardware_alarm(NUM_GPIO_DEVS);
+
+        memset(gpio_devs, 0, sizeof(gpio_devs));
+        for (uint i = 0; i < NUM_GPIO_DEVS; i++) {
+                pch_devib_t *devib = pch_get_devib(&gd_cu, i);
+                pch_dev_set_callback(devib, gd_start_cbindex);
+        }
+
         gd_cu_done_init = true;
-}
-
-void gd_dev_init(pch_devib_t *devib) {
-        gpio_dev_t *gd = get_gpio_dev(devib);
-        assert(gd);
-
-        memset(gd, 0, sizeof(*gd));
-        pch_dev_set_callback(devib, gd_start_cbindex);
 }

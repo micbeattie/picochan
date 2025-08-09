@@ -14,6 +14,24 @@ unsigned char pch_cus_trace_buffer_space[PCH_TRC_NUM_BUFFERS * PCH_TRC_BUFFER_SI
 
 bool pch_cus_init_done;
 
+typedef enum __attribute__((packed)) dmairqix_config_state {
+        DMAIRQIX_CONFIG_UNUSED = 0,     // UNUSED must be the 0 value
+        DMAIRQIX_CONFIG_CONFIGURED,
+        DMAIRQIX_CONFIG_MUST_NOT_USE,
+} dmairqix_config_state_t;
+
+typedef struct dmairqix_config {
+        dmairqix_config_state_t state;
+        uint8_t                 core_num;
+} dmairqix_config_t;
+
+dmairqix_config_t dmairqix_configs[NUM_DMA_IRQS];
+
+static dmairqix_config_t *get_dmairqix_config(pch_dma_irq_index_t dmairqix) {
+        assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
+        return &dmairqix_configs[dmairqix];
+}
+
 void pch_cus_init() {
         assert(!pch_cus_init_done);
         pch_register_devib_callback(PCH_DEVIB_CALLBACK_DEFAULT,
@@ -26,47 +44,108 @@ void pch_cus_init() {
         pch_cus_init_done = true;
 }
 
-// CU interrupts and callbacks will be handled on the core that calls
-// this function
-void pch_cus_init_dma_irq_handler(pch_dma_irq_index_t dmairqix) {
+void pch_cus_ignore_dma_irq_index_t(pch_dma_irq_index_t dmairqix) {
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
-        irq_num_t irqnum = dma_get_irq_num((uint)dmairqix);
-        irq_add_shared_handler(irqnum, pch_cus_handle_dma_irq,
-                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
-        irq_set_enabled(irqnum, true);
-        
-        PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER,
-                ((struct pch_trdata_word_byte){
-                        (uint32_t)pch_cus_handle_dma_irq, irqnum}));
+        dmairqix_config_t *dc = get_dmairqix_config(dmairqix);
+        assert(dc->state != DMAIRQIX_CONFIG_CONFIGURED);
+        dc->state = DMAIRQIX_CONFIG_MUST_NOT_USE;
 }
 
-void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix, uint16_t num_devibs) {
-        valid_params_if(PCH_CUS, cua < PCH_NUM_CUS);
-        valid_params_if(PCH_CUS,
-                dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
+static void trace_configure_dmairqix(irq_num_t irqnum, int16_t order_priority_opt) {
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER,
+                ((struct pch_trdata_irq_handler){
+                        .handler = (uint32_t)pch_cus_handle_dma_irq,
+                        .order_priority = order_priority_opt,
+                        .irqnum = (uint8_t)irqnum
+                }));
+}
+
+static irq_num_t prepare_configure_dmairqix(pch_dma_irq_index_t dmairqix) {
+        assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
+        dmairqix_config_t *dc = get_dmairqix_config(dmairqix);
+        assert(dc->state == DMAIRQIX_CONFIG_UNUSED);
+        irq_num_t irqnum = dma_get_irq_num((uint)dmairqix);
+        uint core_num = get_core_num();
+        dc->core_num = (uint8_t)core_num;
+        dc->state = DMAIRQIX_CONFIG_CONFIGURED;
+        return irqnum;
+}
+
+void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix) {
+        irq_num_t irqnum = prepare_configure_dmairqix(dmairqix);
+        irq_set_exclusive_handler(irqnum, pch_cus_handle_dma_irq);
+        irq_set_enabled(irqnum, true);
+        trace_configure_dmairqix(irqnum, -1);
+}
+
+void pch_cus_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_t order_priority) {
+        irq_num_t irqnum = prepare_configure_dmairqix(dmairqix);
+        irq_add_shared_handler(irqnum, pch_cus_handle_dma_irq,
+                order_priority);
+        irq_set_enabled(irqnum, true);
+        trace_configure_dmairqix(irqnum, (int16_t)order_priority);
+}
+
+void pch_cus_configure_dma_irq_index_shared_default(pch_dma_irq_index_t dmairqix) {
+        pch_cus_configure_dma_irq_index_shared(dmairqix,
+                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+}
+
+pch_dma_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required) {
+        uint core_num = get_core_num();
+        pch_dma_irq_index_t first_unused = -1;
+
+        for (pch_dma_irq_index_t dmairqix = 0; dmairqix < NUM_DMA_IRQS; dmairqix++) {
+                dmairqix_config_t *dc = get_dmairqix_config(dmairqix);
+                if (dc->state == DMAIRQIX_CONFIG_CONFIGURED) {
+                        if (dc->core_num == core_num)
+                                return dmairqix; // found one for our core
+                } else if (dc->state == DMAIRQIX_CONFIG_UNUSED) {
+                        if (first_unused == -1)
+                                first_unused = dmairqix;
+                }
+        }
+
+        // Found no dmairqix already configured for our core
+        if (first_unused >= 0)
+                pch_cus_configure_dma_irq_index_shared_default(first_unused);
+        else if (required)
+                panic("no available DMA IRQ indexes");
+
+        return first_unused;
+}
+
+void pch_cu_init(pch_cu_t *cu, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, num_devibs <= PCH_MAX_DEVIBS_PER_CU);
 
         memset(cu, 0, sizeof(*cu) + num_devibs * sizeof(pch_devib_t));
-        cu->cuaddr = cua;
         cu->rx_active = -1;
         cu->tx_head = -1;
         cu->tx_tail = -1;
-        cu->dmairqix = dmairqix;
+        cu->dmairqix = -1;
         cu->num_devibs = num_devibs;
+}
 
-        for (int i = 0; i < num_devibs; i++) {
-                // point devib at itself to mean "not on rx list"
-                cu->devibs[i].next = (pch_unit_addr_t)i;
-        }
+void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua) {
+        valid_params_if(PCH_CUS, cua < PCH_NUM_CUS);
+        assert(cu->num_devibs > 0);
+        assert(!pch_cus[cua]);
 
+        cu->cuaddr = cua;
         pch_cus[cua] = cu;
 
+        // TODO Change name to REGISTER instead of INIT
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_INIT,
                 ((struct pch_trdata_cu_init){
-                        .num_devices = num_devibs,
+                        .num_devices = cu->num_devibs,
                         .cuaddr = cua,
-                        .dmairqix = dmairqix
+                        .dmairqix = -1 // TODO remove from struct
                 }));
+}
+
+void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix) {
+        assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
+        cu->dmairqix = dmairqix;
 }
 
 dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_cuaddr_t cua) {
@@ -89,25 +168,15 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmac
         }));
 }
 
-static void cu_dma_tx_init(pch_cuaddr_t cua, dmachan_1way_config_t *d1c) {
-        pch_cu_t *cu = pch_get_cu(cua);
-        dmachan_init_tx_channel(&cu->tx_channel, d1c);
-        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, d1c);
-}
-
-static void cu_dma_rx_init(pch_cuaddr_t cua, dmachan_1way_config_t *d1c) {
-        pch_cu_t *cu = pch_get_cu(cua);
-        dmachan_init_rx_channel(&cu->rx_channel, d1c);
-        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, d1c);
-}
-
 void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!cu->started);
-        (void)cu;
 
-        cu_dma_tx_init(cua, &dc->tx);
-        cu_dma_rx_init(cua, &dc->rx);
+        dmachan_init_tx_channel(&cu->tx_channel, &dc->tx);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cu->cuaddr, &dc->tx);
+
+        dmachan_init_rx_channel(&cu->rx_channel, &dc->rx);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cu->cuaddr, &dc->rx);
 }
 
 void pch_cu_set_configured(pch_cuaddr_t cua, bool configured) {
@@ -127,6 +196,8 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_c
         dma_channel_config rxctrl = dmachan_uart_make_rxctrl(uart, ctrl);
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
         pch_cu_t *cu = pch_get_cu(cua);
+        if (cu->dmairqix == -1)
+                cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, cu->dmairqix);
 
@@ -155,6 +226,8 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!cu->started);
 
+        if (cu->dmairqix == -1)
+                cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, cu->dmairqix);
         pch_cu_dma_configure(cua, &dc);
@@ -173,9 +246,15 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
 void pch_cu_start(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(cu->configured);
+        assert(cu->num_devibs > 0);
 
         if (cu->started)
                 return;
+
+        for (int i = 0; i < cu->num_devibs; i++) {
+                // point devib at itself to mean "not on rx list"
+                cu->devibs[i].next = (pch_unit_addr_t)i;
+        }
 
         cu->started = true;
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_STARTED,

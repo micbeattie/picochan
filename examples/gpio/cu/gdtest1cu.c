@@ -52,28 +52,17 @@ int main(void) {
         stdio_init_all();
         light_led_for_three_seconds();
 
-        uint corenum = get_core_num();
-        pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)corenum;
-        dprintf("Initialising CU side: core %u, DMA IRQ index %d\n",
-                corenum, dmairqix);
+        dprintf("Initialising CU side\n");
         pch_cus_init();
         pch_cus_set_trace((bool)GD_ENABLE_TRACE);
-	pch_cus_init_dma_irq_handler(dmairqix);
 
         dprintf("Initialising CU %u as gpio_dev CU\n", GDCU_NUM);
-        gd_cu_init(GDCU_NUM, dmairqix);
+        gd_cu_init(GDCU_NUM);
 
         uart_inst_t *uart = prepare_uart_gpios();
         dprintf("Configuring channel via UART%u for CU %u\n",
                 UART_NUM(uart), GDCU_NUM);
         pch_cus_auto_configure_uartcu(GDCU_NUM, uart, BAUDRATE);
-
-        pch_cu_t *cu = gd_get_cu();
-        dprintf("Initialising %u gpio_dev devices\n", NUM_GPIO_DEVS);
-        for (uint i = 0; i < NUM_GPIO_DEVS; i++) {
-                pch_devib_t *devib = pch_get_devib(cu, i);
-                gd_dev_init(devib);
-        }
 
         dprintf("Starting CU %u\n", GDCU_NUM);
         pch_cu_start(GDCU_NUM);

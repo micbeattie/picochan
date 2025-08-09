@@ -98,20 +98,37 @@ void pch_cus_init(void);
 
 bool pch_cus_set_trace(bool trace);
 
-void pch_cus_init_dma_irq_handler(pch_dma_irq_index_t dmairqix);
-
 pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
+
+// Optionally configure explicit DMA IRQ index(es) (or leave to auto-configure)
+void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix);
+void pch_cus_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_t order_priority);
+void pch_cus_configure_dma_irq_index_shared_default(pch_dma_irq_index_t dmairqix);
+void pch_cus_ignore_dma_irq_index_t(pch_dma_irq_index_t dmairqix);
+
 ```
 
 ### Initialisation of each CU
 
 ```
-void pch_cu_init(pch_cu_t *cu, pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix, uint16_t num_devibs);
+pch_cu_t foo_cu = PCH_CU_INIT(num_devibs);
+// or, if num_devbs is not a compile-time constant, initialise at runtime with:
+void pch_cu_init(pch_cu_t *cu, uint16_t num_devibs);
+
+// register at a given control unit address:
+pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua);
 
 bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
 
-void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl);
+// Configure connection as a UART channel...:
+void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate);
+// ...or a memory channel (needs extra configuration):
+void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
 
+// Start CU. Returns immediately after setting all CU handling to
+// happen via interrupt handlers and callbacks from those so follow
+// with an infinite "__wfe()" loop if there is nothing else to be
+// done from main().
 void pch_cu_start(pch_cuaddr_t cua);
 ```
 

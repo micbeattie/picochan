@@ -7,10 +7,6 @@
 #define NUM_GPIO_DEVS 8
 #endif
 
-void gd_cu_init(pch_cuaddr_t cua, pch_dma_irq_index_t dmairqix);
-
-pch_cu_t *gd_get_cu(void);
-
-void gd_dev_init(pch_devib_t *devib);
+void gd_cu_init(pch_cuaddr_t cua);
 
 #endif
