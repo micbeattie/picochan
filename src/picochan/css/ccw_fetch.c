@@ -74,6 +74,7 @@ uint8_t __time_critical_func(fetch_resume_ccw)(pch_schib_t *schib) {
 	pch_ccw_t *ccw_addr = (pch_ccw_t*)schib->scsw.ccw_addr;
         ccw_addr--; // -8 bytes
 	pch_ccw_t ccw = fetch_ccw(ccw_addr);
+	trace_schib_ccw(PCH_TRC_RT_CSS_CCW_FETCH, schib, ccw_addr, ccw);
 	// Don't increment schib->scsw.ccw_addr
 
 	// TODO include other validity checks
@@ -95,10 +96,14 @@ uint8_t __time_critical_func(fetch_resume_ccw)(pch_schib_t *schib) {
 uint8_t __time_critical_func(fetch_chain_ccw)(pch_schib_t *schib) {
         pch_ccw_t *ccw_addr = (pch_ccw_t*)schib->scsw.ccw_addr;
 	pch_ccw_t ccw = fetch_ccw(ccw_addr);
+	trace_schib_ccw(PCH_TRC_RT_CSS_CCW_FETCH, schib, ccw_addr, ccw);
         ccw_addr++; // +8 bytes
 
 	if (ccw.cmd == PCH_CCW_CMD_TIC) {
+                ccw_addr = pch_ccw_get_addr(ccw);
 		ccw = fetch_ccw(ccw_addr);
+                trace_schib_ccw(PCH_TRC_RT_CSS_CCW_FETCH, schib,
+                        ccw_addr, ccw);
 		ccw_addr++; // +8 bytes
                 if (ccw.cmd == PCH_CCW_CMD_TIC) {
 			schib->scsw.schs |= PCH_SCHS_PROGRAM_CHECK;

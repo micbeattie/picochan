@@ -64,6 +64,10 @@ typedef struct __attribute__((aligned(4))) pch_ccw {
 
 static_assert(sizeof(pch_ccw_t) == 8, "architected pch_ccw_t is 8 bytes");
 
+static inline void *pch_ccw_get_addr(pch_ccw_t ccw) {
+        return (void *)ccw.addr;
+}
+
 // Architected values of CCW commands.
 // These do not match those for traditional CSS and we only divide
 // into "Read/Write" via the low bit instead of into Control/Read/
