@@ -75,8 +75,11 @@ static void css_handle_tx_command_complete(pch_chp_t *chp) {
 	}
 }
 
-// css_handle_tx_complete handles a tx completion interrupt for
-// chp->tx_channel.
+// css_handle_tx_complete handles a tx completion for
+// chp->tx_channel. It is called either from the DMA IRQ handler
+// after a DMA tx completes or directly from send_tx_packet() if
+// the packet was sent synchronously via memory channel as indicated
+// by the dmachan link's txl->complete flag being set.
 void __time_critical_func(css_handle_tx_complete)(pch_chp_t *chp) {
         pch_txsm_t *txpend = &chp->tx_pending;
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_TX_COMPLETE,
