@@ -161,11 +161,15 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
-        case PCH_TRC_RT_CSS_CHP_TX_DMA_INIT:
+        case PCH_TRC_RT_CSS_CHP_TX_DMA_INIT: {
+                struct pch_trdata_dma_init *td = vd;
+                print_dma_irq_init(td, "CHPID", "tx");
+                break;
+        }
+
         case PCH_TRC_RT_CSS_CHP_RX_DMA_INIT: {
                 struct pch_trdata_dma_init *td = vd;
-                printf("CHPID=");
-                print_dma_irq_init(td);
+                print_dma_irq_init(td, "CHPID", "tx");
                 break;
         }
 
@@ -193,11 +197,15 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
-        case PCH_TRC_RT_CUS_CU_TX_DMA_INIT:
+        case PCH_TRC_RT_CUS_CU_TX_DMA_INIT: {
+                struct pch_trdata_dma_init *td = vd;
+                print_dma_irq_init(td, "CU", "tx");
+                break;
+        }
+
         case PCH_TRC_RT_CUS_CU_RX_DMA_INIT: {
                 struct pch_trdata_dma_init *td = vd;
-                printf("CU=");
-                print_dma_irq_init(td);
+                print_dma_irq_init(td, "CU", "rx");
                 break;
         }
 

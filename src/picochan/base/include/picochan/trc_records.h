@@ -100,6 +100,7 @@ struct pch_trdata_dma_init {
         uint8_t                 id;
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
+        uint8_t                 core_num;
 };
 
 struct pch_trdata_chp_alloc {

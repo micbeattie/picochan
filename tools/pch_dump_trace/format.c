@@ -104,10 +104,10 @@ void print_devib_callback(uint8_t cbindex, uint32_t cbaddr) {
                 cbindex, cbaddr);
 }
 
-void print_dma_irq_init(struct pch_trdata_dma_init *td) {
-        printf("%d initialises DMAid=%d DMA_IRQ_%d addr:%08x ctrl:%08x",
-                td->id, td->dmaid, td->dmairqix,
-                td->addr, td->ctrl);
+void print_dma_irq_init(struct pch_trdata_dma_init *td, const char *idtype, const char *dir) {
+        printf("%s=%d initialises DMAid=%d DMA_IRQ_%d addr:%08x ctrl:%08x for %s from core %u",
+                idtype, td->id, td->dmaid, td->dmairqix,
+                td->addr, td->ctrl, dir, td->core_num);
 }
 
 void print_txpending_state(uint8_t txpstate) {
