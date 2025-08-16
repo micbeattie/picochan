@@ -7,6 +7,21 @@
 
 #include "picochan/cu.h"
 
+/*
+ * blink_uartcu runs the CU side of the blink Picochan example and is
+ * configured to run on core 0 and serve up its "blink" device via
+ * a uart channel connected to UART 1 via GPIO pins 4-7.
+ * A physical connection is needed to a separate Pico that is running
+ * a CSS configured to use a UART channel for that connection, such as
+ * the blink_uartcss example program.
+ * Although it would be possible to run that CSS side on core 1 of
+ * "this" Pico (the blink_uartcu one) and have physical connections
+ * between appropriate pins mapped to the Pico's two UARTs, a more
+ * practical configuration would use a memory channel (memchan)
+ * between the cores with no need for the UARTs or any physical
+ * channel-to-CU connections - see the blink_memchan example for that.
+ */
+
 extern void blink_cu_init(pch_cuaddr_t cua);
 
 #define CUADDR 0

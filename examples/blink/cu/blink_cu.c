@@ -5,6 +5,22 @@
 #include "picochan/dev_status.h"
 #include "picochan/ccw.h"
 
+/*
+ * blink_cu implements a CU for a "blink" device.
+ * A channel program (running on a Picochan CSS instance)
+ * which issues a plain "WRITE" CCW to this device causes
+ * this driver to toggle the LED on/off then, after 250ms
+ * (LED_DELAY_MS milliseconds), send an UpdateStatus to the
+ * CSS side for it to continue or complete the channel program.
+ * This blink_cu source file can be used from any CU-side
+ * program that calls blink_cu_init() to initialise this CU,
+ * for example blink_uartcu (which serves up this driver via
+ * a physical UART connection to a separate Pico running a
+ * CSS) or blink_memchan (which has both the CU-side and the
+ * CSS-side running on the same Pico on separate cores with
+ * no physical connections needed).
+ */
+
 static pch_cu_t blink_cu = PCH_CU_INIT(1);
 
 #define BLINK_ENABLE_TRACE 1
