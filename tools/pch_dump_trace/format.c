@@ -110,6 +110,17 @@ void print_dma_irq_init(struct pch_trdata_dma_init *td, const char *idtype, cons
                 td->addr, td->ctrl, dir, td->core_num);
 }
 
+void print_dma_handler_init(struct pch_trdata_irq_handler *td, const char *irqtype) {
+        printf("initialises %s IRQ %d ", irqtype, td->irqnum);
+        int16_t order_priority = td->order_priority;
+        if (order_priority == -1)
+                printf("exclusive");
+        else
+                printf("shared (priority %d)", order_priority);
+
+        printf(" handler to ISR addr:%08x", td->handler);
+}
+
 void print_txpending_state(uint8_t txpstate) {
         switch (txpstate) {
         case PCH_TXSM_IDLE:

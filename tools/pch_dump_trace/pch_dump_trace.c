@@ -177,16 +177,16 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER:
         case PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER: {
                 const char *irqtype = pick_irqtype(rt);
-                struct pch_trdata_word_byte *td = vd;
-                printf("CSS initialises %s IRQ %d handler to ISR addr:%08x",
-                        irqtype, td->byte, td->word);
+                struct pch_trdata_irq_handler *td = vd;
+                printf("CSS ");
+                print_dma_handler_init(td, irqtype);
                 break;
         }
 
         case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
-                struct pch_trdata_word_byte *td = vd;
-                printf("CU-side initialises DMA IRQ %d handler to ISR addr:%08x",
-                        td->byte, td->word);
+                struct pch_trdata_irq_handler *td = vd;
+                printf("CU-side ");
+                print_dma_handler_init(td, "DMA");
                 break;
         }
 
