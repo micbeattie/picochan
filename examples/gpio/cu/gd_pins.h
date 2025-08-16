@@ -3,8 +3,8 @@
 
 #include "gd_dev.h"
 
-#ifndef GD_ENABLE_GPIO_WRITES
-#define GD_ENABLE_GPIO_WRITES 1
+#ifndef GD_IGNORE_GPIO_WRITE_MASK
+#define GD_IGNORE_GPIO_WRITE_MASK 0
 #endif
 
 #ifndef GD_ENABLE_GPIO_VERBOSE

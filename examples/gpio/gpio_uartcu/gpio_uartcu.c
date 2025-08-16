@@ -7,18 +7,21 @@
 
 #include "picochan/cu.h"
 
-#include "gd_cu.h"
-#include "../gd_debug.h"
-#include "../gd_channel.h"
+extern void gd_cu_init(pch_cuaddr_t cua);
 
-#define GDCU_NUM 0
+#define CUADDR 0
+
+#define GD_ENABLE_TRACE true
 
 // Use uart1 via GPIO pins 4-7 for CU side
-#define GDCU_UART_NUM 1
+#define GDCU_UART uart1
 #define GDCU_UART_TX_PIN 4
 #define GDCU_UART_RX_PIN 5
 #define GDCU_UART_CTS_PIN 6
 #define GDCU_UART_RTS_PIN 7
+
+// Baud rate for UART channel must match that used by CSS
+#define GD_BAUDRATE 115200
 
 static uart_inst_t *prepare_uart_gpios(void) {
         bi_decl(bi_4pins_with_func(GDCU_UART_RX_PIN,
@@ -30,7 +33,7 @@ static uart_inst_t *prepare_uart_gpios(void) {
         gpio_set_function(GDCU_UART_CTS_PIN, GPIO_FUNC_UART);
         gpio_set_function(GDCU_UART_RTS_PIN, GPIO_FUNC_UART);
 
-        return UART_INSTANCE(GDCU_UART_NUM);
+        return GDCU_UART;
 }
 
 static void light_led_for_three_seconds(void) {
@@ -41,32 +44,22 @@ static void light_led_for_three_seconds(void) {
         gpio_put(PICO_DEFAULT_LED_PIN, false);
 }
 
-void *volatile discard;
-
 int main(void) {
         bi_decl(bi_program_description("picochan gpio_dev CU"));
         // work around timer stall during gdb debug with openocd:
         // https://github.com/raspberrypi/pico-feedback/issues/428
         timer_hw->dbgpause = 0;
 
-        stdio_init_all();
         light_led_for_three_seconds();
 
-        dprintf("Initialising CU side\n");
         pch_cus_init();
-        pch_cus_set_trace((bool)GD_ENABLE_TRACE);
+        pch_cus_set_trace(GD_ENABLE_TRACE);
 
-        dprintf("Initialising CU %u as gpio_dev CU\n", GDCU_NUM);
-        gd_cu_init(GDCU_NUM);
+        gd_cu_init(CUADDR);
 
         uart_inst_t *uart = prepare_uart_gpios();
-        dprintf("Configuring channel via UART%u for CU %u\n",
-                UART_NUM(uart), GDCU_NUM);
-        pch_cus_auto_configure_uartcu(GDCU_NUM, uart, BAUDRATE);
-
-        dprintf("Starting CU %u\n", GDCU_NUM);
-        pch_cu_start(GDCU_NUM);
-        dprintf("CU %u is ready\n", GDCU_NUM);
+        pch_cus_auto_configure_uartcu(CUADDR, uart, GD_BAUDRATE);
+        pch_cu_start(CUADDR);
 
         while (1)
                 __wfe();

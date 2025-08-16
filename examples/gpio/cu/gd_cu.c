@@ -4,13 +4,16 @@
 #include "picochan/cu.h"
 #include "picochan/dev_status.h"
 #include "picochan/ccw.h"
-#include "../gd_debug.h"
-#include "gd_cu.h"
 #include "gd_config.h"
 #include "gd_pins.h"
 
+#ifndef NUM_GPIO_DEVS
+#define NUM_GPIO_DEVS 8
+#endif
+
+#define GD_ENABLE_TRACE true
+
 static pch_cu_t gd_cu = PCH_CU_INIT(NUM_GPIO_DEVS);
-static bool gd_cu_done_init = false;
 
 static alarm_pool_t *gd_alarm_pool; // Must run on same core as gd_cu
 
@@ -200,7 +203,14 @@ static bool write_out_pins_rt_callback(repeating_timer_t *rt) {
         if (gd->values.offset < count)
                 return true; // continue with repeating timer
 
-        pch_dev_update_status_ok_then(devib, gd_start_cbindex);
+        if (gd->end) {
+                gd->end = false;
+                pch_dev_update_status_ok_then(devib, gd_start_cbindex);
+        } else {
+                pch_dev_receive(devib, &gd->values.data,
+                        VALUES_BUF_SIZE);
+        }
+
         return false; // stop repeating timer
 }
 
@@ -229,6 +239,7 @@ static int do_gd_write(pch_devib_t *devib) {
                 return 0;
         }
 
+        gd->end = proto_chop_flags(devib->op) & PROTO_CHOP_FLAG_END;
         gd->values.count = size;
         gd->values.offset = 1;
         gd_add_repeating_timer(gd, write_out_pins_rt_callback, devib);
@@ -351,10 +362,8 @@ static void gd_start(pch_devib_t *devib) {
 }
 
 void gd_cu_init(pch_cuaddr_t cua) {
-        assert(!gd_cu_done_init);
-
         pch_cu_register(&gd_cu, cua);
-        pch_cus_trace_cu(cua, (bool)GD_ENABLE_TRACE);
+        pch_cus_trace_cu(cua, GD_ENABLE_TRACE);
 
         gd_start_cbindex =
                 pch_register_unused_devib_callback(gd_start);
@@ -372,6 +381,4 @@ void gd_cu_init(pch_cuaddr_t cua) {
                 pch_devib_t *devib = pch_get_devib(&gd_cu, i);
                 pch_dev_set_callback(devib, gd_start_cbindex);
         }
-
-        gd_cu_done_init = true;
 }

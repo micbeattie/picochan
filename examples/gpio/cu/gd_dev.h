@@ -25,6 +25,7 @@ typedef struct gpio_dev {
         //! the channel until it can be validated
         cfgbuf_t                cfgbuf;
         uint8_t                 cfgcmd; //!< cmd when config write in progress
+        bool                    end;    //!< set when no more data available
         gd_config_t             cfg;    //!< configuration "registers"
         repeating_timer_t       rt;     //!< clocks in/out data
         gd_values_t             values; //!< current values for input/output
