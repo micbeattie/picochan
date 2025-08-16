@@ -79,6 +79,19 @@ static_assert(PCH_NUM_ISCS >= 1 && PCH_NUM_ISCS <= 8,
 
 typedef void(*io_callback_t)(pch_intcode_t, pch_scsw_t);
 
+/*! \brief Get the addr field of a CCW as a pointer.
+ * \ingroup picochan_css
+ *
+ * This is a convenience function that cannot be put in ccw.h itself
+ * since the architected addr field is 32 bits and ccw.h must be
+ * usable on platforms where a (void*) is longer without causing
+ * compiler warnings (for example for compiling pch_dump_trace
+ * off-platform).
+ */
+static inline void *pch_ccw_get_addr(pch_ccw_t ccw) {
+        return (void *)ccw.addr;
+}
+
 /*! \brief Initialise CSS.
  *  \ingroup picochan_css
  *

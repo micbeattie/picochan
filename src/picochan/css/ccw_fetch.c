@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include "schib_internal.h"
-#include "picochan/ccw.h"
+#include "picochan/css.h"
 #include "css_trace.h"
 
 // fetch_ccw fetches an 8-byte CCW from bus address addr, which must
