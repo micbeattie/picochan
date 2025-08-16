@@ -186,10 +186,10 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
-        case PCH_TRC_RT_CUS_CU_INIT: {
-                struct pch_trdata_cu_init *td = vd;
-                printf("CU=%d initialises with %d devices using DMA_IRQ_%d",
-                        td->cuaddr, td->num_devices, td->dmairqix);
+        case PCH_TRC_RT_CUS_CU_REGISTER: {
+                struct pch_trdata_cu_register *td = vd;
+                printf("CU=%d registers with %d devices",
+                        td->cuaddr, td->num_devices);
                 break;
         }
 

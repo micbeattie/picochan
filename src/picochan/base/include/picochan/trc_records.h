@@ -27,10 +27,9 @@ struct pch_trdata_irq_handler {
         uint8_t         irqnum;
 };
 
-struct pch_trdata_cu_init {
+struct pch_trdata_cu_register {
         uint16_t                num_devices;
         pch_cuaddr_t            cuaddr;
-        pch_dma_irq_index_t     dmairqix;
 };
 
 struct pch_trdata_id_irq {

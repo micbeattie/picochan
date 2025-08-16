@@ -134,12 +134,10 @@ void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua) {
         cu->cuaddr = cua;
         pch_cus[cua] = cu;
 
-        // TODO Change name to REGISTER instead of INIT
-        PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_INIT,
-                ((struct pch_trdata_cu_init){
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_REGISTER,
+                ((struct pch_trdata_cu_register){
                         .num_devices = cu->num_devibs,
                         .cuaddr = cua,
-                        .dmairqix = -1 // TODO remove from struct
                 }));
 }
 
