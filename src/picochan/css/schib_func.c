@@ -94,6 +94,23 @@ static void process_schib_resume(pch_schib_t *schib) {
 	suspend_or_send_start_packet(chp, schib, ccwcmd);
 }
 
+static void process_schib_halt(pch_schib_t *schib) {
+        schib->scsw.ctrl_flags &= ~PCH_AC_HALT_PENDING;
+        schib->scsw.ctrl_flags |= PCH_FC_HALT;
+
+        pch_unit_addr_t ua = schib->pmcw.unit_addr;
+	pch_chpid_t chpid = schib->pmcw.chpid;
+        pch_chp_t *chp = pch_get_chp(chpid);
+
+        proto_packet_t p = {
+                .chop = PROTO_CHOP_HALT,
+                .unit_addr = ua
+        };
+        trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET,
+                schib, p);
+        send_tx_packet(chp, p);
+}
+
 // process_schib_func processes a schib which has been put on
 // the pending list for processing by preparing and sending a channel
 // operation to a CU. For now, that's mainly for a Start but at some
@@ -112,10 +129,13 @@ void __time_critical_func(process_schib_func)(pch_schib_t *schib) {
 		return;
 	}
 
-        // Halt and Clear not yet implemented
-        assert(!(ctrl_flags & PCH_AC_HALT_PENDING));
+        if (ctrl_flags & PCH_AC_HALT_PENDING) {
+		process_schib_halt(schib);
+		return;
+	}
+
+        // Clear not yet implemented
         assert(!(ctrl_flags & PCH_AC_CLEAR_PENDING));
 
         // no activity pending - no-op
 }
-

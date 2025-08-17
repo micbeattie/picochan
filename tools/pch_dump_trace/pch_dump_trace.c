@@ -101,10 +101,19 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CSS_SCH_RESUME: {
                 struct pch_trdata_sid_byte *td = vd;
-                printf("resume subchannel ");
-                print_sid(td->sid);
-                putchar(' ');
-                print_cc(td->byte);
+                print_sch_func(td, "resume");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SCH_CANCEL: {
+                struct pch_trdata_sid_byte *td = vd;
+                print_sch_func(td, "cancel");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_SCH_HALT: {
+                struct pch_trdata_sid_byte *td = vd;
+                print_sch_func(td, "halt");
                 break;
         }
 
@@ -114,6 +123,10 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 print_sid(td->sid);
                 putchar(' ');
                 print_cc(td->cc);
+                if (td->cc == 0) {
+                        putchar(' ');
+                        print_scsw(&td->scsw);
+                }
                 break;
         }
 

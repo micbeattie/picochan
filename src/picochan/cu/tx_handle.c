@@ -30,7 +30,7 @@ static void __no_inline_not_in_flash_func(pch_pop_tx_list)(pch_cu_t *cu) {
 
 // make_update_status verifies the prepared UpdateStatus in devib is
 // valid for sending to the CSS. It then unsets the Started flag if
-// the dev.Status being sent include DeviceEnd (indicating end of
+// the dev.Status being sent includes DeviceEnd (indicating end of
 // channel program).
 static void make_update_status(pch_devib_t *devib) {
         proto_payload_t p = devib->payload;

@@ -39,7 +39,14 @@ void __time_critical_func(pch_default_devib_callback)(pch_devib_t *devib) {
         case PROTO_CHOP_START:
                 sense = (pch_dev_sense_t){
                         .flags = PCH_DEV_SENSE_COMMAND_REJECT,
-                        .code = EINVALIDDEV,
+                        .code = EINVALIDDEV
+                };
+                pch_dev_update_status_error(devib, sense);
+                break;
+
+        case PROTO_CHOP_HALT:
+                sense = (pch_dev_sense_t){
+                        .flags = PCH_DEV_SENSE_CANCEL
                 };
                 pch_dev_update_status_error(devib, sense);
                 break;

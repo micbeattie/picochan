@@ -34,6 +34,13 @@ void print_ccw(pch_ccw_t ccw) {
                 ccw.cmd, ccw.flags, ccw.count, ccw.addr);
 }
 
+void print_sch_func(struct pch_trdata_sid_byte *td, const char *funcname) {
+        printf("%s subchannel ", funcname);
+        print_sid(td->sid);
+        putchar(' ');
+        print_cc(td->byte);
+}
+
 void print_dma_irq_state(uint8_t state) {
         switch (state & DMACHAN_IRQ_REASON_MASK) {
         case 0:
@@ -201,15 +208,16 @@ void print_packet(uint32_t raw, bool from_css) {
                         proto_get_count(p));
                 break;
         case PROTO_CHOP_UPDATE_STATUS:
-                printf("UpdateStatus");
-                printf(" ua=%d devs:%02x advertise=",
+                printf("UpdateStatus ua=%d devs:%02x advertise=",
                         p.unit_addr, p.p0);
                 print_bsize(p.p1);
                 break;
         case PROTO_CHOP_REQUEST_READ:
-                printf("RequestRead");
-                printf(" ua=%d count=%u", p.unit_addr,
+                printf("RequestRead ua=%d count=%u", p.unit_addr,
                         proto_get_count(p));
+                break;
+        case PROTO_CHOP_HALT:
+                printf("Halt ua=%d", p.unit_addr);
                 break;
         default:
                 printf("Unknown(chop_cmd=%d flags:%02x ua=%d p0:%02x p1:%02x)",

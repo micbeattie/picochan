@@ -108,8 +108,9 @@ static void __time_critical_func(handle_update_status)(pch_chp_t *chp, pch_schib
 }
 
 typedef struct addr_count {
-        uint32_t addr;
-        uint16_t count;
+        uint32_t        addr;
+        uint16_t        count;
+        bool            discard;
 } addr_count_t;
 
 // begin_data_write is called from css_handle_rx_data_command to
@@ -130,12 +131,33 @@ static addr_count_t __time_critical_func(begin_data_write)(pch_chp_t *chp, pch_s
 	int rescount = (int)schib->scsw.count;
         assert((int)count <= rescount);
 
+        // If the subchannel is halting then we have sent a HALT
+        // command to the device but it may have crossed with this
+        // incoming Data command. We'll be discarding any incoming
+        // data so we don't need to do any CCW chaining and we can
+        // ignore any ResponseRequired flag (because the device will
+        // know by then that it needs to halt). However, if the
+        // command has the End flag set then the device is treating
+        // this command as satisfying its requirement to send a final
+        // UpdateStatus and we need to propagate that so that the
+        // channel program (and hence the associated Halt function)
+        // can finish
+	bool halting = !!(schib->scsw.ctrl_flags & PCH_FC_HALT);
+
+	// If Skp is set in the CCW then we discard the incoming data
+	// (or, if PROTO_CHOP_FLAG_SKIP is set then we ignore those
+	// implicit zeroes)
+        bool discard = (get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_SKP) != 0
+                || halting;
+
         // Propagate PROTO_CHOP_FLAG_RESPONSE_REQUIRED to the chp
         // rx_response_required flag so that, once we get the rx
         // completion of the data itself, we can see that we need to
         // do a send of a Room update
-        if (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
+        if ((proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
+                && !halting) {
                 chp->rx_response_required = true;
+        }
 
         // Propagate PROTO_CHOP_FLAG_END to the chp rx_data_end_ds
         // as ChannelEnd|DeviceEnd so that, once we get the rx
@@ -149,18 +171,25 @@ static addr_count_t __time_critical_func(begin_data_write)(pch_chp_t *chp, pch_s
                 chp->rx_data_end_ds = devs;
         }
 
-	uint32_t addr = schib->mda.data_addr;
-	rescount -= (int)count;
-	if (rescount == 0) {
-		fetch_chain_data_ccw(schib);
-		// TODO Respond with Stop or ReadError instead of assert
-		assert(schib->scsw.schs == 0);
-	} else {
-		schib->mda.data_addr += (uint32_t)count;
-		schib->scsw.count = (uint16_t)rescount;
-	}
+        addr_count_t ac = {
+                .count = count,
+                .discard = discard
+        };
 
-	return ((addr_count_t){addr, count});
+        if (!halting) {
+                ac.addr = schib->mda.data_addr;
+                rescount -= (int)count;
+                if (rescount == 0) {
+                        fetch_chain_data_ccw(schib);
+                        if (schib->scsw.schs != 0)
+                                ac.discard = true; // error
+                } else {
+                        schib->mda.data_addr += (uint32_t)count;
+                        schib->scsw.count = (uint16_t)rescount;
+                }
+        }
+
+	return ac;
 }
 
 static void __time_critical_func(css_handle_rx_data_complete)(pch_chp_t *chp, pch_schib_t *schib) {
@@ -216,14 +245,11 @@ static void __time_critical_func(css_handle_rx_data_command)(pch_chp_t *chp, pch
 	// (or ignore/discard) zeroes and no data is about to be sent
 	// to us
 	bool zeroes = (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_SKIP) != 0;
-	// If Skp is set in the CCW then we discard the incoming data
-	// (or, if PROTO_CHOP_FLAG_SKIP is set then we ignore those
-	// implicit zeroes)
-        bool discard = (get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_SKP) != 0;
 
 	addr_count_t ac = begin_data_write(chp, schib, p); // may have chained
-	if (discard) {
-		// Skp flag set in CCW: discard data instead of writing it
+	if (ac.discard) {
+		// Skp flag set in CCW or schs error or halting:
+		// discard data instead of writing it
 		if (zeroes) {
 			// The device wants us to write zeroes and
 			// isn't sending data so we can bypass any
@@ -232,8 +258,8 @@ static void __time_critical_func(css_handle_rx_data_command)(pch_chp_t *chp, pch
 			css_handle_rx_data_complete(chp, schib);
 		} else {
 			// Device has gone to the trouble of sending
-			// us data but so we hace to explicitly
-			// receive and discard it
+			// us data so we have to receive and discard
+			// it explicitly
                         dmachan_start_dst_discard(&chp->rx_channel,
                                 (uint32_t)ac.count);
 		}

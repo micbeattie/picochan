@@ -411,13 +411,33 @@ int pch_sch_store(pch_sid_t sid, pch_schib_t *out_schib);
 /*! \brief Cancel a channel program that has not yet started
  * \ingroup picochan_css
  *
- * pch_sch_start marks a subchannel as "Start Pending", adds it to
- * an internal list and raises an IRQ for the CSS to process
- * asynchronously. If pch_sch_cancel is called before the CSS has
- * actually started the channel program then it cancels the start.
- * \return Condition Code - 0 for cancelled, 1 for too late to cancel, 2 for no such sid
+ * pch_sch_cancel tries to cancel a channel program before it has
+ * started. If pch_sch_cancel is called before the CSS has actually
+ * started the channel program (meaning that pch_sch_start() has
+ * set the AcStartPending in the subchannel's SCSW control flags
+ * but the function IRQ handler that would then process the Start
+ * has not yet run), then it cancels the start and returns condition
+ * code 0. Otherwise, it returns 1 meaning "too late to cancel"
+ * or 2 for "no such sid".
+ *
+ * pch_sch_cancel only acts on the schib; it does not trigger any
+ * interrupt to cause any function IRQ not does it communicate with
+ * the CU in any way.
  */
 int pch_sch_cancel(pch_sid_t sid);
+
+/*! \brief Halt a channel program
+ * \ingroup picochan_css
+ *
+ * pch_sch_halt tries to halt a channel program. It sets the
+ * subchannel's AcHaltPending flag and triggers a CSS function IRQ
+ * which sends a Halt command to the CU for the device. The CU and
+ * device driver are responsible for acting on the Halt command in
+ * a timely manner and responding with an UpdateStatus to end the
+ * channel program as soon as reasonably convenient. Depending on
+ * the device driver, the Halt may or may not return a normal status. 
+ */
+int pch_sch_halt(pch_sid_t sid);
 
 /*! \brief Test if there is a pending I/O interruption
  * \ingroup picochan_css

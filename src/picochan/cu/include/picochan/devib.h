@@ -85,6 +85,7 @@ static_assert(__builtin_constant_p(PCH_DEVIB_SPACE_SHIFT),
 #define PCH_DEVIB_FLAG_RX_DATA_REQUIRED 0x20
 #define PCH_DEVIB_FLAG_TX_CALLBACK      0x10
 #define PCH_DEVIB_FLAG_TRACED           0x08
+#define PCH_DEVIB_FLAG_STOPPING         0x04
 
 static inline bool pch_devib_is_started(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_STARTED;
@@ -106,6 +107,10 @@ static inline bool pch_devib_set_traced(pch_devib_t *devib, bool trace) {
                 devib->flags &= ~PCH_DEVIB_FLAG_TRACED;
 
         return old_trace;
+}
+
+static inline bool pch_devib_is_stopping(pch_devib_t *devib) {
+        return devib->flags & PCH_DEVIB_FLAG_STOPPING;
 }
 
 // Forward declaration of pch_cu_t for identifying devib by

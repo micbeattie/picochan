@@ -30,9 +30,10 @@ static int16_t __no_inline_not_in_flash_func(push_tx_list)(pch_cu_t *cu, pch_uni
 // devib and simply update its fields.
 
 // pch_devib_prepare_update_status prepares to send an UpdateStatus
-// command. If it's either an unsolicited status (neither ChannelEnd
-// nor DeviceEnd set) or it's end-of-channel-program (both ChannelEnd
-// and DeviceEnd set) then it also sets the devib Addr and Size
+// command. It it's end-of-channel-program (both ChannelEnd and
+// DeviceEnd set), it clears the Stopping flag. If it's either
+// end-of-channel-program or unsolicited status (neither ChannelEnd
+// nor DeviceEnd set), it also sets the devib Addr and Size
 // fields to dstaddr and size respectively to advertise to the CSS
 // the buffer and length to which the next CCW Write-type command can
 // immediately send data during Start. The window advertised will
@@ -44,6 +45,9 @@ void __no_inline_not_in_flash_func(pch_devib_prepare_update_status)(pch_devib_t 
         // be in devs, otherwise require it *not* to be in devs.
         assert((devib->flags & PCH_DEVIB_FLAG_STARTED)
                 ^ (devs & PCH_DEVS_CHANNEL_END));
+
+	if (devs & PCH_DEVS_DEVICE_END)
+                devib->flags &= ~PCH_DEVIB_FLAG_STOPPING;
 
 	pch_bsize_t esize = PCH_BSIZE_ZERO;
 	if ((devs & PCH_DEVS_DEVICE_END) || !(devs & PCH_DEVS_CHANNEL_END)) {
@@ -288,6 +292,27 @@ int __time_critical_func(pch_dev_send_zeroes_norespond_then)(pch_devib_t *devib,
 
 int __time_critical_func(pch_dev_send_zeroes_norespond)(pch_devib_t *devib, uint16_t n) {
         return pch_dev_send_zeroes_then(devib, n, 0, -1);
+}
+
+int __time_critical_func(pch_dev_call_or_reject_then)(pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt) {
+        int rc = f(devib);
+        if (rc < 0) {
+                pch_dev_sense_t sense;
+                if (rc == -ECANCEL) {
+                        sense = (pch_dev_sense_t){
+                                .flags = PCH_DEV_SENSE_CANCEL
+                        };
+                } else {
+                        sense = (pch_dev_sense_t){
+                                .flags = PCH_DEV_SENSE_COMMAND_REJECT,
+                                .asc = (uint8_t)(-rc),
+                        };
+                }
+                pch_dev_update_status_error_then(devib, sense,
+                        reject_cbindex_opt);
+        }
+
+        return rc;
 }
 
 void __time_critical_func(pch_dev_call_final_then)(pch_devib_t *devib, pch_dev_call_func_t f, int cbindex_opt) {

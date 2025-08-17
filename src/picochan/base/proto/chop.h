@@ -17,7 +17,8 @@ typedef enum __attribute__((packed)) proto_chop_cmd {
         PROTO_CHOP_ROOM                 = 1,
         PROTO_CHOP_DATA                 = 2,
         PROTO_CHOP_UPDATE_STATUS        = 3,
-        PROTO_CHOP_REQUEST_READ         = 4
+        PROTO_CHOP_REQUEST_READ         = 4,
+        PROTO_CHOP_HALT                 = 5
 } proto_chop_cmd_t;
 static_assert(sizeof(proto_chop_cmd_t) == 1, "proto_chop_cmd_t must be 1 byte");
 

@@ -159,6 +159,66 @@ int __time_critical_func(pch_sch_cancel)(pch_sid_t sid) {
 	return cc;
 }
 
+static int schib_is_valid_for_halt(pch_schib_t *schib) {
+	if (!schib_is_enabled(schib))
+                return 3; // schib not enabled
+
+        uint16_t ctrl_flags = schib->scsw.ctrl_flags;
+
+        if ((ctrl_flags & PCH_SC_PENDING)
+                && (ctrl_flags & PCH_SC_INTERMEDIATE) == 0) {
+                return 1; // status pending with other than intermediate status
+        }
+
+        if (ctrl_flags & (PCH_FC_HALT|PCH_FC_CLEAR))
+                return 2; // subchannel is busy for halt
+
+        return 0;
+}
+
+static int do_sch_halt(pch_schib_t *schib) {
+        uint32_t status = schibs_lock();
+
+        int cc = schib_is_valid_for_halt(schib);
+        if (cc != 0)
+                goto out;
+
+        uint16_t ctrl_flags = schib->scsw.ctrl_flags;
+        const uint16_t pending_func_mask = PCH_AC_START_PENDING
+                | PCH_AC_RESUME_PENDING | PCH_AC_HALT_PENDING
+                | PCH_AC_CLEAR_PENDING;
+
+        if (ctrl_flags & pending_func_mask) {
+                remove_from_func_dlist(schib);
+        } else if (ctrl_flags & PCH_SC_PENDING) {
+                remove_from_notify_list(schib);
+                ctrl_flags &= ~PCH_SC_PENDING;
+        }
+
+        ctrl_flags &= ~(PCH_AC_START_PENDING|PCH_FC_START);
+        ctrl_flags |= PCH_AC_HALT_PENDING;
+
+	schib->scsw.ctrl_flags = ctrl_flags;
+
+	pch_chpid_t chpid = schib->pmcw.chpid;
+	pch_chp_t *chp = pch_get_chp(chpid);
+        push_func_dlist(chp, schib);
+
+out:
+        schibs_unlock(status);
+	return cc;
+}
+
+int __time_critical_func(pch_sch_halt)(pch_sid_t sid) {
+	if (sid >= PCH_NUM_SCHIBS)
+		return 3;
+
+	pch_schib_t *schib = get_schib(sid);
+	int cc = do_sch_halt(schib);
+	trace_schib_byte(PCH_TRC_RT_CSS_SCH_HALT, schib, cc);
+	return cc;
+}
+
 // caller must ensure *loc_scsw is in fast RAM
 static int do_sch_test(pch_schib_t *schib, pch_scsw_t *loc_scsw) {
         int cc = 1;

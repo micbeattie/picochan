@@ -121,6 +121,9 @@ static int do_gd_setconf(pch_devib_t *devib) {
         if (!gd)
                 return -EINVALIDDEV;
 
+        if (pch_devib_is_stopping(devib))
+                return -ECANCEL;
+
         uint16_t size = proto_parse_count_payload(devib->payload);
 
         switch (gd->cfgcmd) {
@@ -153,6 +156,11 @@ static void gd_setconf(pch_devib_t *devib) {
 
 static bool read_in_pins_rt_callback(repeating_timer_t *rt) {
         pch_devib_t *devib = (pch_devib_t *)rt->user_data;
+        if (pch_devib_is_stopping(devib)) {
+                pch_dev_update_status_ok_then(devib, gd_start_cbindex);
+                return false; // stop repeating timer
+        }
+
         gpio_dev_t *gd = get_gpio_dev(devib);
         assert(gd);
         gd->values.data[gd->values.offset++] = gd_read_in_pins(gd);
@@ -194,6 +202,11 @@ static int do_ccw_write(pch_devib_t *devib, gpio_dev_t *gd) {
 
 static bool write_out_pins_rt_callback(repeating_timer_t *rt) {
         pch_devib_t *devib = (pch_devib_t *)rt->user_data;
+        if (pch_devib_is_stopping(devib)) {
+                pch_dev_update_status_ok_then(devib, gd_start_cbindex);
+                return false; // stop repeating timer
+        }
+
         gpio_dev_t *gd = get_gpio_dev(devib);
         assert(gd);
         uint8_t val = gd->values.data[gd->values.offset++];
@@ -221,6 +234,9 @@ static int do_gd_write(pch_devib_t *devib) {
         gpio_dev_t *gd = get_gpio_dev(devib);
         if (!gd)
                 return -EINVALIDDEV;
+
+        if (pch_devib_is_stopping(devib))
+                return -ECANCEL;
 
         uint16_t size = proto_parse_count_payload(devib->payload);
         if (size == 0)
@@ -295,6 +311,9 @@ static int do_gd_start(pch_devib_t *devib) {
         gpio_dev_t *gd = get_gpio_dev(devib);
         if (!gd)
                 return -EINVALIDDEV;
+
+        if (pch_devib_is_stopping(devib))
+                return -ECANCEL;
 
         uint8_t ccwcmd = devib->payload.p0;
         switch (ccwcmd) {

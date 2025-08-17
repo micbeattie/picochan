@@ -33,6 +33,14 @@ static void __not_in_flash_func(cus_handle_rx_chop_room)(pch_devib_t *devib, pro
 	callback_devib(devib);
 }
 
+static void __not_in_flash_func(cus_handle_rx_chop_halt)(pch_devib_t *devib, proto_packet_t p) {
+        if (!(devib->flags & PCH_DEVIB_FLAG_STARTED))
+                return;
+
+        devib->flags |= PCH_DEVIB_FLAG_STOPPING;
+        callback_devib(devib);
+}
+
 static void __not_in_flash_func(cus_handle_rx_chop_start_read_sense)(pch_devib_t *devib, uint16_t count) {
         if (count > sizeof(devib->sense))
                 count = sizeof(devib->sense);
@@ -122,6 +130,10 @@ static void __not_in_flash_func(cus_handle_rx_command_complete)(pch_cu_t *cu) {
 
 	case PROTO_CHOP_ROOM:
 		cus_handle_rx_chop_room(devib, p);
+                break;
+
+	case PROTO_CHOP_HALT:
+		cus_handle_rx_chop_halt(devib, p);
                 break;
 
 	default:

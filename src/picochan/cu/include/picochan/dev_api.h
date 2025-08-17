@@ -27,7 +27,11 @@
 // length sent is validated to be under the CSS-advertised window
 // (devib->size) and capped at that if not, with the actual count
 // returned. Many functions are variants of the full generic ones
-// that simply specialise the callback and flags fields
+// that simply specialise the callback and flags fields.
+// Values between 1 and 255 are typically used to fit into the ASC
+// byte of a pch_dev_sense_t with sense code
+// PCH_DEV_SENSE_COMMAND_REJECT. ECANCEL is associated with sense
+// code PCH_DEV_SENSE_CANCEL.
 
 enum {
         ENOSUCHERROR	        = 1,
@@ -42,6 +46,8 @@ enum {
         EINVALIDVALUE           = 10,
         EDATALENZERO            = 11,
         EBUFFERTOOSHORT         = 12,
+        //
+        ECANCEL                 = 256
 };
 
 // dev API with fully general arguments
@@ -234,26 +240,18 @@ int pch_dev_update_status_error(pch_devib_t *devib, pch_dev_sense_t sense);
 
 typedef int (*pch_dev_call_func_t)(pch_devib_t *devib);
 
-/*! Calls f and, if it returns a negative value, sets sense code to
- * CommandReject with the associated negated (positive) error value,
- * triggers an UpdateStatus to report the error and sets the
+/*! Calls f and, if it returns a negative value, sets an appropriate
+ * sense, triggers an UpdateStatus to report the error and sets the
  * "next callback" index. If f returns a non-negative value, no
- * further action is taken. In either case, the return value of f
- * is propagated to the caller.
+ * action is taken. In either case, the return value of f is
+ * propagated to the caller.
+ *
+ * When f returns a negative value between -1 and -255, the sense set
+ * is CommandReject with an ASC byte of the associated negated
+ * (positive) error value. When f returns -ECANCEL (-256), the
+ * sense set is Cancel.
  */
-static inline int pch_dev_call_or_reject_then(pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt) {
-        int rc = f(devib);
-        if (rc < 0) {
-                pch_dev_sense_t sense = {
-                        .flags = PCH_DEV_SENSE_COMMAND_REJECT,
-                        .asc = (uint8_t)(-rc),
-                };
-                pch_dev_update_status_error_then(devib, sense,
-                        reject_cbindex_opt);
-        }
-
-        return rc;
-}
+int pch_dev_call_or_reject_then(pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt);
 
 /*! Calls f, sends an UpdateStatus with an appropriate payload based
  * on its return value then sets cbindex_opt as the next callback.
