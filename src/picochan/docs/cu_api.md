@@ -137,11 +137,14 @@ void pch_cu_start(pch_cuaddr_t cua);
 #### Convenience API with fully general arguments
 
 ```
-int pch_dev_set_callback(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
-int pch_dev_send_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
-int pch_dev_send_zeroes_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
-int pch_dev_receive_then(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size, int cbindex_opt);
-int pch_dev_update_status_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_set_callback(pch_devib_t *devib, int cbindex_opt);
+int pch_dev_call_or_reject_then(pch_devib_t *devib, pch_dev_call_func_t f, int reject_cbindex_opt);
+void pch_dev_call_final_then(pch_devib_t *devib, pch_dev_call_func_t f, int cbindex_opt);
+
+int pch_dev_send_then(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+int pch_dev_send_zeroes_then(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags, int cbindex_opt);
+int pch_dev_receive_then(pch_devib_t *devib, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_advert_then(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size, int cbindex_opt);
 ```
 
 #### Convenience API with some fixed arguments
@@ -162,29 +165,29 @@ as the `cbindex_opt` argument of the full `_then` function.
 function with a device status of `DeviceEnd|ChannelEnd|UnitCheck`
 
 ```
-int pch_dev_send(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
-int pch_dev_send_final(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_final_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_respond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_norespond(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n);
-int pch_dev_send_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, void *srcaddr, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, proto_chop_flags_t flags);
-int pch_dev_send_zeroes_respond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes_respond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
-int pch_dev_send_zeroes_norespond_then(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n, int cbindex_opt);
-int pch_dev_send_zeroes_norespond(pch_cu_t *cu, pch_unit_addr_t ua, uint16_t n);
-int pch_dev_receive(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
-int pch_dev_update_status_then(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, int cbindex_opt);
-int pch_dev_update_status(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs);
-int pch_dev_update_status_advert(pch_cu_t *cu, pch_unit_addr_t ua, uint8_t devs, void *dstaddr, uint16_t size);
-int pch_dev_update_status_ok_then(pch_cu_t *cu, pch_unit_addr_t ua, int cbindex_opt);
-int pch_dev_update_status_ok(pch_cu_t *cu, pch_unit_addr_t ua);
-int pch_dev_update_status_ok_advert(pch_cu_t *cu, pch_unit_addr_t ua, void *dstaddr, uint16_t size);
-int pch_dev_update_status_error_advert_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt);
-int pch_dev_update_status_error_then(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, int cbindex_opt);
-int pch_dev_update_status_error_advert(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
-int pch_dev_update_status_error(pch_cu_t *cu, pch_unit_addr_t ua, pch_dev_sense_t sense);
+int pch_dev_send(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags);
+int pch_dev_send_final(pch_devib_t *devib, void *srcaddr, uint16_t n);
+int pch_dev_send_final_then(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_respond(pch_devib_t *devib, void *srcaddr, uint16_t n);
+int pch_dev_send_respond_then(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_norespond(pch_devib_t *devib, void *srcaddr, uint16_t n);
+int pch_dev_send_norespond_then(pch_devib_t *devib, void *srcaddr, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags);
+int pch_dev_send_zeroes_respond_then(pch_devib_t *devib, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes_respond(pch_devib_t *devib, uint16_t n);
+int pch_dev_send_zeroes_norespond_then(pch_devib_t *devib, uint16_t n, int cbindex_opt);
+int pch_dev_send_zeroes_norespond(pch_devib_t *devib, uint16_t n);
+int pch_dev_receive(pch_devib_t *devib, void *dstaddr, uint16_t size);
+int pch_dev_update_status_then(pch_devib_t *devib, uint8_t devs, int cbindex_opt);
+int pch_dev_update_status(pch_devib_t *devib, uint8_t devs);
+int pch_dev_update_status_advert(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size);
+int pch_dev_update_status_ok_then(pch_devib_t *devib, int cbindex_opt);
+int pch_dev_update_status_ok(pch_devib_t *devib);
+int pch_dev_update_status_ok_advert(pch_devib_t *devib, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error_advert_then(pch_devib_t *devib, pch_dev_sense_t sense, void *dstaddr, uint16_t size, int cbindex_opt);
+int pch_dev_update_status_error_then(pch_devib_t *devib, pch_dev_sense_t sense, int cbindex_opt);
+int pch_dev_update_status_error_advert(pch_devib_t *devib, pch_dev_sense_t sense, void *dstaddr, uint16_t size);
+int pch_dev_update_status_error(pch_devib_t *devib, pch_dev_sense_t sense);
 ```
 
 ### Low-level API for device driver to its CU
@@ -199,5 +202,5 @@ static inline void pch_devib_prepare_write_data(pch_devib_t *devib, void *srcadd
 static inline void pch_devib_prepare_write_zeroes(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags);
 static inline void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr, uint16_t size);
 void pch_devib_prepare_update_status(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size);
-void pch_devib_send_or_queue_command(pch_cu_t *cu, pch_unit_addr_t ua);
+void pch_devib_send_or_queue_command(pch_devib_t *devib);
 ```
