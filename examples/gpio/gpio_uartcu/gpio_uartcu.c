@@ -7,8 +7,8 @@
 
 #include "picochan/cu.h"
 
-extern void gd_cu_init(pch_cuaddr_t cua);
-
+#define NUM_GPIO_DEVS 8
+#define FIRST_UA 0
 #define CUADDR 0
 
 #define GD_ENABLE_TRACE true
@@ -22,6 +22,8 @@ extern void gd_cu_init(pch_cuaddr_t cua);
 
 // Baud rate for UART channel must match that used by CSS
 #define GD_BAUDRATE 115200
+
+static pch_cu_t gd_cu = PCH_CU_INIT(NUM_GPIO_DEVS);
 
 static uart_inst_t *prepare_uart_gpios(void) {
         bi_decl(bi_4pins_with_func(GDCU_UART_RX_PIN,
@@ -44,6 +46,8 @@ static void light_led_for_three_seconds(void) {
         gpio_put(PICO_DEFAULT_LED_PIN, false);
 }
 
+extern void gd_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices);
+
 int main(void) {
         bi_decl(bi_program_description("picochan gpio_dev CU"));
         // work around timer stall during gdb debug with openocd:
@@ -55,7 +59,9 @@ int main(void) {
         pch_cus_init();
         pch_cus_set_trace(GD_ENABLE_TRACE);
 
-        gd_cu_init(CUADDR);
+        gd_cu_init(&gd_cu, FIRST_UA, NUM_GPIO_DEVS);
+        pch_cu_register(&gd_cu, CUADDR);
+        pch_cus_trace_cu(CUADDR, GD_ENABLE_TRACE);
 
         uart_inst_t *uart = prepare_uart_gpios();
         pch_cus_auto_configure_uartcu(CUADDR, uart, GD_BAUDRATE);

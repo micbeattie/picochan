@@ -16,23 +16,29 @@
  * writes/reads from memory for command transfers.
  */
 
-extern void blink_cu_init(pch_cuaddr_t cua);
-
+const pch_unit_addr_t FIRST_UA = 0; // First (and only) unit address
 const pch_cuaddr_t CUADDR = 0;
 const pch_chpid_t CHPID = 0;
 
 #define BLINK_ENABLE_TRACE true
+
+static pch_cu_t blink_cu = PCH_CU_INIT(1);
 
 pch_dmaid_t css_to_cu_dmaid;
 pch_dmaid_t cu_to_css_dmaid;
 pch_dma_irq_index_t css_dmairqix = -1;
 pch_dma_irq_index_t cu_dmairqix = -1;
 
+extern void blink_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua);
+
 static void core1_thread(void) {
         pch_cus_init(); // could do from core 0
         pch_cus_set_trace(BLINK_ENABLE_TRACE); // could do from core 0
         pch_cus_configure_dma_irq_index_shared_default(cu_dmairqix);
-        blink_cu_init(CUADDR); // *must* be from core 1 (alarm pool create)
+        
+        blink_cu_init(&blink_cu, FIRST_UA);
+        pch_cu_register(&blink_cu, CUADDR);
+        pch_cus_trace_cu(CUADDR, BLINK_ENABLE_TRACE);
 
         dmachan_tx_channel_t *txpeer = pch_chp_get_tx_channel(CHPID);
         pch_cus_memcu_configure(CUADDR, cu_to_css_dmaid,

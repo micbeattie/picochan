@@ -7,6 +7,9 @@
 
 #include "picochan/cu.h"
 
+// First (and only) unit address
+#define FIRST_UA 0
+
 /*
  * blink_uartcu runs the CU side of the blink Picochan example and is
  * configured to run on core 0 and serve up its "blink" device via
@@ -22,8 +25,6 @@
  * channel-to-CU connections - see the blink_memchan example for that.
  */
 
-extern void blink_cu_init(pch_cuaddr_t cua);
-
 #define CUADDR 0
 
 #define BLINK_ENABLE_TRACE true
@@ -37,6 +38,8 @@ extern void blink_cu_init(pch_cuaddr_t cua);
 
 // Baud rate for UART channel must match that used by CSS
 #define BLINK_BAUDRATE 115200
+
+static pch_cu_t blink_cu = PCH_CU_INIT(1);
 
 static uart_inst_t *prepare_uart_gpios(void) {
         bi_decl(bi_4pins_with_func(BLINK_UART_RX_PIN,
@@ -59,6 +62,8 @@ static void light_led_for_three_seconds(void) {
         gpio_put(PICO_DEFAULT_LED_PIN, false);
 }
 
+extern void blink_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua);
+
 int main(void) {
         bi_decl(bi_program_description("picochan blink CU"));
         // work around timer stall during gdb debug with openocd:
@@ -70,7 +75,9 @@ int main(void) {
         pch_cus_init();
         pch_cus_set_trace(BLINK_ENABLE_TRACE);
 
-        blink_cu_init(CUADDR);
+        blink_cu_init(&blink_cu, FIRST_UA);
+        pch_cu_register(&blink_cu, CUADDR);
+        pch_cus_trace_cu(CUADDR, BLINK_ENABLE_TRACE);
 
         uart_inst_t *uart = prepare_uart_gpios();
         pch_cus_auto_configure_uartcu(CUADDR, uart, BLINK_BAUDRATE);

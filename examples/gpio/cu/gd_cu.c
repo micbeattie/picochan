@@ -7,27 +7,27 @@
 #include "gd_config.h"
 #include "gd_pins.h"
 
-#ifndef NUM_GPIO_DEVS
-#define NUM_GPIO_DEVS 8
+#ifndef MAX_NUM_GPIO_DEVS
+#define MAX_NUM_GPIO_DEVS 8
 #endif
 
 #define GD_ENABLE_TRACE true
 
-static pch_cu_t gd_cu = PCH_CU_INIT(NUM_GPIO_DEVS);
+static alarm_pool_t *gd_alarm_pool; // Must run on same core as the CU
 
-static alarm_pool_t *gd_alarm_pool; // Must run on same core as gd_cu
+static pch_dev_range_t gd_dev_range;
 
 static pch_cbindex_t gd_start_cbindex;
 static pch_cbindex_t gd_setconf_cbindex;
 static pch_cbindex_t gd_write_cbindex;
 static pch_cbindex_t gd_complete_test_cbindex;
 
-gpio_dev_t gpio_devs[NUM_GPIO_DEVS];
+gpio_dev_t gpio_devs[MAX_NUM_GPIO_DEVS];
 
 static inline gpio_dev_t *get_gpio_dev(pch_devib_t *devib) {
-        pch_unit_addr_t ua = pch_dev_get_ua(devib);
-        if (ua < NUM_GPIO_DEVS)
-                return &gpio_devs[ua];
+        int i = pch_dev_range_get_index(&gd_dev_range, devib);
+        if (i >= 0)
+                return &gpio_devs[i];
 
         return NULL;
 }
@@ -380,9 +380,9 @@ static void gd_start(pch_devib_t *devib) {
                 gd_start_cbindex);
 }
 
-void gd_cu_init(pch_cuaddr_t cua) {
-        pch_cu_register(&gd_cu, cua);
-        pch_cus_trace_cu(cua, GD_ENABLE_TRACE);
+void gd_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices) {
+        assert(num_devices <= MAX_NUM_GPIO_DEVS);
+        pch_dev_range_init(&gd_dev_range, cu, first_ua, num_devices);
 
         gd_start_cbindex =
                 pch_register_unused_devib_callback(gd_start);
@@ -393,11 +393,8 @@ void gd_cu_init(pch_cuaddr_t cua) {
         gd_complete_test_cbindex =
                 pch_register_unused_devib_callback(gd_complete_test);
 
-        gd_alarm_pool = alarm_pool_create_with_unused_hardware_alarm(NUM_GPIO_DEVS);
+        gd_alarm_pool = alarm_pool_create_with_unused_hardware_alarm(MAX_NUM_GPIO_DEVS);
 
         memset(gpio_devs, 0, sizeof(gpio_devs));
-        for (uint i = 0; i < NUM_GPIO_DEVS; i++) {
-                pch_devib_t *devib = pch_get_devib(&gd_cu, i);
-                pch_dev_set_callback(devib, gd_start_cbindex);
-        }
+        pch_dev_range_set_callback(&gd_dev_range, gd_start_cbindex);
 }
