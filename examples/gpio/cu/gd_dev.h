@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 #ifndef _GD_DEV_H
 #define _GD_DEV_H
 

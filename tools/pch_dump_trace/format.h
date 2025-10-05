@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>

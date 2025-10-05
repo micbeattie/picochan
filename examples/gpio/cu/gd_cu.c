@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 #include <string.h>
 #include "hardware/gpio.h"
 #include "pico/time.h"

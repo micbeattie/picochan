@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 typedef struct cardkb_dev_config {
         uint16_t        timeout_cs; // timeout in 1/100 secs (ffff for forever)
         unsigned char   eol;        // end-of-line char or 0

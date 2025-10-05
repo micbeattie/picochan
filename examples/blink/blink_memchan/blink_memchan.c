@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 #include "hardware/gpio.h"
 #include "hardware/irq.h"
 #include "pico/multicore.h"

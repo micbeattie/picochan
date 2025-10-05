@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef _PCH_CSS_SCHIB_INTERNAL_H

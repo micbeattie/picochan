@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 #include "hardware/gpio.h"
 #include "gd_config.h"
 #include "gd_pins.h"

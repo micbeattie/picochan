@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
  */
 
 // pch_dump_trace is not intended to be compiled and run on the Pico.

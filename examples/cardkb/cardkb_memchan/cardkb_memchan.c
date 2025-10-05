@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
 #include <stdio.h>
 #include "hardware/gpio.h"
 #include "hardware/i2c.h"

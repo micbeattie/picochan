@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef _PCH_TXSM_PENDING_XFER_H

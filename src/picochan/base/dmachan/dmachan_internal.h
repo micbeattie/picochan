@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
  */
 
 #ifndef _PCH_DMACHAN_DMACHAN_INTERNAL_H
