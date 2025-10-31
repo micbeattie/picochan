@@ -427,6 +427,16 @@ static inline pch_unit_addr_t pch_dev_range_get_ua(pch_dev_range_t *dr, uint i) 
         return dr->first_ua + i;
 }
 
+static inline pch_unit_addr_t pch_dev_range_get_ua_required(pch_dev_range_t *dr, uint i) {
+        if (!dr->cu)
+                panic("missing cu in dev_range");
+
+        if (i >= dr->num_devices)
+                panic("index not in dev_range");
+
+        return dr->first_ua + i;
+}
+
 static inline int pch_dev_range_get_index_nocheck(pch_dev_range_t *dr, pch_devib_t *devib) {
         return (int)pch_dev_get_ua(devib) - dr->first_ua;
 }
@@ -453,6 +463,11 @@ static inline pch_devib_t *pch_dev_range_get_devib_by_index(pch_dev_range_t *dr,
         assert(dr->cu);
 
         pch_unit_addr_t ua = pch_dev_range_get_ua(dr, i);
+        return pch_get_devib(dr->cu, ua);
+}
+
+static inline pch_devib_t *pch_dev_range_get_devib_by_index_required(pch_dev_range_t *dr, uint i) {
+        pch_unit_addr_t ua = pch_dev_range_get_ua_required(dr, i);
         return pch_get_devib(dr->cu, ua);
 }
 
@@ -484,6 +499,26 @@ static inline pch_devib_t *pch_dev_range_get_devib_by_ua_required(pch_dev_range_
         return pch_get_devib(dr->cu, ua);
 }
 
+static inline int pch_dev_range_get_index_by_ua_nocheck(pch_dev_range_t *dr, pch_unit_addr_t ua) {
+        return (int)ua - dr->first_ua;
+}
+
+static inline int pch_dev_range_get_index_by_ua(pch_dev_range_t *dr, pch_unit_addr_t ua) {
+        int i = pch_dev_range_get_index_by_ua_nocheck(dr, ua);
+        if (i < 0 || i >= dr->num_devices)
+                return -1;
+
+        return i;
+}
+
+static inline int pch_dev_range_get_index_by_ua_required(pch_dev_range_t *dr, pch_unit_addr_t ua) {
+        int i = pch_dev_range_get_index_by_ua(dr, ua);
+        if (i < 0)
+                panic("ua not in dev_range");
+
+        return i;
+}
+
 static inline void pch_dev_range_init(pch_dev_range_t *drout, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices) {
         assert(cu);
         assert((uint)first_ua + (uint)num_devices <= cu->num_devibs);
@@ -500,6 +535,12 @@ static inline void pch_dev_range_set_callback(pch_dev_range_t *dr, pch_cbindex_t
                 pch_devib_t *devib = pch_dev_range_get_devib_by_index(dr, i);
                 pch_dev_set_callback(devib, cbindex);
         }
+}
+
+static inline pch_cbindex_t pch_dev_range_register_unused_devib_callback(pch_dev_range_t *dr, pch_devib_callback_t cb) {
+        pch_cbindex_t cbindex = pch_register_unused_devib_callback(cb);
+        pch_dev_range_set_callback(dr, cbindex);
+        return cbindex;
 }
 
 #endif
