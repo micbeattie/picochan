@@ -22,6 +22,8 @@ typedef struct __attribute__((__packed__,__aligned__(4))) pch_dev_sense {
         uint8_t ascq;
 } pch_dev_sense_t;
 
+#define PCH_DEV_SENSE_NONE ((pch_dev_sense_t){0})
+
 #define PCH_DEV_SENSE_COMMAND_REJECT            0x80
 #define PCH_DEV_SENSE_INTERVENTION_REQUIRED     0x40
 #define PCH_DEV_SENSE_BUS_OUT_CHECK             0x20
