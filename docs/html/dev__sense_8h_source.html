@@ -110,16 +110,18 @@ $(function(){initNavTree('dev__sense_8h_source.html','',''); });
 <div class="line"><a id="l00023" name="l00023"></a><span class="lineno"><a class="line" href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">   23</a></span>} <a class="code hl_typedef" href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a>;</div>
 </div>
 <div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span> </div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#define PCH_DEV_SENSE_COMMAND_REJECT            0x80</span></div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#define PCH_DEV_SENSE_INTERVENTION_REQUIRED     0x40</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define PCH_DEV_SENSE_BUS_OUT_CHECK             0x20</span></div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#define PCH_DEV_SENSE_EQUIPMENT_CHECK           0x10</span></div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#define PCH_DEV_SENSE_DATA_CHECK                0x08</span></div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#define PCH_DEV_SENSE_OVERRUN                   0x04</span></div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#define PCH_DEV_SENSE_PROTO_ERROR               0x02</span></div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#define PCH_DEV_SENSE_CANCEL                    0x01</span></div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#define PCH_DEV_SENSE_NONE ((pch_dev_sense_t){0})</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define PCH_DEV_SENSE_COMMAND_REJECT            0x80</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#define PCH_DEV_SENSE_INTERVENTION_REQUIRED     0x40</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#define PCH_DEV_SENSE_BUS_OUT_CHECK             0x20</span></div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="preprocessor">#define PCH_DEV_SENSE_EQUIPMENT_CHECK           0x10</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#define PCH_DEV_SENSE_DATA_CHECK                0x08</span></div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="preprocessor">#define PCH_DEV_SENSE_OVERRUN                   0x04</span></div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span><span class="preprocessor">#define PCH_DEV_SENSE_PROTO_ERROR               0x02</span></div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="preprocessor">#define PCH_DEV_SENSE_CANCEL                    0x01</span></div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="agroup__picochan__base_html_ga7c762e6d91ddd3a8c187ba2bbca3baf2"><div class="ttname"><a href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a></div><div class="ttdeci">struct pch_dev_sense pch_dev_sense_t</div><div class="ttdoc">The device sense structure by which a device can communicate additional error information on request ...</div></div>
 <div class="ttc" id="astructpch__dev__sense_html"><div class="ttname"><a href="structpch__dev__sense.html">pch_dev_sense</a></div><div class="ttdoc">The device sense structure by which a device can communicate additional error information on request ...</div><div class="ttdef"><b>Definition</b> dev_sense.h:18</div></div>
 </div><!-- fragment --></div><!-- contents -->

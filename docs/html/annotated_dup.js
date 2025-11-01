@@ -17,6 +17,8 @@ var annotated_dup =
     [ "pch_dev_range", "structpch__dev__range.html", null ],
     [ "pch_dev_sense", "structpch__dev__sense.html", null ],
     [ "pch_devib", "structpch__devib.html", null ],
+    [ "pch_hldev", "structpch__hldev.html", null ],
+    [ "pch_hldev_config", "structpch__hldev__config.html", null ],
     [ "pch_intcode", "structpch__intcode.html", null ],
     [ "pch_pmcw", "structpch__pmcw.html", null ],
     [ "pch_schib", "structpch__schib.html", null ],

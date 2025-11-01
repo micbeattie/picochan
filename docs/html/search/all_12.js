@@ -1,10 +1,6 @@
 var searchData=
 [
-  ['when_20a_20ccw_20command_20in_20a_20channel_20program_20is_20finished_0',['When a CCW command in a channel program is finished',['../channel_program_page.html#autotoc_md1',1,'']]],
-  ['whole_20css_1',['Initialisation of whole CSS',['../css_api_page.html#autotoc_md9',1,'']]],
-  ['whole_20cu_20subsystem_2',['Initialisation of whole CU subsystem',['../cu_api_page.html#autotoc_md22',1,'']]],
-  ['with_20fully_20general_20arguments_3',['Convenience API with fully general arguments',['../cu_api_page.html#autotoc_md25',1,'']]],
-  ['with_20gdb_4',['Interactive &quot;offload trace buffers and parse/display&quot; with gdb',['../tracing_page.html#autotoc_md39',1,'']]],
-  ['with_20some_20fixed_20arguments_5',['Convenience API with some fixed arguments',['../cu_api_page.html#autotoc_md26',1,'']]],
-  ['wrappers_20for_20convenience_20or_20optimisation_6',['Variations and wrappers for convenience or optimisation',['../css_api_page.html#autotoc_md17',1,'']]]
+  ['variations_20and_20wrappers_20for_20convenience_20or_20optimisation_0',['Variations and wrappers for convenience or optimisation',['../css_api_page.html#autotoc_md17',1,'']]],
+  ['various_20levels_1',['API to enable/disable trace at various levels',['../tracing_page.html#autotoc_md40',1,'']]],
+  ['void_2',['void',['../group__picochan__css.html#ga0801241357d0067f213b671aeb5f964f',1,'void(pch_sid_t sid, uint count, uint8_t isc):&#160;api_extra.c'],['../group__picochan__css.html#gae253dc22706dbda9b556123e6d0a7d18',1,'void(pch_sid_t sid, uint count, bool enabled):&#160;api_extra.c'],['../group__picochan__css.html#ga0801241357d0067f213b671aeb5f964f',1,'void(pch_sid_t sid, uint count, uint8_t isc):&#160;api_extra.c'],['../group__picochan__css.html#gae253dc22706dbda9b556123e6d0a7d18',1,'void(pch_sid_t sid, uint count, bool enabled):&#160;api_extra.c']]]
 ];

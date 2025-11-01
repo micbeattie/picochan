@@ -1,7 +1,25 @@
 var searchData=
 [
-  ['ua_5fslist_0',['ua_slist',['../structua__slist.html',1,'']]],
-  ['uart_20cu_1',['Initialise a channel to a UART CU',['../css_api_page.html#autotoc_md11',1,'']]],
-  ['unit_20cu_20api_20for_20device_20drivers_20overview_2',['Control Unit (CU) API for Device Drivers Overview',['../cu_api_page.html',1,'']]],
-  ['using_20picochan_3',['Compiling using Picochan',['../compiling_page.html',1,'']]]
+  ['time_20constants_20and_20definitions_20examples_3a_0',['time constants and definitions examples:',['../css_api_page.html#autotoc_md6',1,'Compile-time constants and definitions - examples:'],['../cu_api_page.html#autotoc_md20',1,'Compile-time constants and definitions - examples:']]],
+  ['to_20a_20cu_1',['to a CU',['../css_api_page.html#autotoc_md10',1,'Allocation of subchannels in a channel to a CU'],['../css_api_page.html#autotoc_md14',1,'Start a channel to a CU']]],
+  ['to_20a_20memchan_20cross_20core_20cu_2',['Initialise a channel to a memchan (cross-core) CU',['../css_api_page.html#autotoc_md12',1,'']]],
+  ['to_20a_20pio_20cu_3',['Initialise a channel to a pio CU',['../css_api_page.html#autotoc_md13',1,'']]],
+  ['to_20a_20uart_20cu_4',['Initialise a channel to a UART CU',['../css_api_page.html#autotoc_md11',1,'']]],
+  ['to_20application_5',['Notification to application',['../channel_program_page.html#autotoc_md4',1,'']]],
+  ['to_20enable_20disable_20trace_20at_20various_20levels_6',['API to enable/disable trace at various levels',['../tracing_page.html#autotoc_md40',1,'']]],
+  ['to_20enable_20disable_20trace_20or_20change_20isc_7',['Set PMCW flags of a subchannel to enable/disable, trace or change ISC',['../css_api_page.html#autotoc_md15',1,'']]],
+  ['to_20its_20cu_8',['to its CU',['../cu_api_page.html#autotoc_md24',1,'Convenience API for device driver to its CU'],['../cu_api_page.html#autotoc_md27',1,'Low-level API for device driver to its CU']]],
+  ['trace_20at_20various_20levels_9',['API to enable/disable trace at various levels',['../tracing_page.html#autotoc_md40',1,'']]],
+  ['trace_20buffers_20and_20parse_20display_20with_20gdb_10',['Interactive &quot;offload trace buffers and parse/display&quot; with gdb',['../tracing_page.html#autotoc_md39',1,'']]],
+  ['trace_20or_20change_20isc_11',['Set PMCW flags of a subchannel to enable/disable, trace or change ISC',['../css_api_page.html#autotoc_md15',1,'']]],
+  ['traces_20off_20platform_12',['&lt;span class=&quot;tt&quot;&gt;pch_dump_trace&lt;/span&gt; - parse and display traces (off-platform)',['../tracing_page.html#autotoc_md38',1,'']]],
+  ['tracing_13',['Tracing',['../index.html#autotoc_md35',1,'<a class="el" href="tracing_page.html">Tracing</a>'],['../tracing_page.html',1,'Tracing']]],
+  ['tracing_20for_20css_14',['Tracing for CSS',['../tracing_page.html#autotoc_md41',1,'']]],
+  ['tracing_20for_20cu_15',['Tracing for CU',['../tracing_page.html#autotoc_md42',1,'']]],
+  ['tracing_5fpage_20tracing_16',['&lt;a class=&quot;el&quot; href=&quot;tracing_page.html&quot;&gt;Tracing&lt;/a&gt;',['../index.html#autotoc_md35',1,'']]],
+  ['trc_2eh_17',['trc.h',['../trc_8h.html',1,'']]],
+  ['tx_5fcallback_5fua_18',['tx_callback_ua',['../structpch__cu.html#a802d2913290701330ce9b84390725204',1,'pch_cu']]],
+  ['tx_5fhead_19',['tx_head',['../structpch__cu.html#a2a5b6366732228e38eb2a3aa90052a92',1,'pch_cu']]],
+  ['tx_5ftail_20',['tx_tail',['../structpch__cu.html#a196c71c1fe64deb6b4e9ed4dbb571e70',1,'pch_cu']]],
+  ['types_21',['Types',['../css_api_page.html#autotoc_md8',1,'Types'],['../cu_api_page.html#autotoc_md19',1,'Types']]]
 ];
