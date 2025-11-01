@@ -306,7 +306,7 @@ int __time_critical_func(pch_dev_call_or_reject_then)(pch_devib_t *devib, pch_de
                 } else {
                         sense = (pch_dev_sense_t){
                                 .flags = PCH_DEV_SENSE_COMMAND_REJECT,
-                                .asc = (uint8_t)(-rc),
+                                .code = (uint8_t)(-rc),
                         };
                 }
                 pch_dev_update_status_error_then(devib, sense,
@@ -324,7 +324,7 @@ void __time_critical_func(pch_dev_call_final_then)(pch_devib_t *devib, pch_dev_c
                 devs |= PCH_DEVS_UNIT_CHECK;
                 pch_dev_sense_t sense = {
                         .flags = PCH_DEV_SENSE_COMMAND_REJECT,
-                        .asc = (uint8_t)(-rc),
+                        .code = (uint8_t)(-rc),
                 };
                 devib->sense = sense;
         }
