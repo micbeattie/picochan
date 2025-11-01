@@ -155,10 +155,8 @@ static addr_count_t __time_critical_func(begin_data_write)(pch_chp_t *chp, pch_s
         // rx_response_required flag so that, once we get the rx
         // completion of the data itself, we can see that we need to
         // do a send of a Room update
-        if ((proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
-                && !halting) {
+        if ((proto_chop_has_response_required(p.chop)) && !halting)
                 chp->rx_response_required = true;
-        }
 
         // Propagate PROTO_CHOP_FLAG_END to the chp rx_data_end_ds
         // as ChannelEnd|DeviceEnd so that, once we get the rx
@@ -167,7 +165,7 @@ static addr_count_t __time_critical_func(begin_data_write)(pch_chp_t *chp, pch_s
         // TODO: consider having a variant of the chop DATA command
         // that sends an esize-counted length of data and a full
         // device status in the other byte of the payload
-        if (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_END) {
+        if (proto_chop_has_end(p.chop)) {
                 uint8_t devs = PCH_DEVS_CHANNEL_END | PCH_DEVS_DEVICE_END;
                 chp->rx_data_end_ds = devs;
         }
@@ -245,7 +243,7 @@ static void __time_critical_func(css_handle_rx_data_command)(pch_chp_t *chp, pch
 	// if PROTO_CHOP_FLAG_SKIP is set in the incoming op, we write
 	// (or ignore/discard) zeroes and no data is about to be sent
 	// to us
-	bool zeroes = (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_SKIP) != 0;
+	bool zeroes = proto_chop_has_skip(p.chop);
 
 	addr_count_t ac = begin_data_write(chp, schib, p); // may have chained
 	if (ac.discard) {

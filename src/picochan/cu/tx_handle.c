@@ -61,8 +61,8 @@ static void make_data_command(pch_devib_t *devib) {
 	proto_chop_t op = devib->op;
         // If no response packet required and not a final auto-end
         // send then arrange for callback immediately after tx of data
-	if (!(op & PROTO_CHOP_FLAG_RESPONSE_REQUIRED)
-                && !(op & PROTO_CHOP_FLAG_END)) {
+	if (!proto_chop_has_response_required(op)
+                && !proto_chop_has_end(op)) {
 		cu->tx_callback_ua = (int16_t)pch_dev_get_ua(devib);
         } else {
 		cu->tx_callback_ua = -1;
@@ -72,10 +72,10 @@ static void make_data_command(pch_devib_t *devib) {
         // implicit following UpdateStatus with a plain
         // ChannelEnd|DeviceEnd so unset the Started flag as though
         // we'd sent an explicit one
-	if (op & PROTO_CHOP_FLAG_END)
+	if (proto_chop_has_end(op))
                 devib->flags &= ~PCH_DEVIB_FLAG_STARTED;
 
-	if (!(op & PROTO_CHOP_FLAG_SKIP))
+	if (!proto_chop_has_skip(op))
                 pch_txsm_set_pending(&cu->tx_pending, devib->addr, count);
 }
 

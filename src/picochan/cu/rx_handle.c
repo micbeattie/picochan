@@ -15,7 +15,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_data)(pch_devib_t *devib, pro
 	assert(devib->flags & PCH_DEVIB_FLAG_RX_DATA_REQUIRED);
 	uint32_t dstaddr = devib->addr;
 	uint32_t count = (uint32_t)proto_get_count(p);
-        if (proto_chop_flags(p.chop) & PROTO_CHOP_FLAG_SKIP) {
+        if (proto_chop_has_skip(p.chop)) {
                 dmachan_start_dst_data_src_zeroes(&cu->rx_channel,
                         dstaddr, count);
 	} else {

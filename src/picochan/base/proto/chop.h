@@ -46,4 +46,20 @@ static inline proto_chop_cmd_t proto_chop_cmd(proto_chop_t c) {
         return (proto_chop_cmd_t)(c & 0x0f);
 }
 
+static inline bool proto_chop_has_skip(proto_chop_t c) {
+        return proto_chop_flags(c) & PROTO_CHOP_FLAG_SKIP;
+}
+
+static inline bool proto_chop_has_end(proto_chop_t c) {
+        return proto_chop_flags(c) & PROTO_CHOP_FLAG_END;
+}
+
+static inline bool proto_chop_has_stop(proto_chop_t c) {
+        return proto_chop_flags(c) & PROTO_CHOP_FLAG_STOP;
+}
+
+static inline bool proto_chop_has_response_required(proto_chop_t c) {
+        return proto_chop_flags(c) & PROTO_CHOP_FLAG_RESPONSE_REQUIRED;
+}
+
 #endif
