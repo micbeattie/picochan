@@ -19,11 +19,13 @@
 #define PCH_HLDEV_STARTED       1
 #define PCH_HLDEV_RECEIVING     2
 #define PCH_HLDEV_SENDING       3
+#define PCH_HLDEV_SENDING_FINAL 4
 
 // values for code fields of dev_sense_t for PCH_DEV_SENSE_PROTO_ERROR
 #define PCH_HLDEV_ERR_NO_START_CALLBACK         1
 #define PCH_HLDEV_ERR_RECEIVE_FROM_READ_CCW     2
 #define PCH_HLDEV_ERR_SEND_TO_WRITE_CCW         3
+#define PCH_HLDEV_ERR_IDLE_OP_NOT_START         4
 
 typedef struct pch_hldev_config pch_hldev_config_t;
 typedef struct pch_hldev pch_hldev_t;
@@ -45,6 +47,7 @@ typedef struct pch_hldev {
         uint16_t                count; // bytes received/sent so far
         uint8_t                 state;
         uint8_t                 flags;
+        uint8_t                 ccwcmd;
 } pch_hldev_t;
 
 // values for pch_hldev_t flags
@@ -81,11 +84,13 @@ void pch_hldev_receive_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void 
 void pch_hldev_receive(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size);
 void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
 void pch_hldev_send_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback);
+void pch_hldev_send_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size);
 void pch_hldev_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size);
 void pch_hldev_end(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense);
 void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
 void pch_hldev_terminate_string(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
 void pch_hldev_terminate_string_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
+void pch_hldev_receive_buffer_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size);
 void pch_hldev_receive_string_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t len);
 
 

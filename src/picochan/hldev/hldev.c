@@ -36,6 +36,7 @@ void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
 // pch_hldev_receive() so by the time we are called, the devib
 // contains the information sent by the CSS about the latest receive.
 static void do_receive(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *devib) {
+        assert(pch_devib_is_cmd_write(devib));
         uint16_t n = proto_parse_count_payload(devib->payload);
         assert((uint)hd->count + (uint)n <= (uint)hd->size);
         hd->count += n;
@@ -80,10 +81,9 @@ void pch_hldev_receive(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dsta
 
 void pch_hldev_terminate_string(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
-        *hd->addr = '\0';
+        *(char*)hd->addr = '\0';
         hd->addr++;
         hd->count++;
-        pch_hldev_end_ok(hdcfg, devib);
 }
 
 void pch_hldev_terminate_string_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
@@ -92,65 +92,94 @@ void pch_hldev_terminate_string_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *d
 }
 
 void pch_hldev_receive_string_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t len) {
-        pch_hldev_receive_then(hdcfg, devib, dstaddr, size, terminate_string_end_ok);
+        pch_hldev_receive_then(hdcfg, devib, dstaddr, len,
+                pch_hldev_terminate_string_end_ok);
 }
 
 void pch_hldev_receive_buffer_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size) {
         pch_hldev_receive_then(hdcfg, devib, dstaddr, size, pch_hldev_end_ok);
 }
 
-// do_send progresses an hldev in SENDING state, meaning that it
-// has requested to send data to a Read-type CCW from a sized buffer.
-// Unlike a low-level pch_dev_send() which sends at most to the end of
-// the current segment, this function repeatedly calls pch_dev_send()
-// to send as much of the requested buffer as possible.
-// The first call to pch_dev_send() is from pch_hldev_send() so by the
-// time we are called, devib->size contains the exact remaining size
-// of the segment.
+// do_send progresses an hldev in SENDING or SENDING_FINAL state,
+// meaning that it has requested to send data to a Read-type CCW from
+// a sized buffer. Unlike a low-level pch_dev_send() which sends at
+// most to the end of the current segment, this function repeatedly
+// calls pch_dev_send() to send as much of the requested buffer as
+// possible. The first call to pch_dev_send() is from pch_hldev_send()
+// so by the time we are called, devib->size contains the exact
+// remaining size of the segment. If we send the last chunk of data
+// this time then for SENDING state, we return to STARTED state or
+// else for SENDING_FINAL, we include the PROTO_CHOP_FLAG_END flag
+// with the pch_dev_send() so that the CSS treats it as an implicit
+// "normal" end (DEVICE_END|CHANNEL_END with no sense) and we can go
+// straight to IDLE state.
 static void do_send(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *devib) {
+        assert(!pch_devib_is_cmd_write(devib));
         void *srcaddr = hd->addr;
         uint16_t n = hd->size - hd->count;
         assert(n > 0);
 
+        proto_chop_flags_t flags = 0;
         if (n > devib->size) {
                 n = devib->size;
+        } else if (hd->state == PCH_HLDEV_SENDING_FINAL) {
+                flags = PROTO_CHOP_FLAG_END;
         } else {
-                // this will be the last send
                 hd->state = PCH_HLDEV_STARTED;
         }
 
-        hd->addr += n;
-        hd->count += n;
-        pch_dev_send(devib, srcaddr, n, 0);
+        if (flags == PROTO_CHOP_FLAG_END)
+                pch_hldev_reset(hdcfg, hd); // back to IDLE
+        else {
+                hd->addr += n;
+                hd->count += n;
+        }
+        pch_dev_send(devib, srcaddr, n, flags);
 }
 
-void pch_hldev_send_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback) {
+static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback, bool final) {
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
-        if (pch_devib_is_cmd_write(devib)) {
-                pch_hldev_end_proto_error(hdcfg, devib,
-                        PCH_HLDEV_ERR_SEND_TO_WRITE_CCW);
-                pch_hldev_reset(hdcfg, hd);
-                return;
-        }
+        assert(pch_devib_is_started(devib));
+        assert(!pch_devib_is_cmd_write(devib));
 
         if (callback)
                 hd->callback = callback;
+
+        proto_chop_flags_t flags = 0;
+        if (final)
+                flags = PROTO_CHOP_FLAG_END;
 
         hd->size = size;
         if (size <= devib->size) {
                 // enough announced room in segment to send it all
                 // here without needing to go into SENDING state
-                devib->size -= size; // XXX check this is OK
-                hd->count = size;
-                pch_dev_send(devib, srcaddr, size, 0);
-                return;
+                if (final) {
+                        pch_hldev_reset(hdcfg, hd); // back to IDLE
+                } else {
+                        devib->size -= size; // XXX check this is OK
+                        hd->count = size;
+                }
+        } else {
+                if (final) {
+                        hd->state = PCH_HLDEV_SENDING_FINAL;
+                } else {
+                        flags |= PROTO_CHOP_FLAG_RESPONSE_REQUIRED;
+                        size = devib->size;
+                        hd->count = size;
+                        hd->addr = srcaddr + size;
+                        hd->state = PCH_HLDEV_SENDING;
+                }
         }
 
-        size = devib->size;
-        hd->count = size;
-        hd->addr = srcaddr + size;
-        hd->state = PCH_HLDEV_SENDING;
-        pch_dev_send(devib, srcaddr, size, PROTO_CHOP_FLAG_RESPONSE_REQUIRED);
+        pch_dev_send(devib, srcaddr, size, flags);
+}
+
+void pch_hldev_send_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback) {
+        start_send(hdcfg, devib, srcaddr, size, callback, false);
+}
+
+void pch_hldev_send_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size) {
+        start_send(hdcfg, devib, srcaddr, size, NULL, true);
 }
 
 void pch_hldev_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size) {
@@ -186,16 +215,14 @@ void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
 
         switch (hd->state) {
         case PCH_HLDEV_IDLE:
-                pch_hldev_callback_t start = hdcfg->start;
-                if (!start) {
-                        pch_hldev_end_proto_error(hdcfg, devib,
-                                PCH_HLDEV_ERR_NO_START_CALLBACK);
-                        return;
-                }
+                assert(proto_chop_cmd(devib->op) == PROTO_CHOP_START);
+                assert(hdcfg->start);
+                hd->ccwcmd = devib->payload.p0;
                 hd->callback = hdcfg->start;
                 // fallthrough
 
         case PCH_HLDEV_STARTED:
+                assert(pch_devib_is_started(devib));
                 hd->callback(hdcfg, devib);
                 return;
 
@@ -204,6 +231,7 @@ void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
                 return;
 
         case PCH_HLDEV_SENDING:
+        case PCH_HLDEV_SENDING_FINAL:
                 do_send(hdcfg, hd, devib);
                 return;
         }
