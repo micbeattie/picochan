@@ -432,7 +432,7 @@ static inline pch_unit_addr_t pch_dev_range_get_ua_required(pch_dev_range_t *dr,
                 panic("missing cu in dev_range");
 
         if (i >= dr->num_devices)
-                panic("index not in dev_range");
+                panic("index %lu not in dev_range", (unsigned long)i);
 
         return dr->first_ua + i;
 }
@@ -493,7 +493,7 @@ static inline pch_devib_t *pch_dev_range_get_devib_by_ua_required(pch_dev_range_
 
         if (ua < dr->first_ua
                 || (uint)ua >= (uint)dr->first_ua + (uint)dr->num_devices) {
-                panic("ua not in dev_range");
+                panic("ua %u not in dev_range", ua);
         }
 
         return pch_get_devib(dr->cu, ua);
@@ -514,7 +514,7 @@ static inline int pch_dev_range_get_index_by_ua(pch_dev_range_t *dr, pch_unit_ad
 static inline int pch_dev_range_get_index_by_ua_required(pch_dev_range_t *dr, pch_unit_addr_t ua) {
         int i = pch_dev_range_get_index_by_ua(dr, ua);
         if (i < 0)
-                panic("ua not in dev_range");
+                panic("ua %u not in dev_range", ua);
 
         return i;
 }
