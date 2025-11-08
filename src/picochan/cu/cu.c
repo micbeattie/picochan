@@ -4,7 +4,7 @@
  */
 
 #include <string.h>
-#include "picochan/cu.h"
+#include "cu_internal.h"
 #include "cus_trace.h"
 
 pch_cu_t *pch_cus[PCH_NUM_CUS];
@@ -170,7 +170,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmac
 
 void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
         pch_cu_t *cu = pch_get_cu(cua);
-        assert(!cu->started);
+        assert(!pch_cu_is_started(cu));
 
         dmachan_init_tx_channel(&cu->tx_channel, &dc->tx);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cu->cuaddr, &dc->tx);
@@ -182,7 +182,7 @@ void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
 void pch_cu_set_configured(pch_cuaddr_t cua, bool configured) {
         pch_cu_t *cu = pch_get_cu(cua);
 
-        cu->configured = true;
+        pch_cu_set_flag_configured(cu, true);
 
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_CONFIGURED,
                 ((struct pch_trdata_id_byte){
@@ -224,7 +224,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         dmachan_panic_unless_memchan_initialised();
 
         pch_cu_t *cu = pch_get_cu(cua);
-        assert(!cu->started);
+        assert(!pch_cu_is_started(cu));
 
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
@@ -245,10 +245,10 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
 
 void pch_cu_start(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
-        assert(cu->configured);
+        assert(pch_cu_is_configured(cu));
         assert(cu->num_devibs > 0);
 
-        if (cu->started)
+        if (pch_cu_is_started(cu))
                 return;
 
         for (int i = 0; i < cu->num_devibs; i++) {
@@ -256,7 +256,7 @@ void pch_cu_start(pch_cuaddr_t cua) {
                 cu->devibs[i].next = (pch_unit_addr_t)i;
         }
 
-        cu->started = true;
+        pch_cu_set_flag_started(cu, true);
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_STARTED,
                 ((struct pch_trdata_id_byte){
                         .id = cua,
@@ -272,8 +272,8 @@ bool pch_cus_set_trace(bool trace) {
 
 bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace) {
         pch_cu_t *cu = pch_get_cu(cua);
-        bool old_trace = cu->traced;
-        cu->traced = trace;
+        bool old_trace = pch_cu_is_traced(cu);
+        pch_cu_set_flag_traced(cu, trace);
         pch_trc_bufferset_t *bs = trace ? &pch_cus_trace_bs : 0;
 
         dmachan_set_link_bs(&cu->tx_channel.link, bs);
@@ -295,7 +295,7 @@ bool pch_cus_trace_dev(pch_devib_t *devib, bool trace) {
         bool old_trace = pch_devib_set_traced(devib, trace);
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_DEV_TRACED,
-                cu->traced || trace || old_trace,
+                pch_cu_is_traced(cu) || trace || old_trace,
                 ((struct pch_trdata_dev_byte){
                         .cuaddr = cu->cuaddr,
                         .ua = ua,

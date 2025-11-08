@@ -10,6 +10,27 @@
 #include "proto/packet.h"
 #include "devibs_lock.h"
 
+static inline void pch_cu_set_flag_configured(pch_cu_t *cu, bool b) {
+        if (b)
+                cu->flags |= PCH_CU_CONFIGURED;
+        else
+                cu->flags &= ~PCH_CU_CONFIGURED;
+}
+
+static inline void pch_cu_set_flag_started(pch_cu_t *cu, bool b) {
+        if (b)
+                cu->flags |= PCH_CU_STARTED;
+        else
+                cu->flags &= ~PCH_CU_STARTED;
+}
+
+static inline void pch_cu_set_flag_traced(pch_cu_t *cu, bool b) {
+        if (b)
+                cu->flags |= PCH_CU_TRACED;
+        else
+                cu->flags &= ~PCH_CU_TRACED;
+}
+
 static inline proto_packet_t get_rx_packet(pch_cu_t *cu) {
         // cu.rx_channel is a dmachan_rx_channel_t which is
         // __aligned(4) and cmd is the first member of rx_channel

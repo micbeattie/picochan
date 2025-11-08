@@ -104,13 +104,28 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 	int16_t                 tx_tail;
 	//! completions raise irq dma.IRQ_BASE+dmairqix, -1 before configuration
 	pch_dma_irq_index_t     dmairqix;
-	bool                    traced;
-	bool                    configured;
-	bool                    started;
+        uint8_t                 flags;
         uint16_t                num_devibs; //!< [0, 256]
         //! Flexible Array Member (FAM) of size num_devibs
 	pch_devib_t             devibs[];
 } pch_cu_t;
+
+// values of pch_cu_t flags
+#define PCH_CU_CONFIGURED       0x80
+#define PCH_CU_STARTED          0x40
+#define PCH_CU_TRACED           0x01
+
+static inline bool pch_cu_is_configured(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_CONFIGURED;
+}
+
+static inline bool pch_cu_is_started(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_STARTED;
+}
+
+static inline bool pch_cu_is_traced(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_TRACED;
+}
 
 static inline pch_dma_irq_index_t pch_cu_get_dma_irq_index(pch_cu_t *cu) {
         return cu->dmairqix;
@@ -167,7 +182,7 @@ static inline pch_devib_t *pch_get_devib(pch_cu_t *cu, pch_unit_addr_t ua) {
 
 static inline bool cu_or_devib_is_traced(pch_devib_t *devib) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
-        return cu->traced || pch_devib_is_traced(devib);
+        return pch_cu_is_traced(cu) || pch_devib_is_traced(devib);
 }
 
 extern pch_cu_t *pch_cus[PCH_NUM_CUS];
