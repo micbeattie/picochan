@@ -186,26 +186,36 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         pch_chp_mark_configure_complete(chpid, true);
 }
 
-bool pch_chp_set_trace(pch_chpid_t chpid, bool trace) {
+static void set_dmachan_links_bs(pch_chp_t *chp, pch_trc_bufferset_t *bs) {
+        dmachan_set_link_bs(&chp->tx_channel.link, bs);
+        dmachan_set_link_bs(&chp->rx_channel.link, bs);
+}
+
+uint8_t pch_chp_set_trace_flags(pch_chpid_t chpid, uint8_t trace_flags) {
 	pch_chp_t *chp = pch_get_chp(chpid);
-	bool old_trace = pch_chp_is_traced(chp);
-	pch_chp_set_traced(chp, trace);
-        if (trace) {
-                chp->tx_channel.link.bs = &CSS.trace_bs;
-                chp->rx_channel.link.bs = &CSS.trace_bs;
-        } else {
-                chp->tx_channel.link.bs = 0;
-                chp->rx_channel.link.bs = 0;
-        }
+        trace_flags &= PCH_CHP_TRACED_MASK;
+        uint8_t old_trace_flags = chp->trace_flags;
+        chp->trace_flags = trace_flags;
+
+        if (trace_flags & PCH_CHP_TRACED_LINK)
+                set_dmachan_links_bs(chp, &CSS.trace_bs);
+        else
+                set_dmachan_links_bs(chp, NULL);
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CHP_TRACED,
-                trace || old_trace,
+                trace_flags != old_trace_flags,
 		((struct pch_trdata_id_byte){
                         .id = chpid,
-                        .byte = (uint8_t)trace
+                        .byte = trace_flags
         }));
 
-	return old_trace;
+	return old_trace_flags;
+}
+
+bool pch_chp_set_trace(pch_chpid_t chpid, bool trace) {
+        uint8_t new_trace_flags = trace ? PCH_CHP_TRACED_MASK : 0;
+        uint8_t old_trace_flags =  pch_chp_set_trace_flags(chpid, new_trace_flags);
+        return old_trace_flags != new_trace_flags;
 }
 
 void pch_chp_start(pch_chpid_t chpid) {
@@ -216,7 +226,7 @@ void pch_chp_start(pch_chpid_t chpid) {
                 return;
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CHP_STARTED,
-                pch_chp_is_traced(chp),
+                pch_chp_is_traced_general(chp),
 		((struct pch_trdata_id_byte){
                         .id = chpid,
                         .byte = 1

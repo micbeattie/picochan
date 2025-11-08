@@ -139,18 +139,16 @@ static inline void pch_chp_set_tx_active(pch_chp_t *chp, bool b) {
                 chp->flags &= ~PCH_CHP_TX_ACTIVE;
 }
 
-// values for pch_chp_t trace_flags
-#define PCH_CHP_TRACED                  0x01
-
-static inline bool pch_chp_is_traced(pch_chp_t *chp) {
-        return chp->flags & PCH_CHP_TRACED;
+static inline bool pch_chp_is_traced_general(pch_chp_t *chp) {
+        return chp->trace_flags & PCH_CHP_TRACED_GENERAL;
 }
 
-static inline void pch_chp_set_traced(pch_chp_t *chp, bool b) {
-        if (b)
-                chp->flags |= PCH_CHP_TRACED;
-        else
-                chp->flags &= ~PCH_CHP_TRACED;
+static inline bool pch_chp_is_traced_link(pch_chp_t *chp) {
+        return chp->trace_flags & PCH_CHP_TRACED_LINK;
+}
+
+static inline bool pch_chp_is_traced_irq(pch_chp_t *chp) {
+        return chp->trace_flags & PCH_CHP_TRACED_IRQ;
 }
 
 //

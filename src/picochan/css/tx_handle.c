@@ -84,7 +84,7 @@ static void css_handle_tx_command_complete(pch_chp_t *chp) {
 void __time_critical_func(css_handle_tx_complete)(pch_chp_t *chp) {
         pch_txsm_t *txpend = &chp->tx_pending;
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_TX_COMPLETE,
-                pch_chp_is_traced(chp), ((struct pch_trdata_id_byte){
+                pch_chp_is_traced_irq(chp), ((struct pch_trdata_id_byte){
                         .id = pch_get_chpid(chp),
                         .byte = (uint8_t)txpend->state
                 }));

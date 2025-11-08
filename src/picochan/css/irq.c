@@ -65,7 +65,7 @@ static void handle_dma_irq_chp(pch_chp_t *chp) {
 
 void __time_critical_func(handle_func_irq_chp)(pch_chp_t *chp) {
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_FUNC_IRQ,
-                pch_chp_is_traced(chp), ((struct pch_trdata_func_irq){
+                pch_chp_is_traced_irq(chp), ((struct pch_trdata_func_irq){
                 .ua_opt = peek_ua_dlist(&chp->ua_func_dlist),
                 .chpid = pch_get_chpid(chp),
                 .tx_active = (int8_t)pch_chp_is_tx_active(chp)

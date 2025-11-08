@@ -195,12 +195,27 @@ void pch_css_start(io_callback_t io_callback, uint8_t isc_mask);
  */
 bool pch_css_set_trace(bool trace);
 
-/*! \brief Sets whether CSS tracing is enabled for channel chpid
+/*! \brief Sets what CSS trace events are enabled for channel chpid.
+ * Flags may be a combination of PCH_CHP_TRACED_GENERAL,
+ * PCH_CHP_TRACED_LINK, PCH_CHP_TRACED_IRQ.
+ * Value PCH_CHP_TRACED_MASK is the set of all valid trace flags.
+ * If these flags do not include PCH_CHP_TRACED_GENERAL then no
+ * trace records are written for schibs using this channel regardless
+ * of any per-schib trace flags.
+ * Returns the old set of trace flags.
  * \ingroup picochan_css
- *
- * If this flag is not set to be true then no channel trace records
- * are written for this channel and no subchannel trace records,
- * regardless of any per-subchannel trace flags.
+ */
+uint8_t pch_chp_set_trace_flags(pch_chpid_t chpid, uint8_t trace_flags);
+
+#define PCH_CHP_TRACED_IRQ              0x04
+#define PCH_CHP_TRACED_LINK             0x02
+#define PCH_CHP_TRACED_GENERAL          0x01
+
+#define PCH_CHP_TRACED_MASK             0x07
+
+/*! \brief Uses pch_chp_set_trace_flags() to sets all available chpid
+ * trace flags (if trace is true) or unsets all available chpid trace
+ * flags (if trace is false). Returns true if any were changed.
  */
 bool pch_chp_set_trace(pch_chpid_t chpid, bool trace);
 
