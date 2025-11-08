@@ -113,7 +113,12 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 // values of pch_cu_t flags
 #define PCH_CU_CONFIGURED       0x80
 #define PCH_CU_STARTED          0x40
-#define PCH_CU_TRACED           0x01
+#define PCH_CU_TRACED_IRQ       0x04
+#define PCH_CU_TRACED_LINK      0x02
+#define PCH_CU_TRACED_GENERAL   0x01
+
+// trace flags values start at the low bit
+#define PCH_CU_TRACED_MASK      0x07
 
 static inline bool pch_cu_is_configured(pch_cu_t *cu) {
         return cu->flags & PCH_CU_CONFIGURED;
@@ -123,8 +128,20 @@ static inline bool pch_cu_is_started(pch_cu_t *cu) {
         return cu->flags & PCH_CU_STARTED;
 }
 
-static inline bool pch_cu_is_traced(pch_cu_t *cu) {
-        return cu->flags & PCH_CU_TRACED;
+static inline uint8_t pch_cu_trace_flags(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_TRACED_MASK;
+}
+
+static inline bool pch_cu_is_traced_general(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_TRACED_GENERAL;
+}
+
+static inline bool pch_cu_is_traced_link(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_TRACED_LINK;
+}
+
+static inline bool pch_cu_is_traced_irq(pch_cu_t *cu) {
+        return cu->flags & PCH_CU_TRACED_IRQ;
 }
 
 static inline pch_dma_irq_index_t pch_cu_get_dma_irq_index(pch_cu_t *cu) {
@@ -182,7 +199,7 @@ static inline pch_devib_t *pch_get_devib(pch_cu_t *cu, pch_unit_addr_t ua) {
 
 static inline bool cu_or_devib_is_traced(pch_devib_t *devib) {
         pch_cu_t *cu = pch_dev_get_cu(devib);
-        return pch_cu_is_traced(cu) || pch_devib_is_traced(devib);
+        return pch_cu_is_traced_general(cu) || pch_devib_is_traced(devib);
 }
 
 extern pch_cu_t *pch_cus[PCH_NUM_CUS];
@@ -388,14 +405,25 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
  */
 void pch_cu_start(pch_cuaddr_t cua);
 
-/*! \brief Sets whether tracing is enabled for CU cua
+/*! \brief Sets all/no trace flags for CU cua
  * \ingroup picochan_cu
  *
- * If this flag is not set to be true then no CU trace records are
- * written for this CU and no device trace records, regardless
- * of any per-device trace flags.
+ * Sets all available CU trace flags (if trace is true) or unsets
+ * all available CU trace flags (if trace is false) using
+ * pch_cus_trace_cu(). Returns true if any trace flags were changed.
  */
 bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
+
+/*! \brief Sets what tracing flags are enabled for CU cua
+ * \ingroup picochan_cu
+ *
+ * trace_flags must be a combination of zero or more of
+ * PCH_CU_TRACED_GENERAL, PCH_CU_TRACED_LINK and PCH_CU_TRACED_IRQ.
+ * If these flags do not include PCH_CU_TRACED_GENERAL then no CU
+ * trace records are written for devices on this CU regardless of any
+ * per-device trace flags.
+ */
+uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags);
 
 /*! \brief Sets whether tracing is enabled for device
  * \ingroup picochan_cu

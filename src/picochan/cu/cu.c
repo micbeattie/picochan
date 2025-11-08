@@ -270,23 +270,36 @@ bool pch_cus_set_trace(bool trace) {
         return pch_trc_set_enable(&pch_cus_trace_bs, trace);
 }
 
-bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace) {
-        pch_cu_t *cu = pch_get_cu(cua);
-        bool old_trace = pch_cu_is_traced(cu);
-        pch_cu_set_flag_traced(cu, trace);
-        pch_trc_bufferset_t *bs = trace ? &pch_cus_trace_bs : 0;
-
+static void set_dmachan_links_bs(pch_cu_t *cu, pch_trc_bufferset_t *bs) {
         dmachan_set_link_bs(&cu->tx_channel.link, bs);
         dmachan_set_link_bs(&cu->rx_channel.link, bs);
+}
+
+uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags) {
+        pch_cu_t *cu = pch_get_cu(cua);
+        trace_flags &= PCH_CU_TRACED_MASK;
+        uint8_t old_trace_flags = pch_cu_trace_flags(cu);
+        cu->flags = (cu->flags & ~PCH_CU_TRACED_MASK) | trace_flags;
+
+        if (trace_flags & PCH_CU_TRACED_LINK)
+                set_dmachan_links_bs(cu, &pch_cus_trace_bs);
+        else
+                set_dmachan_links_bs(cu, NULL);
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,
-                trace || old_trace,
+                trace_flags != old_trace_flags,
                 ((struct pch_trdata_id_byte){
                         .id = cua,
-                        .byte = (uint8_t)trace
+                        .byte = trace_flags
                 }));
 
-        return old_trace;
+        return old_trace_flags;
+}
+
+bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace) {
+        uint8_t new_trace_flags = trace ? PCH_CU_TRACED_MASK : 0;
+        uint8_t old_trace_flags =  pch_cu_set_trace_flags(cua, new_trace_flags);
+        return old_trace_flags != new_trace_flags;
 }
 
 bool pch_cus_trace_dev(pch_devib_t *devib, bool trace) {
@@ -295,7 +308,7 @@ bool pch_cus_trace_dev(pch_devib_t *devib, bool trace) {
         bool old_trace = pch_devib_set_traced(devib, trace);
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_DEV_TRACED,
-                pch_cu_is_traced(cu) || trace || old_trace,
+                pch_cu_is_traced_general(cu) || trace || old_trace,
                 ((struct pch_trdata_dev_byte){
                         .cuaddr = cu->cuaddr,
                         .ua = ua,
