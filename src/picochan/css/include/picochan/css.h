@@ -328,7 +328,7 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
 
 // Channel initialisation low-level helpers
 void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc);
-void pch_chp_set_configured(pch_chpid_t chpid, bool configured);
+void pch_chp_mark_configure_complete(pch_chpid_t chpid, bool configured);
 /*! \brief Fetch the internal tx side of a channel from CSS to CU
  * \ingroup picochan_css
  *

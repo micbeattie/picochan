@@ -17,7 +17,7 @@ static inline pch_schib_t *pop_ua_func_dlist(pch_chp_t *chp) {
 // true when progress has been made and there may be another
 // schib waiting for tx
 static bool process_a_schib_waiting_for_tx(pch_chp_t *chp) {
-        if (chp->tx_active)
+        if (pch_chp_is_tx_active(chp))
                 return false; // tx busy
 
         pch_schib_t *schib = pop_ua_response_slist(chp);
@@ -65,13 +65,13 @@ static void handle_dma_irq_chp(pch_chp_t *chp) {
 
 void __time_critical_func(handle_func_irq_chp)(pch_chp_t *chp) {
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_FUNC_IRQ,
-                chp->traced, ((struct pch_trdata_func_irq){
+                pch_chp_is_traced(chp), ((struct pch_trdata_func_irq){
                 .ua_opt = peek_ua_dlist(&chp->ua_func_dlist),
                 .chpid = pch_get_chpid(chp),
-                .tx_active = (int8_t)chp->tx_active
+                .tx_active = (int8_t)pch_chp_is_tx_active(chp)
                 }));
 
-	while (!chp->tx_active) {
+	while (!pch_chp_is_tx_active(chp)) {
                 pch_schib_t *schib = pop_ua_func_dlist(chp);
 		if (!schib)
 			break;
@@ -89,10 +89,10 @@ void __isr __time_critical_func(pch_css_func_irq_handler)(void) {
 
         for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
 		pch_chp_t *chp = &CSS.chps[i];
-		if (!chp->started)
+		if (!pch_chp_is_started(chp))
 			continue;
 
-		if (chp->tx_active)
+		if (pch_chp_is_tx_active(chp))
 			continue;
 
 		handle_func_irq_chp(chp);
@@ -109,7 +109,7 @@ void __isr __time_critical_func(pch_css_dma_irq_handler)() {
 
         for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
 		pch_chp_t *chp = &CSS.chps[i];
-                if (!chp->started)
+                if (!pch_chp_is_started(chp))
 			continue;
 
 		handle_dma_irq_chp(chp);

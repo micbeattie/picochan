@@ -36,7 +36,7 @@ static bool __time_critical_func(end_channel_program)(pch_chp_t *chp, pch_schib_
 	if (devs & PCH_DEVS_STATUS_MODIFIER)
 		schib->scsw.ccw_addr += sizeof(pch_ccw_t); // +8 bytes
 
-	if (!chp->tx_active) {
+	if (!pch_chp_is_tx_active(chp)) {
 		// tx engine free - send immediately
 		do_command_chain_and_send_start(chp, schib);
 	} else {
@@ -156,7 +156,7 @@ static addr_count_t __time_critical_func(begin_data_write)(pch_chp_t *chp, pch_s
         // completion of the data itself, we can see that we need to
         // do a send of a Room update
         if ((proto_chop_has_response_required(p.chop)) && !halting)
-                chp->rx_response_required = true;
+                pch_chp_set_rx_response_required(chp, true);
 
         // Propagate PROTO_CHOP_FLAG_END to the chp rx_data_end_ds
         // as ChannelEnd|DeviceEnd so that, once we get the rx
@@ -211,14 +211,14 @@ static void __time_critical_func(css_handle_rx_data_complete)(pch_chp_t *chp, pc
 		css_notify(schib, 0);
 	}
 
-	if (!chp->rx_response_required)
+	if (!pch_chp_is_rx_response_required(chp))
 		return;
 
 	// Device wants a response - an UpdateRoom with how much
 	// room can now be written to.
-	chp->rx_response_required = false;
+	pch_chp_set_rx_response_required(chp, false);
 
-	if (!chp->tx_active) {
+	if (!pch_chp_is_tx_active(chp)) {
 		// tx engine free - send immediately
 		send_update_room(chp, schib);
 	} else {
@@ -294,7 +294,7 @@ static void __time_critical_func(handle_request_read)(pch_chp_t *chp, pch_schib_
 	// the tx engine is currently busy
 	schib->mda.devcount = count;
 
-	if (!chp->tx_active) {
+	if (!pch_chp_is_tx_active(chp)) {
 		// tx engine free - send immediately
 		send_data_response(chp, schib);
 	} else {

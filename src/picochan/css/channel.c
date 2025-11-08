@@ -8,34 +8,34 @@
 
 dmachan_tx_channel_t *pch_chp_get_tx_channel(pch_chpid_t chpid) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated);
+        assert(pch_chp_is_allocated(chp));
 
         return &chp->tx_channel;
 }
 
 dmachan_rx_channel_t *pch_chp_get_rx_channel(pch_chpid_t chpid) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated);
+        assert(pch_chp_is_allocated(chp));
 
         return &chp->rx_channel;
 }
 
 void pch_chp_claim(pch_chpid_t chpid) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        if (chp->allocated)
+        if (pch_chp_is_allocated(chp))
                 panic("channel path already allocated");
 
-        if (chp->claimed)
+        if (pch_chp_is_claimed(chp))
                 panic("channel path already claimed");
 
-        chp->claimed = true;
+        pch_chp_set_claimed(chp, true);
 }
 
 int pch_chp_claim_unused(bool required) {
         for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
                 pch_chp_t *chp = pch_get_chp(i);
-                if (!chp->claimed && !chp->allocated) {
-                        chp->claimed = true;
+                if (!pch_chp_is_claimed(chp) && !pch_chp_is_allocated(chp)) {
+                        pch_chp_set_claimed(chp, true);
                         return i;
                 }
         }
@@ -49,7 +49,7 @@ int pch_chp_claim_unused(bool required) {
 pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices) {
         assert(css_is_started());
 	pch_chp_t *chp = pch_get_chp(chpid);
-        assert(!chp->allocated);
+        assert(!pch_chp_is_allocated(chp));
 
 	pch_sid_t first_sid = CSS.next_sid;
 	valid_params_if(PCH_CSS,
@@ -68,7 +68,7 @@ pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices) {
 	chp->ua_func_dlist = -1;
         chp->ua_response_slist.head = -1;
         chp->ua_response_slist.tail = -1;
-        chp->allocated = true;
+        pch_chp_set_allocated(chp, true);
 
 	for (int i = 0; i < num_devices; i++) {
 		pch_unit_addr_t ua = (pch_unit_addr_t)i;
@@ -101,7 +101,7 @@ static inline void trace_chp_dma(pch_trc_record_type_t rt, pch_chpid_t chpid, dm
 
 static void chp_dma_tx_init(pch_chpid_t chpid, dmachan_1way_config_t *d1c) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated && !chp->started);
+        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
 
         dmachan_init_tx_channel(&chp->tx_channel, d1c);
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, d1c);
@@ -109,7 +109,7 @@ static void chp_dma_tx_init(pch_chpid_t chpid, dmachan_1way_config_t *d1c) {
 
 static void chp_dma_rx_init(pch_chpid_t chpid, dmachan_1way_config_t *d1c) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated && !chp->started);
+        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
 
         dmachan_init_rx_channel(&chp->rx_channel, d1c);
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, d1c);
@@ -117,18 +117,18 @@ static void chp_dma_rx_init(pch_chpid_t chpid, dmachan_1way_config_t *d1c) {
 
 void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated && !chp->started);
+        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
         (void)chp;
 
         chp_dma_tx_init(chpid, &dc->tx);
         chp_dma_rx_init(chpid, &dc->rx);
 }
 
-void pch_chp_set_configured(pch_chpid_t chpid, bool configured) {
+void pch_chp_mark_configure_complete(pch_chpid_t chpid, bool configured) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated);
+        assert(pch_chp_is_allocated(chp));
 
-        chp->configured = configured;
+        pch_chp_set_configured(chp, configured);
 
         PCH_CSS_TRACE(PCH_TRC_RT_CSS_CHP_CONFIGURED,
                 ((struct pch_trdata_id_byte){
@@ -139,7 +139,7 @@ void pch_chp_set_configured(pch_chpid_t chpid, bool configured) {
 
 void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl) {
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated && !chp->started);
+        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
 
         dma_channel_config txctrl = dmachan_uart_make_txctrl(uart, ctrl);
         dma_channel_config rxctrl = dmachan_uart_make_rxctrl(uart, ctrl);
@@ -149,7 +149,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
         pch_chp_dma_configure(chpid, &dc);
         dmachan_set_link_irq_enabled(&chp->tx_channel.link, true);
         dmachan_set_link_irq_enabled(&chp->rx_channel.link, true);
-        pch_chp_set_configured(chpid, true);
+        pch_chp_mark_configure_complete(chpid, true);
 }
 
 void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate) {
@@ -169,7 +169,7 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         dmachan_panic_unless_memchan_initialised();
 
         pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->allocated && !chp->started);
+        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
@@ -183,13 +183,13 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         dmachan_set_link_irq_enabled(&rx->link, true);
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;
-        pch_chp_set_configured(chpid, true);
+        pch_chp_mark_configure_complete(chpid, true);
 }
 
 bool pch_chp_set_trace(pch_chpid_t chpid, bool trace) {
 	pch_chp_t *chp = pch_get_chp(chpid);
-	bool old_trace = chp->traced;
-	chp->traced = trace;
+	bool old_trace = pch_chp_is_traced(chp);
+	pch_chp_set_traced(chp, trace);
         if (trace) {
                 chp->tx_channel.link.bs = &CSS.trace_bs;
                 chp->rx_channel.link.bs = &CSS.trace_bs;
@@ -210,19 +210,19 @@ bool pch_chp_set_trace(pch_chpid_t chpid, bool trace) {
 
 void pch_chp_start(pch_chpid_t chpid) {
 	pch_chp_t *chp = pch_get_chp(chpid);
-        assert(chp->configured);
+        assert(pch_chp_is_configured(chp));
 
-        if (chp->started)
+        if (pch_chp_is_started(chp))
                 return;
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CHP_STARTED,
-                chp->traced,
+                pch_chp_is_traced(chp),
 		((struct pch_trdata_id_byte){
                         .id = chpid,
                         .byte = 1
         }));
 
-        chp->started = true;
+        pch_chp_set_started(chp, true);
         dmachan_start_dst_cmdbuf(&chp->rx_channel);
         dmachan_write_src_reset(&chp->tx_channel);
 }

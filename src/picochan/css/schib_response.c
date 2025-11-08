@@ -18,7 +18,7 @@
 // arranges for the TxPending state machine to transmit the actual
 // data immediately after the command itself is transmitted.
 void __time_critical_func(send_command_with_data)(pch_chp_t *chp, pch_schib_t *schib, proto_packet_t p, uint16_t count) {
-        assert(!chp->tx_active);
+        assert(!pch_chp_is_tx_active(chp));
 
 	uint32_t addr = 0; // not used if zeroes is set
 
@@ -81,7 +81,7 @@ void __time_critical_func(send_data_response)(pch_chp_t *chp, pch_schib_t *schib
 }
 
 void __time_critical_func(send_update_room)(pch_chp_t *chp, pch_schib_t *schib) {
-        assert(!chp->tx_active);
+        assert(!pch_chp_is_tx_active(chp));
 
 	proto_chop_t op = PROTO_CHOP_ROOM;
         if (schib->scsw.schs != 0)
@@ -95,7 +95,7 @@ void __time_critical_func(send_update_room)(pch_chp_t *chp, pch_schib_t *schib) 
 }
 
 void __time_critical_func(do_command_chain_and_send_start)(pch_chp_t *chp, pch_schib_t *schib) {
-        assert(!chp->tx_active);
+        assert(!pch_chp_is_tx_active(chp));
 
         uint8_t ccwcmd = fetch_chain_command_ccw(schib);
         if (schib->scsw.schs != 0) {
@@ -117,7 +117,7 @@ void __time_critical_func(do_command_chain_and_send_start)(pch_chp_t *chp, pch_s
 }
 
 void __time_critical_func(process_schib_response)(pch_chp_t *chp, pch_schib_t *schib) {
-	assert(!chp->tx_active);
+	assert(!pch_chp_is_tx_active(chp));
         uint16_t ctrl_flags = schib->scsw.ctrl_flags;
         if (!(ctrl_flags & PCH_AC_DEVICE_ACTIVE)) {
 		// no active device means the device must have sent

@@ -251,7 +251,7 @@ bool pch_css_set_trace(bool trace) {
 
 void __time_critical_func(send_tx_packet)(pch_chp_t *chp, proto_packet_t p) {
         DMACHAN_LINK_CMD_COPY(&chp->tx_channel.link, &p);
-        chp->tx_active = true;
+        pch_chp_set_tx_active(chp, true);
         dmachan_tx_channel_t *tx = &chp->tx_channel;
         dmachan_link_t *txl = &tx->link;
         dmachan_start_src_cmdbuf(tx);

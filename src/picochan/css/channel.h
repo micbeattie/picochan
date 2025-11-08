@@ -71,6 +71,62 @@ typedef struct __aligned(4) pch_chp {
         ua_slist_t              ua_response_slist;
 } pch_chp_t;
 
+static inline bool pch_chp_is_rx_response_required(pch_chp_t *chp) {
+        return chp->rx_response_required;
+}
+
+static inline bool pch_chp_is_traced(pch_chp_t *chp) {
+        return chp->traced;
+}
+
+static inline bool pch_chp_is_claimed(pch_chp_t *chp) {
+        return chp->claimed;
+}
+
+static inline bool pch_chp_is_allocated(pch_chp_t *chp) {
+        return chp->allocated;
+}
+
+static inline bool pch_chp_is_configured(pch_chp_t *chp) {
+        return chp->configured;
+}
+
+static inline bool pch_chp_is_started(pch_chp_t *chp) {
+        return chp->started;
+}
+
+static inline bool pch_chp_is_tx_active(pch_chp_t *chp) {
+        return chp->tx_active;
+}
+
+static inline void pch_chp_set_rx_response_required(pch_chp_t *chp, bool b) {
+        chp->rx_response_required = b;
+}
+
+static inline void pch_chp_set_traced(pch_chp_t *chp, bool b) {
+        chp->traced = b;
+}
+
+static inline void pch_chp_set_claimed(pch_chp_t *chp, bool b) {
+        chp->claimed = b;
+}
+
+static inline void pch_chp_set_allocated(pch_chp_t *chp, bool b) {
+        chp->allocated = b;
+}
+
+static inline void pch_chp_set_configured(pch_chp_t *chp, bool b) {
+        chp->configured = b;
+}
+
+static inline void pch_chp_set_started(pch_chp_t *chp, bool b) {
+        chp->started = b;
+}
+
+static inline void pch_chp_set_tx_active(pch_chp_t *chp, bool b) {
+        chp->tx_active = b;
+}
+
 //
 // ua_dlist
 //

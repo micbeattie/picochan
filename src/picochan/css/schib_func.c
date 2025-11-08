@@ -49,7 +49,7 @@ static void send_start_packet(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd
 }
 
 void __time_critical_func(suspend_or_send_start_packet)(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd) {
-        assert(!chp->tx_active);
+        assert(!pch_chp_is_tx_active(chp));
 
         if (get_stashed_ccw_flags(schib) & PCH_CCW_FLAG_S)
 		suspend(schib); // CCW Suspend flag set

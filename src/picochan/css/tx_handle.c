@@ -84,17 +84,17 @@ static void css_handle_tx_command_complete(pch_chp_t *chp) {
 void __time_critical_func(css_handle_tx_complete)(pch_chp_t *chp) {
         pch_txsm_t *txpend = &chp->tx_pending;
         PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_TX_COMPLETE,
-                chp->traced, ((struct pch_trdata_id_byte){
+                pch_chp_is_traced(chp), ((struct pch_trdata_id_byte){
                         .id = pch_get_chpid(chp),
                         .byte = (uint8_t)txpend->state
                 }));
 
-        assert(chp->tx_active);
+        assert(pch_chp_is_tx_active(chp));
         enum pch_txsm_run_result tr = pch_txsm_run(txpend, &chp->tx_channel);
 	if (tr == PCH_TXSM_ACTED)
 		return; // tx dma not free - still sending pending data
 
-	chp->tx_active = false; // tx dma is now free again
+	pch_chp_set_tx_active(chp, false); // tx dma is now free again
 
 	if (tr == PCH_TXSM_FINISHED)
 		css_handle_tx_data_complete(chp);
