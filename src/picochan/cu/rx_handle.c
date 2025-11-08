@@ -100,7 +100,11 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *dev
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start)(pch_devib_t *devib, proto_packet_t p) {
-        assert(!(devib->flags & PCH_DEVIB_FLAG_STARTED));
+        if (devib->flags & PCH_DEVIB_FLAG_STARTED) {
+                pch_dev_update_status_proto_error(devib);
+                return;
+        }
+
         devib->flags |= PCH_DEVIB_FLAG_STARTED;
         uint8_t ccwcmd = p.p0;
         uint16_t count = proto_decode_esize_payload(p);

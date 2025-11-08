@@ -6,6 +6,7 @@
 #include "picochan/devib.h"
 #include "picochan/dev_status.h"
 #include "cus_trace.h"
+#include "cu_internal.h"
 
 pch_devib_callback_t pch_devib_callbacks[NUM_DEVIB_CALLBACKS];
 
@@ -53,13 +54,7 @@ void __time_critical_func(pch_default_devib_callback)(pch_devib_t *devib) {
                 break;
 
         default:
-                sense = (pch_dev_sense_t){
-                        .flags = PCH_DEV_SENSE_PROTO_ERROR,
-                        .code = devib->op,
-                        .asc = devib->payload.p0,
-                        .ascq = devib->payload.p1
-                };
-                pch_dev_update_status_error(devib, sense);
+                pch_dev_update_status_proto_error(devib);
                 break;
         }
 }

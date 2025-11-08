@@ -38,6 +38,15 @@ static inline proto_packet_t get_rx_packet(pch_cu_t *cu) {
         return *pp;
 }
 
+static inline void pch_dev_update_status_proto_error(pch_devib_t *devib) {
+        pch_dev_update_status_error(devib, ((pch_dev_sense_t){
+                .flags = PCH_DEV_SENSE_PROTO_ERROR,
+                .code = devib->op,
+                .asc = devib->payload.p0,
+                .ascq = devib->payload.p1
+        }));
+}
+
 void pch_cus_send_command_to_css(pch_cu_t *cu);
 void pch_cus_handle_rx_complete(pch_cu_t *cu);
 void pch_cus_handle_tx_complete(pch_cu_t *cu);
