@@ -55,76 +55,102 @@ typedef struct __aligned(4) pch_chp {
         // rx_data_end_ds: if non-zero then, when rx data complete,
         // treat as an immediate implicit device status for update_status
         uint8_t                 rx_data_end_ds;
-        // TODO combine following bools into a uint8_t flags
-        // rx_response_required: when rx data complete, peer wants response
-        bool                    rx_response_required;
-        bool                    traced;
-        bool                    claimed;
-        bool                    allocated;
-        bool                    configured;
-        bool                    started;
-        // tx_active: tx dma is active
-        bool                    tx_active;
+        uint8_t                 flags;
+        uint8_t                 trace_flags;
         // ua_func_dlist: links via schib.prevua and .nextua
         ua_dlist_t              ua_func_dlist;
         // ua_response_slist: link via schib.nextua
         ua_slist_t              ua_response_slist;
 } pch_chp_t;
 
-static inline bool pch_chp_is_rx_response_required(pch_chp_t *chp) {
-        return chp->rx_response_required;
-}
+// values for pch_chp_t flags
+// rx_response_required: when rx data complete, peer wants response
+#define PCH_CHP_RX_RESPONSE_REQUIRED    0x01
+#define PCH_CHP_CLAIMED                 0x02
+#define PCH_CHP_ALLOCATED               0x04
+#define PCH_CHP_CONFIGURED              0x08
+#define PCH_CHP_STARTED                 0x10
+// tx_active: tx dma is active
+#define PCH_CHP_TX_ACTIVE               0x20
 
-static inline bool pch_chp_is_traced(pch_chp_t *chp) {
-        return chp->traced;
+static inline bool pch_chp_is_rx_response_required(pch_chp_t *chp) {
+        return chp->flags & PCH_CHP_RX_RESPONSE_REQUIRED;
 }
 
 static inline bool pch_chp_is_claimed(pch_chp_t *chp) {
-        return chp->claimed;
+        return chp->flags & PCH_CHP_CLAIMED;
 }
 
 static inline bool pch_chp_is_allocated(pch_chp_t *chp) {
-        return chp->allocated;
+        return chp->flags & PCH_CHP_ALLOCATED;
 }
 
 static inline bool pch_chp_is_configured(pch_chp_t *chp) {
-        return chp->configured;
+        return chp->flags & PCH_CHP_CONFIGURED;
 }
 
 static inline bool pch_chp_is_started(pch_chp_t *chp) {
-        return chp->started;
+        return chp->flags & PCH_CHP_STARTED;
 }
 
 static inline bool pch_chp_is_tx_active(pch_chp_t *chp) {
-        return chp->tx_active;
+        return chp->flags & PCH_CHP_TX_ACTIVE;
 }
 
 static inline void pch_chp_set_rx_response_required(pch_chp_t *chp, bool b) {
-        chp->rx_response_required = b;
-}
-
-static inline void pch_chp_set_traced(pch_chp_t *chp, bool b) {
-        chp->traced = b;
+        if (b)
+                chp->flags |= PCH_CHP_RX_RESPONSE_REQUIRED;
+        else
+                chp->flags &= ~PCH_CHP_RX_RESPONSE_REQUIRED;
 }
 
 static inline void pch_chp_set_claimed(pch_chp_t *chp, bool b) {
-        chp->claimed = b;
+        if (b)
+                chp->flags |= PCH_CHP_CLAIMED;
+        else
+                chp->flags &= ~PCH_CHP_CLAIMED;
 }
 
 static inline void pch_chp_set_allocated(pch_chp_t *chp, bool b) {
-        chp->allocated = b;
+        if (b)
+                chp->flags |= PCH_CHP_ALLOCATED;
+        else
+                chp->flags &= ~PCH_CHP_ALLOCATED;
 }
 
 static inline void pch_chp_set_configured(pch_chp_t *chp, bool b) {
-        chp->configured = b;
+        if (b)
+                chp->flags |= PCH_CHP_CONFIGURED;
+        else
+                chp->flags &= ~PCH_CHP_CONFIGURED;
 }
 
 static inline void pch_chp_set_started(pch_chp_t *chp, bool b) {
-        chp->started = b;
+        if (b)
+                chp->flags |= PCH_CHP_STARTED;
+        else
+                chp->flags &= ~PCH_CHP_STARTED;
 }
 
 static inline void pch_chp_set_tx_active(pch_chp_t *chp, bool b) {
-        chp->tx_active = b;
+        if (b)
+                chp->flags |= PCH_CHP_TX_ACTIVE;
+        else
+                chp->flags &= ~PCH_CHP_TX_ACTIVE;
+}
+
+// values for pch_chp_t trace_flags
+#define PCH_CHP_TRACED                  0x01
+
+static inline bool pch_chp_is_traced(pch_chp_t *chp) {
+        return chp->flags & PCH_CHP_TRACED;
+}
+
+static inline void pch_chp_set_traced(pch_chp_t *chp, bool b) {
+        if (b)
+                chp->flags |= PCH_CHP_TRACED;
+        else
+                chp->flags &= ~PCH_CHP_TRACED;
 }
 
 //
