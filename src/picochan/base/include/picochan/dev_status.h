@@ -28,4 +28,9 @@
 #define PCH_DEVS_UNIT_CHECK       0x02
 #define PCH_DEVS_UNIT_EXCEPTION   0x01
 
+static inline bool pch_dev_status_unusual(uint8_t devs) {
+        const uint8_t ignore = PCH_DEVS_CHANNEL_END|PCH_DEVS_STATUS_MODIFIER;
+        return (devs & ~ignore) != PCH_DEVS_DEVICE_END;
+}
+
 #endif
