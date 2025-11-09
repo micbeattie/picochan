@@ -55,6 +55,26 @@ typedef struct pch_hldev {
 // received from a Write-type CCW
 #define PCH_HLDEV_FLAG_EOF      0x01
 
+static inline bool pch_hldev_is_idle(pch_hldev_t *hd) {
+        return hd->state == PCH_HLDEV_IDLE;
+}
+
+static inline bool pch_hldev_is_started(pch_hldev_t *hd) {
+        return hd->state == PCH_HLDEV_STARTED;
+}
+
+static inline bool pch_hldev_is_receiving(pch_hldev_t *hd) {
+        return hd->state == PCH_HLDEV_RECEIVING;
+}
+
+static inline bool pch_hldev_is_sending(pch_hldev_t *hd) {
+        return hd->state == PCH_HLDEV_SENDING;
+}
+
+static inline bool pch_hldev_is_sending_final(pch_hldev_t *hd) {
+        return hd->state == PCH_HLDEV_SENDING_FINAL;
+}
+
 static inline int pch_hldev_get_index(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
         return pch_dev_range_get_index(&hdcfg->dev_range, devib);
 }
@@ -101,13 +121,6 @@ static inline void pch_hldev_end_ok_sense(pch_hldev_config_t *hdcfg, pch_devib_t
 static inline void pch_hldev_end_reject(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t code) {
         pch_hldev_end(hdcfg, devib, 0, ((pch_dev_sense_t){
                 .flags = PCH_DEV_SENSE_COMMAND_REJECT,
-                .code = code
-        }));
-}
-
-static inline void pch_hldev_end_proto_error(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t code) {
-        pch_hldev_end(hdcfg, devib, 0, ((pch_dev_sense_t){
-                .flags = PCH_DEV_SENSE_PROTO_ERROR,
                 .code = code
         }));
 }

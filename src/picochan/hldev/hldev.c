@@ -58,12 +58,8 @@ static void do_receive(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *
 
 void pch_hldev_receive_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size, pch_hldev_callback_t callback) {
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
-        if (!pch_devib_is_cmd_write(devib)) {
-                pch_hldev_end_proto_error(hdcfg, devib,
-                        PCH_HLDEV_ERR_RECEIVE_FROM_READ_CCW);
-                pch_hldev_reset(hdcfg, hd);
-                return;
-        }
+        assert(pch_hldev_is_started(hd));
+        assert(pch_devib_is_cmd_write(devib));
 
         if (callback)
                 hd->callback = callback;
@@ -122,7 +118,7 @@ static void do_send(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *dev
         proto_chop_flags_t flags = 0;
         if (n > devib->size) {
                 n = devib->size;
-        } else if (hd->state == PCH_HLDEV_SENDING_FINAL) {
+        } else if (pch_hldev_is_sending_final(hd)) {
                 flags = PROTO_CHOP_FLAG_END;
         } else {
                 hd->state = PCH_HLDEV_STARTED;
@@ -139,7 +135,7 @@ static void do_send(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *dev
 
 static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback, bool final) {
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
-        assert(pch_devib_is_started(devib));
+        assert(pch_hldev_is_started(hd));
         assert(!pch_devib_is_cmd_write(devib));
 
         if (callback)
@@ -188,6 +184,7 @@ void pch_hldev_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr
 
 void pch_hldev_end(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense) {
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+        assert(pch_hldev_is_started(hd));
         extra_devs |= PCH_DEVS_CHANNEL_END|PCH_DEVS_DEVICE_END;
         if (sense.flags)
                 extra_devs |= PCH_DEVS_UNIT_CHECK;
@@ -223,6 +220,7 @@ void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
 
         case PCH_HLDEV_STARTED:
                 assert(pch_devib_is_started(devib));
+                hd->state = PCH_HLDEV_STARTED;
                 hd->callback(hdcfg, devib);
                 return;
 
