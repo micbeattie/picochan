@@ -125,6 +125,14 @@ static inline void pch_hldev_end_reject(pch_hldev_config_t *hdcfg, pch_devib_t *
         }));
 }
 
+static inline void pch_hldev_end_exception_sense(pch_hldev_config_t *hdcfg, pch_devib_t *devib, pch_dev_sense_t sense) {
+        pch_hldev_end(hdcfg, devib, PCH_DEVS_UNIT_EXCEPTION, sense);
+}
+
+static inline void pch_hldev_end_exception(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
+        pch_hldev_end_exception_sense(hdcfg, devib, PCH_DEV_SENSE_NONE);
+}
+
 static inline void pch_hldev_end_intervention(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t code) {
         pch_hldev_end(hdcfg, devib, 0, ((pch_dev_sense_t){
                 .flags = PCH_DEV_SENSE_INTERVENTION_REQUIRED,
