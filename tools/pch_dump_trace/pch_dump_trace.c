@@ -197,6 +197,13 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
+        case PCH_TRC_RT_CUS_QUEUE_COMMAND: {
+                struct pch_trdata_dev_byte *td = vd;
+                printf("CU=%d UA=%d queues tx command after tail UA=%d",
+                        td->cuaddr, td->ua, td->byte);
+                break;
+        }
+
         case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
                 struct pch_trdata_irq_handler *td = vd;
                 printf("CU-side ");
@@ -308,6 +315,12 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CSS_SET_IO_CALLBACK: {
                 struct pch_trdata_address_change *td = vd;
                 print_address_change(td, "I/O callback");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_IO_CALLBACK: {
+                struct pch_trdata_intcode_scsw *td = vd;
+                print_io_callback(&td->intcode, &td->scsw);
                 break;
         }
 

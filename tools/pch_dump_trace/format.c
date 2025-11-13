@@ -33,6 +33,18 @@ void print_scsw(pch_scsw_t *scsw) {
                 scsw->devs, scsw->schs, scsw->count);
 }
 
+void print_io_callback(pch_intcode_t *ic, pch_scsw_t *scsw) {
+        printf("CSS I/O Callback ");
+        if (!ic->cc) {
+                printf(" with no interrupt pending");
+                return;
+        }
+
+        print_sid(ic->sid);
+        printf(" ISC=%d intparm:%08x ", ic->flags, ic->intparm);
+        print_scsw(scsw);
+}
+
 void print_ccw(pch_ccw_t ccw) {
         printf("CCW{cmd:%02x flags:%02x count=%d addr:%08x}",
                 ccw.cmd, ccw.flags, ccw.count, ccw.addr);

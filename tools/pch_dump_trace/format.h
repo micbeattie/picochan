@@ -17,6 +17,7 @@ void print_cc(uint8_t cc);
 void print_address_change(struct pch_trdata_address_change *td, const char *s);
 void print_ccwaddr(uint32_t ccwaddr);
 void print_scsw(pch_scsw_t *scsw);
+void print_io_callback(pch_intcode_t *ic, pch_scsw_t *scsw);
 void print_ccw(pch_ccw_t ccw);
 void print_sch_func(struct pch_trdata_sid_byte *td, const char *funcname);
 void print_mem_src_state(dmachan_mem_src_state_t srcstate);
