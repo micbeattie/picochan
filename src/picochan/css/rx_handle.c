@@ -307,6 +307,9 @@ static void __time_critical_func(handle_request_read)(pch_chp_t *chp, pch_schib_
 static void __time_critical_func(css_handle_rx_command_complete)(pch_chp_t *chp) {
 	// DMA has received a command packet from chp into RxBuf
 	proto_packet_t p = get_rx_packet(chp);
+        // Poison RxBuf to help troubleshooting
+        chp->rx_channel.link.cmd.raw = 0xffffffff;
+
         pch_unit_addr_t ua = p.unit_addr;
         pch_schib_t *schib = get_schib_by_chp(chp, ua);
 	trace_schib_packet(PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE, schib, p);
