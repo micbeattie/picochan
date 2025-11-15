@@ -137,6 +137,7 @@ static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srca
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
         assert(pch_hldev_is_started(hd));
         assert(!pch_devib_is_cmd_write(devib));
+        assert(size);
 
         if (callback)
                 hd->callback = callback;
@@ -167,7 +168,8 @@ static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srca
                 }
         }
 
-        pch_dev_send(devib, srcaddr, size, flags);
+        int rc = pch_dev_send(devib, srcaddr, size, flags);
+        assert(rc >= 0);
 }
 
 void pch_hldev_send_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback) {
@@ -185,6 +187,7 @@ void pch_hldev_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr
 void pch_hldev_end(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense) {
         pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
         assert(pch_hldev_is_started(hd));
+        assert(!pch_hldev_is_idle(hd));
         extra_devs |= PCH_DEVS_CHANNEL_END|PCH_DEVS_DEVICE_END;
         if (sense.flags)
                 extra_devs |= PCH_DEVS_UNIT_CHECK;
