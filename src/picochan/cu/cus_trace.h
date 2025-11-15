@@ -47,10 +47,11 @@ static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_devib_t *devib
                 }));
 }
 
-static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t uaopt, pch_txsm_state_t txpstate) {
+static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t tx_head, int16_t ua_opt, pch_txsm_state_t txpstate) {
         PCH_CUS_TRACE_COND(rt, pch_cu_is_traced_irq(cu),
                 ((struct pch_trdata_cus_tx_complete){
-                        .uaopt = uaopt,
+                        .tx_head = tx_head,
+                        .ua_opt = ua_opt,
                         .cuaddr = cu->cuaddr,
                         .txpstate = (uint8_t)txpstate
                 }));

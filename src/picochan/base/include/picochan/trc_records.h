@@ -132,7 +132,8 @@ struct pch_trdata_cus_init_mem_channel {
 };
 
 struct pch_trdata_cus_tx_complete {
-        int16_t         uaopt;
+        int16_t         tx_head;
+        int16_t         ua_opt;
         pch_cuaddr_t    cuaddr;
         uint8_t         txpstate;
 };

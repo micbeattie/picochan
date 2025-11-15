@@ -372,13 +372,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_TX_COMPLETE: {
                 struct pch_trdata_cus_tx_complete *td = vd;
-                if (td->txpstate == PCH_TXSM_FINISHED && td->uaopt != -1) {
-                        printf("CU=%d handling tx complete for UA=%d while txsm is ",
-                                td->cuaddr, td->uaopt);
-                } else {
-                        printf("CU=%d handling tx complete while txsm is ",
-                                td->cuaddr);
-                }
+                printf("CU=%d handling tx complete for tx_head UA=%d with ua_opt UA=%d while txsm is ",
+                        td->cuaddr, td->tx_head, td->ua_opt);
                 print_txpending_state(td->txpstate);
                 break;
         }

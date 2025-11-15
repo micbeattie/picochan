@@ -124,7 +124,7 @@ void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
         pch_devib_t *devib = pch_get_devib(cu, ua);
         pch_devib_set_tx_busy(devib, false);
 
-	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu,
+	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu, tx_head,
                 tx_callback_uaopt, txpend->state);
 
         pch_txsm_run_result_t res = pch_txsm_run(txpend, &cu->tx_channel);
