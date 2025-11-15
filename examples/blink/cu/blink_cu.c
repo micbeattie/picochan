@@ -65,7 +65,7 @@ static void start(pch_devib_t *devib) {
 void blink_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua) {
         pch_dev_range_init(&blink_dev_range, cu, first_ua, 1);
 
-        start_cbindex = pch_register_unused_devib_callback(start);
+        start_cbindex = pch_register_unused_devib_callback(start, NULL);
 
         alarm_pool = alarm_pool_create_with_unused_hardware_alarm(1);
 

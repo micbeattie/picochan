@@ -98,7 +98,7 @@ void pch_cus_init(void);
 
 bool pch_cus_set_trace(bool trace);
 
-pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
+pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_func_t cbfunc, void *cbctx);
 
 // Optionally configure explicit DMA IRQ index(es) (or leave to auto-configure)
 void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix);

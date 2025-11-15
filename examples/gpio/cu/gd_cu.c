@@ -389,13 +389,13 @@ void gd_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices) {
         pch_dev_range_init(&gd_dev_range, cu, first_ua, num_devices);
 
         gd_start_cbindex =
-                pch_register_unused_devib_callback(gd_start);
+                pch_register_unused_devib_callback(gd_start, NULL);
         gd_setconf_cbindex =
-                pch_register_unused_devib_callback(gd_setconf);
+                pch_register_unused_devib_callback(gd_setconf, NULL);
         gd_write_cbindex =
-                pch_register_unused_devib_callback(gd_write);
+                pch_register_unused_devib_callback(gd_write, NULL);
         gd_complete_test_cbindex =
-                pch_register_unused_devib_callback(gd_complete_test);
+                pch_register_unused_devib_callback(gd_complete_test, NULL);
 
         gd_alarm_pool = alarm_pool_create_with_unused_hardware_alarm(MAX_NUM_GPIO_DEVS);
 

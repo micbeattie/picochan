@@ -143,6 +143,12 @@ struct pch_trdata_cus_call_callback {
         uint8_t         cbindex;
 };
 
+struct pch_trdata_cus_register_callback {
+        uint32_t        cbfunc;
+        uint32_t        cbctx;
+        uint8_t         cbindex;
+};
+
 struct pch_trdata_dmachan {
         pch_dmaid_t     dmaid;
 };

@@ -56,9 +56,13 @@ static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int
                 }));
 }
 
-static inline void trace_register_callback(pch_trc_record_type_t rt, pch_cbindex_t n, pch_devib_callback_t cb) {
+static inline void trace_register_callback(pch_trc_record_type_t rt, pch_cbindex_t cbindex, pch_devib_callback_t cbfunc, void *cbctx) {
         PCH_CUS_TRACE(rt,
-                ((struct pch_trdata_word_byte){(uint32_t)cb,n}));
+                ((struct pch_trdata_cus_register_callback){
+                        .cbfunc = (uint32_t)cbfunc,
+                        .cbctx = (uint32_t)cbctx,
+                        .cbindex = (uint8_t)cbindex
+                }));
 }
 
 static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *devib, pch_cbindex_t cbindex) {

@@ -581,8 +581,8 @@ static inline void pch_dev_range_set_callback(pch_dev_range_t *dr, pch_cbindex_t
         }
 }
 
-static inline pch_cbindex_t pch_dev_range_register_unused_devib_callback(pch_dev_range_t *dr, pch_devib_callback_t cb) {
-        pch_cbindex_t cbindex = pch_register_unused_devib_callback(cb);
+static inline pch_cbindex_t pch_dev_range_register_unused_devib_callback(pch_dev_range_t *dr, pch_devib_callback_t cbfunc, void *cbctx) {
+        pch_cbindex_t cbindex = pch_register_unused_devib_callback(cbfunc, cbctx);
         pch_dev_range_set_callback(dr, cbindex);
         return cbindex;
 }

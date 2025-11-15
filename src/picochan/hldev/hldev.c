@@ -5,14 +5,14 @@
 
 #include "picochan/hldev.h"
 
-void pch_hldev_dev_range_init(pch_dev_range_t *dr, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t start_devib) {
+void pch_hldev_dev_range_init(pch_dev_range_t *dr, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t cbfunc, void *cbctx) {
         pch_dev_range_init(dr, cu, first_ua, num_devices);
-        pch_dev_range_register_unused_devib_callback(dr, start_devib);
+        pch_dev_range_register_unused_devib_callback(dr, cbfunc, cbctx);
 }
 
-void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t start_devib) {
+void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t cbfunc) {
         pch_hldev_dev_range_init(&hdcfg->dev_range,
-                cu, first_ua, num_devices, start_devib);
+                cu, first_ua, num_devices, cbfunc, hdcfg);
 }
 
 void pch_hldev_reset(pch_hldev_config_t *hdcfg, pch_hldev_t *hd) {

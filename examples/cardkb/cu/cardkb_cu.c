@@ -230,9 +230,9 @@ void cardkb_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices
         pch_dev_range_init(&cardkb_dev_range, cu, first_ua, num_devices);
 
         cardkb_start_cbindex =
-                pch_register_unused_devib_callback(cardkb_start);
+                pch_register_unused_devib_callback(cardkb_start, NULL);
         cardkb_finish_cbindex =
-                pch_register_unused_devib_callback(cardkb_finish);
+                pch_register_unused_devib_callback(cardkb_finish, NULL);
 
         cardkb_alarm_pool = alarm_pool_create_with_unused_hardware_alarm(1);
         bool ok = alarm_pool_add_repeating_timer_ms(cardkb_alarm_pool,

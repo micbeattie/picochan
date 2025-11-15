@@ -153,7 +153,7 @@ static inline void pch_hldev_end_stopped(pch_hldev_config_t *hdcfg, pch_devib_t 
         }));
 }
 
-void pch_hldev_dev_range_init(pch_dev_range_t *dr, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t start_devib);
-void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t start_devib);
+void pch_hldev_dev_range_init(pch_dev_range_t *dr, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t cbfunc, void *cbctx);
+void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t cbfunc);
 
 #endif

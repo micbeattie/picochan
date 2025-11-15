@@ -8,29 +8,36 @@
 #include "cus_trace.h"
 #include "cu_internal.h"
 
-pch_devib_callback_t pch_devib_callbacks[NUM_DEVIB_CALLBACKS];
+pch_devib_callback_info_t pch_devib_callbacks[NUM_DEVIB_CALLBACKS];
 
-void __time_critical_func(pch_register_devib_callback)(pch_cbindex_t n, pch_devib_callback_t cb) {
-        valid_params_if(PCH_CUS, n < NUM_DEVIB_CALLBACKS);
-        assert(pch_devib_callbacks[n] == NULL);
+void __time_critical_func(pch_register_devib_callback)(pch_cbindex_t n, pch_devib_callback_t cbfunc, void *cbctx) {
+        if (n >= NUM_DEVIB_CALLBACKS)
+                panic("cbindex >= NUM_DEVIB_CALLBACKS");
 
-	trace_register_callback(PCH_TRC_RT_CUS_REGISTER_CALLBACK, n, cb);
+        if (!cbfunc)
+                panic("cbfunc NULL");
 
-	pch_devib_callbacks[n] = cb;
+        pch_devib_callback_info_t *cb = &pch_devib_callbacks[n];
+        if (cb->func)
+                panic("cbindex already registered");
+
+        trace_register_callback(PCH_TRC_RT_CUS_REGISTER_CALLBACK, n,
+                cbfunc, cbctx);
+
+        cb->func = cbfunc;
+        cb->context = cbctx;
 }
 
-pch_cbindex_t __time_critical_func(pch_register_unused_devib_callback)(pch_devib_callback_t cb) {
+pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cbfunc, void *cbctx) {
 	// Simple linear search for unset function will suffice for this
-	for (int n = 0; n < NUM_DEVIB_CALLBACKS; n++) {
-		if (!pch_devib_callbacks[n]) {
-                        trace_register_callback(PCH_TRC_RT_CUS_REGISTER_CALLBACK,
-                                n, cb);
-			pch_devib_callbacks[n] = cb;
+	for (uint n = 0; n < NUM_DEVIB_CALLBACKS; n++) {
+		if (!pch_cbindex_is_registered(n)) {
+                        pch_register_devib_callback(n, cbfunc, cbctx);
 			return (pch_cbindex_t)n;
 		}
 	}
 
-	panic("no more room in pch_devib_callbacks array");
+	panic("NUM_DEVIB_CALLBACKS already registered");
 }
 
 void __time_critical_func(pch_default_devib_callback)(pch_devib_t *devib) {

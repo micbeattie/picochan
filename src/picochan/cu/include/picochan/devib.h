@@ -149,12 +149,30 @@ typedef struct pch_cu pch_cu_t;
 
 // Callbacks
 
-/*! \brief pch_devib_callback_t is a function for the CU to callback a device
+/*! \brief pch_devib_callback_t is a function for the CU to
+ * callback a device
  *  \ingroup picochan_cu
  */
 typedef void (*pch_devib_callback_t)(pch_devib_t *devib);
 
-extern pch_devib_callback_t pch_devib_callbacks[];
+/*! \brief pch_devib_callback_info_t is a struct the CU uses for
+ * device callback. It holds a function to call
+ * (a pch_devib_callback_t) and a void *context field.
+ *  \ingroup picochan_cu
+ */
+typedef struct pch_devib_callback_info {
+        pch_devib_callback_t    func;
+        void                    *context;
+} pch_devib_callback_info_t;
+
+extern pch_devib_callback_info_t pch_devib_callbacks[];
+
+static inline bool pch_cbindex_is_registered(uint cbindex) {
+        if (cbindex >= NUM_DEVIB_CALLBACKS)
+                return false;
+
+        return pch_devib_callbacks[cbindex].func != NULL;
+}
 
 static inline bool pch_cbindex_is_callable(uint cbindex) {
         if (cbindex == PCH_DEVIB_CALLBACK_NOOP)
@@ -163,18 +181,19 @@ static inline bool pch_cbindex_is_callable(uint cbindex) {
         if (cbindex >= NUM_DEVIB_CALLBACKS)
                 return false;
 
-        return pch_devib_callbacks[cbindex] != NULL;
+        return pch_devib_callbacks[cbindex].func != NULL;
 }
 
 // Callback registration API
 
-/*! \brief Registers a device callback function at a specific index
+/*! \brief Registers a device callback function and associated
+ * context pointer at a specific index
  *  \ingroup picochan_cu
  *
  * For a Debug build, asserts if n is out of range in the global
  * array of callbacks or if the callback index is already registered.
  */
-void pch_register_devib_callback(pch_cbindex_t n, pch_devib_callback_t cb);
+void pch_register_devib_callback(pch_cbindex_t n, pch_devib_callback_t cbfunc, void *cbctx);
 
 /*! \brief Registers a device callback function at an unused index
  *  \ingroup picochan_cu
@@ -186,9 +205,26 @@ void pch_register_devib_callback(pch_cbindex_t n, pch_devib_callback_t cb);
  *
  * \return The allocated callback index number
  */
-pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);
+pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cbfunc, void *cbctx);
 
 void pch_default_devib_callback(pch_devib_t *devib);
+
+static inline void pch_devib_call_callback(pch_cbindex_t cbindex, pch_devib_t *devib) {
+        assert(pch_cbindex_is_callable(cbindex));
+
+        if (cbindex == PCH_DEVIB_CALLBACK_NOOP)
+                return;
+
+        pch_devib_callbacks[cbindex].func(devib);
+}
+
+/*! \brief Fetches the context pointer associated with the current
+ * callback index of the devib when the callback was registered.
+ *  \ingroup picochan_cu
+ */
+static inline void *pch_devib_callback_context(pch_devib_t *devib) {
+        return pch_devib_callbacks[devib->cbindex].context;
+}
 
 // Low-level API for dev implementation updating devib
 

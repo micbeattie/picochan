@@ -36,7 +36,7 @@ static dmairqix_config_t *get_dmairqix_config(pch_dma_irq_index_t dmairqix) {
 void pch_cus_init() {
         assert(!pch_cus_init_done);
         pch_register_devib_callback(PCH_DEVIB_CALLBACK_DEFAULT,
-                pch_default_devib_callback);
+                pch_default_devib_callback, NULL);
 
         pch_trc_init_bufferset(&pch_cus_trace_bs,
                 PCH_CUS_BUFFERSET_MAGIC);
