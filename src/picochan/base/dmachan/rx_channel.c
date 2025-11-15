@@ -99,6 +99,10 @@ static void start_dst_data_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t *t
 
         switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
+        case DMACHAN_MEM_SRC_CMDBUF:
+                // SRC_CMDBUF can happen if the CU peer has sent its
+                // Data command but not yet reached the tx complete
+                // irq handler in which it'll move to SRC_DATA state.
                 dmachan_set_mem_dst_state(rx, DMACHAN_MEM_DST_DATA);
                 dma_channel_set_write_addr(rxl->dmaid, (void*)dstaddr, false);
                 dma_channel_set_trans_count(rxl->dmaid, count, false);
