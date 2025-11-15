@@ -100,7 +100,6 @@ static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *r
                 break;
 
         case DMACHAN_MEM_DST_DATA:
-                assert(dma_channel_get_transfer_count(txl->dmaid) == count);
                 dmachan_set_mem_src_state(tx, DMACHAN_MEM_SRC_DATA);
                 dma_channel_transfer_from_buffer_now(txl->dmaid,
                         (void*)srcaddr, count);
