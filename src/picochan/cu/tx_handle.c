@@ -109,9 +109,21 @@ static proto_packet_t pch_cus_make_packet(pch_devib_t *devib) {
         return proto_make_packet(op, ua, devib->payload);
 }
 
+static inline void callback_devib_from_tx(pch_devib_t *devib) {
+        pch_devib_set_tx_callback(devib, false);
+        callback_devib(devib);
+}
+
 void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
 	pch_txsm_t *txpend = &cu->tx_pending;
 	int16_t tx_callback_uaopt = cu->tx_callback_ua;
+	int16_t tx_head = cu->tx_head;
+        assert(tx_head >= 0);
+        assert(tx_callback_uaopt == -1 || tx_callback_uaopt == tx_head);
+        pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
+        pch_devib_t *devib = pch_get_devib(cu, ua);
+        pch_devib_set_tx_busy(devib, false);
+
 	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu,
                 tx_callback_uaopt, txpend->state);
 
@@ -123,9 +135,8 @@ void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
         case PCH_TXSM_FINISHED:
 		pch_pop_tx_list(cu);
 		if (tx_callback_uaopt != -1) {
-                        pch_unit_addr_t ua = (pch_unit_addr_t)tx_callback_uaopt;
-                        pch_devib_t *devib = pch_get_devib(cu, ua);
-			callback_devib(devib);
+                        cu->tx_callback_ua = -1;
+			callback_devib_from_tx(devib);
 		}
 		try_tx_next_command(cu);
 		return;
@@ -134,12 +145,8 @@ void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
                 // fallthrough
 	}
 
-	int16_t tx_head = cu->tx_head;
-        assert(tx_head >= 0);
-	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
-        pch_devib_t *devib = pch_get_devib(cu, ua);
-        if (devib->flags & PCH_DEVIB_FLAG_TX_CALLBACK)
-                callback_devib(devib);
+        if (pch_devib_is_tx_callback(devib))
+                callback_devib_from_tx(devib);
 
 	pch_pop_tx_list(cu);
 	try_tx_next_command(cu);

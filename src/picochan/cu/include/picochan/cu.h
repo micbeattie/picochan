@@ -162,6 +162,7 @@ void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix);
  * it must be a compile-time constant this should not be a problem.
  */
 #define PCH_CU_INIT(num_devices) { \
+                .tx_callback_ua = -1, \
                 .rx_active = -1, \
                 .tx_head = -1, \
                 .tx_tail = -1, \

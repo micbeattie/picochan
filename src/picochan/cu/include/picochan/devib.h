@@ -87,6 +87,7 @@ static_assert(__builtin_constant_p(PCH_DEVIB_SPACE_SHIFT),
 #define PCH_DEVIB_FLAG_TX_CALLBACK      0x10
 #define PCH_DEVIB_FLAG_TRACED           0x08
 #define PCH_DEVIB_FLAG_STOPPING         0x04
+#define PCH_DEVIB_FLAG_TX_BUSY          0x02
 
 static inline bool pch_devib_is_started(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_STARTED;
@@ -94,6 +95,20 @@ static inline bool pch_devib_is_started(pch_devib_t *devib) {
 
 static inline bool pch_devib_is_cmd_write(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_CMD_WRITE;
+}
+
+static inline bool pch_devib_is_tx_callback(pch_devib_t *devib) {
+        return devib->flags & PCH_DEVIB_FLAG_TX_BUSY;
+}
+
+static inline bool pch_devib_set_tx_callback(pch_devib_t *devib, bool tx_callback) {
+        bool old_tx_callback = pch_devib_is_tx_callback(devib);
+        if (tx_callback)
+                devib->flags |= PCH_DEVIB_FLAG_TX_BUSY;
+        else
+                devib->flags &= ~PCH_DEVIB_FLAG_TX_BUSY;
+
+        return old_tx_callback;
 }
 
 static inline bool pch_devib_is_traced(pch_devib_t *devib) {
@@ -112,6 +127,20 @@ static inline bool pch_devib_set_traced(pch_devib_t *devib, bool trace) {
 
 static inline bool pch_devib_is_stopping(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_STOPPING;
+}
+
+static inline bool pch_devib_is_tx_busy(pch_devib_t *devib) {
+        return devib->flags & PCH_DEVIB_FLAG_TX_BUSY;
+}
+
+static inline bool pch_devib_set_tx_busy(pch_devib_t *devib, bool tx_busy) {
+        bool old_tx_busy = pch_devib_is_tx_busy(devib);
+        if (tx_busy)
+                devib->flags |= PCH_DEVIB_FLAG_TX_BUSY;
+        else
+                devib->flags &= ~PCH_DEVIB_FLAG_TX_BUSY;
+
+        return old_tx_busy;
 }
 
 // Forward declaration of pch_cu_t for identifying devib by

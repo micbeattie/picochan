@@ -63,6 +63,8 @@ void __no_inline_not_in_flash_func(pch_devib_prepare_update_status)(pch_devib_t 
 }
 
 void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_devib_t *devib) {
+        assert(!pch_devib_is_tx_busy(devib));
+        pch_devib_set_tx_busy(devib, true);
         pch_cu_t *cu = pch_dev_get_cu(devib);
         pch_unit_addr_t ua = pch_dev_get_ua(devib);
         int16_t tx_tail = push_tx_list(cu, ua);
@@ -76,6 +78,7 @@ void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_devib_t 
                         pch_cus_handle_tx_complete(cu);
                 }
 	} else {
+                assert(tx_tail != ua);
 		trace_dev_byte(PCH_TRC_RT_CUS_QUEUE_COMMAND,
 			devib, (uint8_t)tx_tail);
 	}

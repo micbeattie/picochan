@@ -120,6 +120,7 @@ void pch_cu_init(pch_cu_t *cu, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, num_devibs <= PCH_MAX_DEVIBS_PER_CU);
 
         memset(cu, 0, sizeof(*cu) + num_devibs * sizeof(pch_devib_t));
+        cu->tx_callback_ua = -1;
         cu->rx_active = -1;
         cu->tx_head = -1;
         cu->tx_tail = -1;
