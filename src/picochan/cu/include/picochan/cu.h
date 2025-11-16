@@ -587,4 +587,6 @@ static inline pch_cbindex_t pch_dev_range_register_unused_devib_callback(pch_dev
         return cbindex;
 }
 
+void pch_cus_trace_write_user(pch_trc_record_type_t rt, void *data, uint8_t data_size);
+
 #endif

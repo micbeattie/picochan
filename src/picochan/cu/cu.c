@@ -318,3 +318,8 @@ bool pch_cus_trace_dev(pch_devib_t *devib, bool trace) {
 
         return old_trace;
 }
+
+void pch_cus_trace_write_user(pch_trc_record_type_t rt, void *data, uint8_t data_size) {
+        assert(rt >= PCH_TRC_RT_USER_FIRST);
+        pch_trc_write_raw(&pch_cus_trace_bs, rt, data, data_size);
+}
