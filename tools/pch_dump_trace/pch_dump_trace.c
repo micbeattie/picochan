@@ -72,7 +72,7 @@ void hexdump(unsigned char *data, int data_size) {
 }
 
 void hexdump_trace_record_data(uint rt, unsigned char *data, int data_size) {
-        const char *rtname = "?";
+        const char *rtname = "USER";
         if (rt < NUM_RECORD_TYPES)
                 rtname = rtnames[rt];
 
