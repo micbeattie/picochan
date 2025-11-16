@@ -264,3 +264,8 @@ void __time_critical_func(send_tx_packet)(pch_chp_t *chp, proto_packet_t p) {
                 assert(!txl->complete);
         }
 }
+
+void __time_critical_func(pch_css_trace_write_user)(pch_trc_record_type_t rt, void *data, uint8_t data_size) {
+        assert(rt >= PCH_TRC_RT_USER_FIRST);
+        pch_trc_write_raw(&CSS.trace_bs, rt, data, data_size);
+}

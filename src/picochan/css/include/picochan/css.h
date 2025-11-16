@@ -600,4 +600,6 @@ int pch_sch_run_wait(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw);
  */
 int pch_sch_run_wait_timeout(pch_sid_t sid, pch_ccw_t *ccw_addr, pch_scsw_t *scsw, absolute_time_t timeout_timestamp);
 
+void pch_css_trace_write_user(pch_trc_record_type_t rt, void *data, uint8_t data_size);
+
 #endif
