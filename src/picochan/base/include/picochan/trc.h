@@ -167,4 +167,6 @@ typedef struct pch_trc_bufferset {
         void            *buffers[PCH_TRC_NUM_BUFFERS];
 } pch_trc_bufferset_t;
 
+void pch_trc_write_raw(pch_trc_bufferset_t *bs, pch_trc_record_type_t rt, void *data, uint8_t data_size);
+
 #endif

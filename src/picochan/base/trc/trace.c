@@ -85,6 +85,12 @@ void __time_critical_func(*pch_trc_write_uncond)(pch_trc_bufferset_t *bs, pch_tr
         return h + 1;
 }
 
+void __time_critical_func(pch_trc_write_raw)(pch_trc_bufferset_t *bs, pch_trc_record_type_t rt, void *data, uint8_t data_size) {
+        void *rec = pch_trc_write_uncond(bs, rt, data_size);
+        if (rec)
+                memcpy(rec, data, data_size);
+}
+
 bool pch_trc_set_enable(pch_trc_bufferset_t *bs, bool enable) {
         bool old_enable = bs->enable;
         if (old_enable == enable)
