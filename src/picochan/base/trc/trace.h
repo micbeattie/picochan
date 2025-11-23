@@ -60,4 +60,8 @@ static inline void *pch_trc_write(pch_trc_bufferset_t *bs, bool cond, pch_trc_re
 
 bool pch_trc_set_enable(pch_trc_bufferset_t *bs, bool enable);
 
+static inline bool pch_trc_is_enabled(pch_trc_bufferset_t *bs) {
+        return bs->enable;
+}
+
 #endif
