@@ -20,6 +20,7 @@
 #define PCH_HLDEV_RECEIVING     2
 #define PCH_HLDEV_SENDING       3
 #define PCH_HLDEV_SENDING_FINAL 4
+#define PCH_HLDEV_ENDING        5
 
 // values for code fields of dev_sense_t for PCH_DEV_SENSE_PROTO_ERROR
 #define PCH_HLDEV_ERR_NO_START_CALLBACK         1
@@ -53,6 +54,9 @@ typedef struct pch_hldev {
 // PCH_HLDEV_FLAG_EOF indicates that no more data is available to be
 // received from a Write-type CCW
 #define PCH_HLDEV_FLAG_EOF      0x01
+// PCH_HLDEV_FLAG_TRACED indicates that trace records will be written
+// for events for this hldev
+#define PCH_HLDEV_FLAG_TRACED   0x02
 
 static inline bool pch_hldev_is_idle(pch_hldev_t *hd) {
         return hd->state == PCH_HLDEV_IDLE;
@@ -72,6 +76,17 @@ static inline bool pch_hldev_is_sending(pch_hldev_t *hd) {
 
 static inline bool pch_hldev_is_sending_final(pch_hldev_t *hd) {
         return hd->state == PCH_HLDEV_SENDING_FINAL;
+}
+
+static inline bool pch_hldev_is_traced(pch_hldev_t *hd) {
+        return hd->flags & PCH_HLDEV_FLAG_TRACED;
+}
+
+static inline void pch_hldev_set_traced(pch_hldev_t *hd, bool b) {
+        if (b)
+                hd->flags |= PCH_HLDEV_FLAG_TRACED;
+        else
+                hd->flags &= ~PCH_HLDEV_FLAG_TRACED;
 }
 
 static inline pch_hldev_config_t *pch_hldev_get_config(pch_devib_t *devib) {

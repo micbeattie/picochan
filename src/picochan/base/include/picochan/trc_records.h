@@ -51,6 +51,19 @@ struct pch_trdata_dev_byte {
         uint8_t         byte;
 };
 
+struct pch_trdata_counts_dev {
+        uint16_t        count1;
+        uint16_t        count2;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+};
+
+struct pch_trdata_count_dev {
+        uint16_t        count;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+};
+
 struct pch_trdata_word_dev {
         uint32_t        word;
         pch_cuaddr_t    cuaddr;
@@ -149,6 +162,49 @@ struct pch_trdata_cus_register_callback {
         uint32_t        cbfunc;
         uint32_t        cbctx;
         uint8_t         cbindex;
+};
+
+struct pch_trdata_hldev_config_init {
+        uint32_t        hdcfg;
+        uint32_t        start;
+        uint32_t        signal;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t first_ua;
+        uint8_t         num_devices;
+        uint8_t         cbindex;
+};
+
+struct pch_trdata_hldev_start {
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+        uint8_t         ccwcmd;
+        uint8_t         esize;
+};
+
+struct pch_trdata_hldev_data {
+        uint32_t        addr;
+        uint16_t        count;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+};
+
+struct pch_trdata_hldev_data_then {
+        uint32_t        cbaddr;
+        uint32_t        addr;
+        uint16_t        count;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+};
+
+struct pch_trdata_hldev_end {
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+        uint8_t         devstat;
+        uint8_t         esize;
+        uint8_t         sense_flags;
+        uint8_t         sense_code;
+        uint8_t         sense_asc;
+        uint8_t         sense_ascq;
 };
 
 struct pch_trdata_dmachan {

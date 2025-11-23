@@ -4,6 +4,7 @@
  */
 
 #include "picochan/hldev.h"
+#include "hldev_trace.h"
 
 void pch_hldev_reset(pch_hldev_config_t *hdcfg, pch_hldev_t *hd) {
         hd->callback = hdcfg->start;
@@ -39,8 +40,14 @@ static void do_receive(pch_hldev_t *hd, pch_devib_t *devib) {
         if (eof)
                 hd->flags |= PCH_HLDEV_FLAG_EOF;
 
-        if (remaining > 0 && !eof) {
-                pch_dev_receive(devib, hd->addr, remaining);
+        uint16_t next_count = 0;
+        if (remaining > 0 && !eof)
+                next_count = remaining;
+
+        trace_hldev_counts(PCH_TRC_RT_HLDEV_RECEIVING,
+                devib, n, next_count);
+        if (next_count) {
+                pch_dev_receive(devib, hd->addr, next_count);
                 return;
         }
 
@@ -60,6 +67,15 @@ void pch_hldev_receive_then(pch_devib_t *devib, void *dstaddr, uint16_t size, pc
         hd->size = size;
         hd->count = 0;
         hd->state = PCH_HLDEV_RECEIVING;
+
+        if (callback) {
+                trace_hldev_data_then(PCH_TRC_RT_HLDEV_RECEIVE_THEN,
+                        devib, dstaddr, size, callback);
+        } else {
+                trace_hldev_data(PCH_TRC_RT_HLDEV_RECEIVE,
+                        devib, dstaddr, size);
+        }
+
         pch_dev_receive(devib, dstaddr, size);
 }
 
@@ -107,22 +123,28 @@ static void do_send(pch_hldev_t *hd, pch_devib_t *devib) {
         uint16_t n = hd->size - hd->count;
         assert(n > 0);
 
-        proto_chop_flags_t flags = 0;
+        bool final = pch_hldev_is_sending_final(hd);
+        bool end = false;
         if (n > devib->size) {
                 n = devib->size;
-        } else if (pch_hldev_is_sending_final(hd)) {
-                flags = PROTO_CHOP_FLAG_END;
+        } else if (final) {
+                end = true;
+                hd->state = PCH_HLDEV_ENDING;
         } else {
                 hd->state = PCH_HLDEV_STARTED;
         }
 
-        pch_hldev_config_t *hdcfg = pch_hldev_get_config(devib);
-        if (flags == PROTO_CHOP_FLAG_END)
-                pch_hldev_reset(hdcfg, hd); // back to IDLE
-        else {
+        trace_hldev_counts(PCH_TRC_RT_HLDEV_SENDING, devib, n,
+                devib->size);
+
+        proto_chop_flags_t flags = 0;
+        if (end) {
+                flags = PROTO_CHOP_FLAG_END;
+        } else {
                 hd->addr += n;
                 hd->count += n;
         }
+
         pch_dev_send(devib, srcaddr, n, flags);
 }
 
@@ -162,6 +184,16 @@ static void start_send(pch_devib_t *devib, void *srcaddr, uint16_t size, pch_dev
                 }
         }
 
+        if (callback) {
+                pch_trc_record_type_t rt = final ?
+                        PCH_TRC_RT_HLDEV_SEND_FINAL_THEN : PCH_TRC_RT_HLDEV_SEND_THEN;
+                trace_hldev_data_then(rt, devib, srcaddr, size, callback);
+        } else {
+                pch_trc_record_type_t rt = final ?
+                        PCH_TRC_RT_HLDEV_SEND_FINAL : PCH_TRC_RT_HLDEV_SEND;
+                trace_hldev_data(rt, devib, srcaddr, size);
+        }
+
         int rc = pch_dev_send(devib, srcaddr, size, flags);
         assert(rc >= 0);
 }
@@ -188,13 +220,22 @@ void pch_hldev_end(pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense
 
         pch_hldev_config_t *hdcfg = pch_hldev_get_config(devib);
         hd->callback = hdcfg->start;
-        hd->state = PCH_HLDEV_IDLE;
+        hd->state = PCH_HLDEV_ENDING;
         devib->sense = sense;
+        trace_hldev_end(devib, sense, extra_devs);
         pch_dev_update_status(devib, extra_devs);
 }
 
 static void hldev_devib_callback(pch_devib_t *devib) {
         pch_hldev_config_t *hdcfg = pch_devib_callback_context(devib);
+        pch_hldev_t *hd = pch_hldev_get(devib);
+        if (!hd) {
+                pch_hldev_end_reject(devib, EINVALIDDEV);
+                return;
+        }
+
+        trace_hldev_byte(PCH_TRC_RT_HLDEV_DEVIB_CALLBACK, devib,
+                hd->state);
 
         if (pch_devib_is_stopping(devib)) {
                 if (hdcfg->signal)
@@ -204,16 +245,18 @@ static void hldev_devib_callback(pch_devib_t *devib) {
                 return;
         }
 
-        pch_hldev_t *hd = pch_hldev_get(devib);
-        if (!hd) {
-                pch_hldev_end_reject(devib, EINVALIDDEV);
-                return;
-        }
-
         switch (hd->state) {
+        case PCH_HLDEV_ENDING:
+                if (!pch_devib_is_started(devib)) {
+                        pch_hldev_reset(hdcfg, hd); // back to IDLE
+                        return;
+                }
+                // fallthrough
+
         case PCH_HLDEV_IDLE:
                 assert(proto_chop_cmd(devib->op) == PROTO_CHOP_START);
                 assert(hdcfg->start);
+                trace_hldev_start(devib);
                 hd->ccwcmd = devib->payload.p0;
                 hd->callback = hdcfg->start;
                 // fallthrough
@@ -243,9 +286,11 @@ static void hldev_devib_callback(pch_devib_t *devib) {
 }
 
 void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices) {
+        assert(num_devices > 0);
         pch_dev_range_t *dr = &hdcfg->dev_range;
 
         pch_dev_range_init(dr, cu, first_ua, num_devices);
         pch_dev_range_register_unused_devib_callback(dr,
                 hldev_devib_callback, hdcfg);
+        trace_hldev_config_init(hdcfg);
 }
