@@ -236,6 +236,8 @@ void pch_cus_init(void);
  */
 bool pch_cus_set_trace(bool trace);
 
+bool pch_cus_is_traced(void);
+
 /*
  * \brief Configure an explicit DMA IRQ for use by CUs started from the
  * calling core and set an exclusive IRQ handler for it.
@@ -461,7 +463,21 @@ typedef struct pch_dev_range {
         pch_cu_t        *cu;
         uint16_t        num_devices;    // 0 to 256
         pch_unit_addr_t first_ua;
+        uint8_t         flags;
 } pch_dev_range_t;
+
+#define PCH_DEV_RANGE_FLAG_TRACED       0x01
+
+static inline bool pch_dev_range_is_traced(pch_dev_range_t *dr) {
+        return dr->flags & PCH_DEV_RANGE_FLAG_TRACED;
+}
+
+static inline void pch_dev_range_set_traced(pch_dev_range_t *dr, bool b) {
+        if (b)
+                dr->flags |= PCH_DEV_RANGE_FLAG_TRACED;
+        else
+                dr->flags &= ~PCH_DEV_RANGE_FLAG_TRACED;
+}
 
 static inline pch_unit_addr_t pch_dev_range_get_ua(pch_dev_range_t *dr, uint i) {
         assert(dr->cu);

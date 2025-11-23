@@ -66,13 +66,14 @@ static inline void trace_register_callback(pch_trc_record_type_t rt, pch_cbindex
                 }));
 }
 
-static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *devib, pch_cbindex_t cbindex) {
+static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *devib, pch_cbindex_t cbindex, uint8_t from) {
         PCH_CUS_TRACE_COND(rt,
                 cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_cus_call_callback){
                         .cuaddr = pch_dev_get_cuaddr(devib),
                         .ua = pch_dev_get_ua(devib),
-                        .cbindex = (uint8_t)cbindex
+                        .cbindex = (uint8_t)cbindex,
+                        .from = from
                 }));
 }
 

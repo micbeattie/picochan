@@ -8,7 +8,7 @@
 #include "callback.h"
 #include "cus_trace.h"
 
-static inline void callback_devib_when_not_tx_busy(pch_devib_t *devib) {
+static inline void callback_devib_when_not_tx_busy(pch_devib_t *devib, uint8_t from) {
         // if devib is still tx_busy then the chop may have been
         // sent out to the CSS and the CSS has sent a new chop
         // before the devib tx completion has been called. In that
@@ -18,7 +18,7 @@ static inline void callback_devib_when_not_tx_busy(pch_devib_t *devib) {
         if (pch_devib_is_tx_busy(devib))
                 pch_devib_set_tx_callback(devib, true);
         else
-                callback_devib(devib);
+                callback_devib(devib, from);
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_data)(pch_devib_t *devib, proto_packet_t p) {
@@ -44,7 +44,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_room)(pch_devib_t *devib, pro
         assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
         devib->size = proto_get_count(p);
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
-	callback_devib_when_not_tx_busy(devib);
+	callback_devib_when_not_tx_busy(devib, CB_FROM_RX_CHOP_ROOM);
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_halt)(pch_devib_t *devib, proto_packet_t p) {
@@ -52,7 +52,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_halt)(pch_devib_t *devib, pro
                 return;
 
         devib->flags |= PCH_DEVIB_FLAG_STOPPING;
-        callback_devib_when_not_tx_busy(devib);
+        callback_devib_when_not_tx_busy(devib, CB_FROM_RX_CHOP_HALT);
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start_read_sense)(pch_devib_t *devib, uint16_t count) {
@@ -86,11 +86,13 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_read)(pch_devib_t *devi
 
         dmachan_start_dst_cmdbuf(&cu->rx_channel);
 
-        if (ccwcmd >= PCH_CCW_CMD_FIRST_RESERVED)
+        if (ccwcmd >= PCH_CCW_CMD_FIRST_RESERVED) {
                 cus_handle_rx_chop_start_read_reserved(devib,
                         ccwcmd, count);
-        else
-                callback_devib_when_not_tx_busy(devib);
+        } else {
+                callback_devib_when_not_tx_busy(devib,
+                        CB_FROM_RX_CHOP_START_READ);
+        }
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
@@ -100,7 +102,8 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *dev
 
         if (count == 0) {
                 dmachan_start_dst_cmdbuf(&cu->rx_channel);
-                callback_devib_when_not_tx_busy(devib);
+                callback_devib_when_not_tx_busy(devib,
+                        CB_FROM_RX_CHOP_START_WRITE);
                 return;
         }
 
@@ -113,7 +116,8 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *dev
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start)(pch_devib_t *devib, proto_packet_t p) {
-        if (devib->flags & PCH_DEVIB_FLAG_STARTED) {
+        assert(!pch_devib_is_started(devib));
+        if (pch_devib_is_started(devib)) {
                 pch_dev_update_status_proto_error(devib);
                 return;
         }
@@ -167,7 +171,8 @@ static void __not_in_flash_func(cus_handle_rx_data_complete)(pch_cu_t *cu, pch_u
 	trace_dev(PCH_TRC_RT_CUS_RX_DATA_COMPLETE, devib);
         assert(devib->flags & PCH_DEVIB_FLAG_RX_DATA_REQUIRED);
 	devib->flags &= ~PCH_DEVIB_FLAG_RX_DATA_REQUIRED;
-	callback_devib_when_not_tx_busy(devib);
+	callback_devib_when_not_tx_busy(devib,
+                CB_FROM_RX_DATA_COMPLETE);
 }
 
 void __time_critical_func(pch_cus_handle_rx_complete)(pch_cu_t *cu) {

@@ -61,6 +61,7 @@ void __time_critical_func(pch_default_devib_callback)(pch_devib_t *devib) {
                 break;
 
         default:
+                assert(0);
                 pch_dev_update_status_proto_error(devib);
                 break;
         }

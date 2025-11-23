@@ -271,6 +271,10 @@ bool pch_cus_set_trace(bool trace) {
         return pch_trc_set_enable(&pch_cus_trace_bs, trace);
 }
 
+bool pch_cus_is_traced(void) {
+        return pch_cus_trace_bs.enable;
+}
+
 static void set_dmachan_links_bs(pch_cu_t *cu, pch_trc_bufferset_t *bs) {
         dmachan_set_link_bs(&cu->tx_channel.link, bs);
         dmachan_set_link_bs(&cu->rx_channel.link, bs);
@@ -320,6 +324,5 @@ bool pch_cus_trace_dev(pch_devib_t *devib, bool trace) {
 }
 
 void pch_cus_trace_write_user(pch_trc_record_type_t rt, void *data, uint8_t data_size) {
-        assert(rt >= PCH_TRC_RT_USER_FIRST);
         pch_trc_write_raw(&pch_cus_trace_bs, rt, data, data_size);
 }
