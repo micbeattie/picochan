@@ -85,4 +85,8 @@ static inline bool pch_is_ccw_cmd_write(uint8_t cmd) {
         return (cmd & 0x01) == 1;
 }
 
+static inline bool pch_is_ccw_cmd_read(uint8_t cmd) {
+        return !pch_is_ccw_cmd_write(cmd);
+}
+
 #endif
