@@ -98,15 +98,15 @@ static inline bool pch_devib_is_cmd_write(pch_devib_t *devib) {
 }
 
 static inline bool pch_devib_is_tx_callback(pch_devib_t *devib) {
-        return devib->flags & PCH_DEVIB_FLAG_TX_BUSY;
+        return devib->flags & PCH_DEVIB_FLAG_TX_CALLBACK;
 }
 
 static inline bool pch_devib_set_tx_callback(pch_devib_t *devib, bool tx_callback) {
         bool old_tx_callback = pch_devib_is_tx_callback(devib);
         if (tx_callback)
-                devib->flags |= PCH_DEVIB_FLAG_TX_BUSY;
+                devib->flags |= PCH_DEVIB_FLAG_TX_CALLBACK;
         else
-                devib->flags &= ~PCH_DEVIB_FLAG_TX_BUSY;
+                devib->flags &= ~PCH_DEVIB_FLAG_TX_CALLBACK;
 
         return old_tx_callback;
 }
