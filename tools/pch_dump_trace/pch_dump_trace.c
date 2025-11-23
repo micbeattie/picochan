@@ -183,7 +183,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CSS_CHP_RX_DMA_INIT: {
                 struct pch_trdata_dma_init *td = vd;
-                print_dma_irq_init(td, "CHPID", "tx");
+                print_dma_irq_init(td, "CHPID", "rx");
                 break;
         }
 
