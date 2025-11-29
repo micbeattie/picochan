@@ -41,6 +41,7 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
                 dmachan_link_t *rxl = &rxpeer->link;
                 dmachan_link_cmd_copy(rxl, txl);
                 txl->complete = true;
+                dmachan_set_mem_dst_state(rxpeer, DMACHAN_MEM_DST_IDLE);
                 dmachan_set_link_irq_forced(rxl, true);
                 break;
 
@@ -107,6 +108,7 @@ static void start_src_data_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t *r
 
         case DMACHAN_MEM_DST_DISCARD:
                 txl->complete = true;
+                dmachan_set_mem_dst_state(rxpeer, DMACHAN_MEM_DST_IDLE);
                 dmachan_set_link_irq_forced(&rxpeer->link, true);
                 break;
 
