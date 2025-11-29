@@ -371,7 +371,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CUS_CALL_CALLBACK: {
                 struct pch_trdata_cus_call_callback *td = vd;
                 print_cua_ua(td->cuaddr, td->ua);
-                printf(" callback %d from %u", td->cbindex, td->from);
+                putchar(' ');
+                print_cu_callback(td->cbindex, td->from);
                 break;
         }
 

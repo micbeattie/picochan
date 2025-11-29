@@ -273,3 +273,32 @@ void print_hldev_state(uint8_t state) {
         else
                 printf("%s(%u)", hldev_state[state], state);
 }
+
+// Values for "callback from" from cu/callback.h
+#define CB_FROM_RX_CHOP_ROOM            1
+#define CB_FROM_RX_CHOP_HALT            2
+#define CB_FROM_RX_CHOP_START_READ      3
+#define CB_FROM_RX_CHOP_START_WRITE     4
+#define CB_FROM_RX_DATA_COMPLETE        5
+#define CB_FROM_TXSM_FINISHED           6
+#define CB_FROM_TXSM_NOOP               7
+
+const char *cu_callback_from[] = {
+	[CB_FROM_RX_CHOP_ROOM] = "rx_chop_room",
+	[CB_FROM_RX_CHOP_HALT] = "rx_chop_halt",
+	[CB_FROM_RX_CHOP_START_READ] = "rx_chop_start_read",
+	[CB_FROM_RX_CHOP_START_WRITE] = "rx_chop_start_write",
+	[CB_FROM_RX_DATA_COMPLETE] = "rx_data_complete",
+	[CB_FROM_TXSM_FINISHED] = "txsm_finished",
+	[CB_FROM_TXSM_NOOP] = "txsm_noop"
+};
+
+void print_cu_callback(uint8_t cbindex, uint8_t from) {
+        printf("callback %d from ", cbindex);
+        if (from >= sizeof(cu_callback_from)/sizeof(cu_callback_from[0])
+                || !cu_callback_from[from]) {
+                printf("invalid(%u)", from);
+        } else {
+                printf("%s(%u)", cu_callback_from[from], from);
+        }
+}
