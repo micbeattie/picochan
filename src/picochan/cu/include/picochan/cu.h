@@ -94,8 +94,6 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
         dmachan_rx_channel_t    rx_channel;
         pch_txsm_t              tx_pending;
         pch_cuaddr_t            cuaddr;
-	//! when tx_pending in use, the ua to callback or -1
-	int16_t                 tx_callback_ua;
 	//! active ua for rx data to dev or -1 if none
 	int16_t                 rx_active;
 	//! head (active) ua on tx side or -1 if none
@@ -162,7 +160,6 @@ void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix);
  * it must be a compile-time constant this should not be a problem.
  */
 #define PCH_CU_INIT(num_devices) { \
-                .tx_callback_ua = -1, \
                 .rx_active = -1, \
                 .tx_head = -1, \
                 .tx_tail = -1, \

@@ -14,6 +14,7 @@
 
 void print_sid(pch_sid_t sid);
 void print_cc(uint8_t cc);
+void print_cua_ua(pch_cuaddr_t cua, pch_unit_addr_t ua);
 void print_address_change(struct pch_trdata_address_change *td, const char *s);
 void print_ccwaddr(uint32_t ccwaddr);
 void print_scsw(pch_scsw_t *scsw);
@@ -28,4 +29,6 @@ void print_dma_irq_init(struct pch_trdata_dma_init *td, const char *idtype, cons
 void print_dma_handler_init(struct pch_trdata_irq_handler *td, const char *irqtype);
 void print_txpending_state(uint8_t txpstate);
 void print_chop(proto_chop_t chop);
-void print_packet(uint32_t raw, bool from_css);
+void print_bsize(uint8_t esize);
+void print_packet(uint32_t raw, uint16_t seqnum, bool from_css);
+void print_hldev_state(uint8_t state);

@@ -239,19 +239,6 @@ static inline void push_ua_response_slist(pch_chp_t *chp, pch_sid_t sid) {
 //
 // getting packets to/from the channel command buffers
 //
-static inline proto_packet_t get_rx_packet(pch_chp_t *chp) {
-        // chp.rx_channel is a dmachan_rx_channel_t which is
-        // __aligned(4) and cmd is the first member of rx_channel
-        // so is 4-byte aligned. proto_packet_t is 4-bytes and also
-        // __aligned(4) (and needing no more than 4-byte alignment)
-        // but omitting the __builtin_assume_aligned below causes
-        // gcc 14.1.0 to produce error
-        // error: cast increases required alignment of target type
-        // [-Werror=cast-align]
-        proto_packet_t *pp = (proto_packet_t *)
-                __builtin_assume_aligned(&chp->rx_channel.link.cmd, 4);
-        return *pp;
-}
 
 static inline proto_packet_t get_tx_packet(pch_chp_t *chp) {
         // chp.tx_channel is a dmachan_tx_channel_t which is the
@@ -268,6 +255,6 @@ static inline proto_packet_t get_tx_packet(pch_chp_t *chp) {
         return *pp;
 }
 
-void send_tx_packet(pch_chp_t *chp, proto_packet_t p);
+void send_tx_packet(pch_chp_t *chp, pch_schib_t *schib, proto_packet_t p);
 
 #endif

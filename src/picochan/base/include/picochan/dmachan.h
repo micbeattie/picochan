@@ -122,35 +122,34 @@ typedef union __aligned(4) dmachan_cmd {
 #define DMACHAN_CMD_SIZE sizeof(dmachan_cmd_t)
 static_assert(DMACHAN_CMD_SIZE == 4, "dmachan_cmd_t must be 4 bytes");
 
+static inline dmachan_cmd_t dmachan_make_cmd_from_word(uint32_t rawcmd) {
+        return ((dmachan_cmd_t){.raw = rawcmd});
+}
+
 static inline void dmachan_cmd_set_zero(dmachan_cmd_t *cmd) {
         cmd->raw = 0;
 }
-
-static inline void dmachan_cmd_copy(dmachan_cmd_t *dst, dmachan_cmd_t *src) {
-        dst->raw = src->raw;
-}
-
-#define DMACHAN_CMD_COPY(cmdp, p) do { \
-        dmachan_cmd_t *__cmdp = (cmdp); \
-        static_assert(sizeof(*(p)) == DMACHAN_CMD_SIZE, \
-                "DMACHAN_CMD_COPY sizeof(*p) must be DMACHAN_CMD_SIZE"); \
-        __cmdp->raw = *(uint32_t*)(p); \
-} while (0)
 
 // dmachan_link_t collects the common fields in tx and rx channels
 typedef struct __aligned(4) dmachan_link {
         dmachan_cmd_t           cmd;
         pch_trc_bufferset_t     *bs;            // only when tracing
+#ifdef PCH_CONFIG_DEBUG_MEMCHAN
+        uint16_t                seqnum;
+#endif
         pch_dmaid_t             dmaid;
         pch_dma_irq_index_t     dmairqix;
         bool                    complete;
         bool                    resetting;
 } dmachan_link_t;
 
-#define DMACHAN_LINK_CMD_COPY(l, p) do { \
-        dmachan_link_t *__l = (l); \
-        DMACHAN_CMD_COPY(&__l->cmd, p); \
-} while (0)
+static inline uint16_t dmachan_link_seqnum(dmachan_link_t *l) {
+#ifdef PCH_CONFIG_DEBUG_MEMCHAN
+        return l->seqnum;
+#else
+        return 0;
+#endif
+}
 
 static inline void dmachan_set_link_bs(dmachan_link_t *l, pch_trc_bufferset_t *bs) {
         l->bs = bs;
@@ -160,8 +159,18 @@ static inline void dmachan_link_cmd_set_zero(dmachan_link_t *l) {
         dmachan_cmd_set_zero(&l->cmd);
 }
 
+static inline void dmachan_link_cmd_set(dmachan_link_t *l, dmachan_cmd_t cmd) {
+#ifdef PCH_CONFIG_DEBUG_MEMCHAN
+        l->seqnum++;
+#endif
+        l->cmd.raw = cmd.raw;
+}
+
 static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *src) {
-        dmachan_cmd_copy(&dst->cmd, &src->cmd);
+        dst->cmd.raw = src->cmd.raw;
+#ifdef PCH_CONFIG_DEBUG_MEMCHAN
+        dst->seqnum = src->seqnum;
+#endif
 }
 
 static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
@@ -203,6 +212,9 @@ typedef struct __aligned(4) dmachan_rx_channel {
         uint32_t                srcaddr;
         dma_channel_config      ctrl;
         dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
+#ifdef PCH_CONFIG_DEBUG_MEMCHAN
+        uint16_t                seen_seqnum;
+#endif
 } dmachan_rx_channel_t;
 
 static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool forced, bool complete) {

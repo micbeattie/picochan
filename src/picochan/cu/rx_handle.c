@@ -132,13 +132,19 @@ static void __not_in_flash_func(cus_handle_rx_chop_start)(pch_devib_t *devib, pr
                 cus_handle_rx_chop_start_read(devib, ccwcmd, count);
 }
 
+static inline proto_packet_t get_rx_packet(dmachan_link_t *l) {
+        return *(proto_packet_t *)&l->cmd;
+}
+
 static void __not_in_flash_func(cus_handle_rx_command_complete)(pch_cu_t *cu) {
 	// DMA has received a command packet from CSS into RxBuf
-        proto_packet_t p = get_rx_packet(cu);
+        dmachan_link_t *rxl = &cu->rx_channel.link;
+        proto_packet_t p = get_rx_packet(rxl);
         pch_unit_addr_t ua = p.unit_addr;
 	assert(ua < cu->num_devibs);
         pch_devib_t *devib = pch_get_devib(cu, ua);
-	trace_dev_packet(PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE, devib, p);
+	trace_dev_packet(PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE, devib, p,
+                dmachan_link_seqnum(rxl));
         devib->op = p.chop;
         devib->payload = proto_get_payload(p);
 	switch (proto_chop_cmd(p.chop)) {

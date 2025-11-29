@@ -40,6 +40,7 @@ static void start_src_cmdbuf_mem(dmachan_tx_channel_t *tx, dmachan_rx_channel_t 
         case DMACHAN_MEM_DST_CMDBUF:
                 dmachan_link_t *rxl = &rxpeer->link;
                 dmachan_link_cmd_copy(rxl, txl);
+                trace_dmachan_cmd(PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD, txl);
                 txl->complete = true;
                 dmachan_set_mem_dst_state(rxpeer, DMACHAN_MEM_DST_IDLE);
                 dmachan_set_link_irq_forced(rxl, true);

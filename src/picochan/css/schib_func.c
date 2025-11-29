@@ -42,9 +42,7 @@ static void send_start_packet(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd
 		count = pch_bsize_decode(esize);
 		send_command_with_data(chp, schib, p, count);
 	} else {
-                trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET,
-                        schib, p);
-		send_tx_packet(chp, p);
+		send_tx_packet(chp, schib, p);
 	}
 }
 
@@ -107,9 +105,7 @@ static void process_schib_halt(pch_schib_t *schib) {
                 .chop = PROTO_CHOP_HALT,
                 .unit_addr = ua
         };
-        trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET,
-                schib, p);
-        send_tx_packet(chp, p);
+        send_tx_packet(chp, schib, p);
 }
 
 // process_schib_func processes a schib which has been put on

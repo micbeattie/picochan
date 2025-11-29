@@ -304,15 +304,29 @@ static void __time_critical_func(handle_request_read)(pch_chp_t *chp, pch_schib_
 	}
 }
 
+static inline proto_packet_t get_rx_packet(dmachan_link_t *l) {
+        return *(proto_packet_t *)&l->cmd;
+}
+
 static void __time_critical_func(css_handle_rx_command_complete)(pch_chp_t *chp) {
 	// DMA has received a command packet from chp into RxBuf
-	proto_packet_t p = get_rx_packet(chp);
+        dmachan_rx_channel_t *rx = &chp->rx_channel;
+        dmachan_link_t *rxl = &rx->link;
+        proto_packet_t p = get_rx_packet(rxl);
         // Poison RxBuf to help troubleshooting
-        chp->rx_channel.link.cmd.raw = 0xffffffff;
+        rxl->cmd.raw = 0xffffffff;
 
         pch_unit_addr_t ua = p.unit_addr;
         pch_schib_t *schib = get_schib_by_chp(chp, ua);
-	trace_schib_packet(PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE, schib, p);
+        uint16_t seqnum = dmachan_link_seqnum(rxl);
+	trace_schib_packet(PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE,
+                schib, p, seqnum);
+#ifdef PCH_CONFIG_DEBUG_MEMCHAN
+        uint16_t next_seqnum = rx->seen_seqnum + 1;
+        if (seqnum != next_seqnum)
+                panic("expected seqnum %d, got %d", next_seqnum, seqnum);
+        rx->seen_seqnum = seqnum;
+#endif
 
 	switch (proto_chop_cmd(p.chop)) {
 	case PROTO_CHOP_DATA:

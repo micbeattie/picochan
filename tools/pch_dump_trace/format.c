@@ -18,6 +18,10 @@ void print_cc(uint8_t cc) {
         printf("cc=%d", cc);
 }
 
+void print_cua_ua(pch_cuaddr_t cua, pch_unit_addr_t ua) {
+        printf("CU=%d UA=%d", cua, ua);
+}
+
 void print_address_change(struct pch_trdata_address_change *td, const char *s) {
         printf("%s address changes from %08x to %08x",
                 s, td->old_addr, td->new_addr);
@@ -168,7 +172,7 @@ void print_bsize(uint8_t esize) {
         printf("%u(%s)", size, exactness);
 }
 
-void print_packet(uint32_t raw, bool from_css) {
+void print_packet(uint32_t raw, uint16_t seqnum, bool from_css) {
         proto_packet_t p = *(proto_packet_t*)&raw;
         proto_chop_cmd_t cmd = proto_chop_cmd(p.chop);
         proto_chop_flags_t flags = proto_chop_flags(p.chop);
@@ -240,5 +244,32 @@ void print_packet(uint32_t raw, bool from_css) {
                         cmd, flags, p.unit_addr, p.p0, p.p1);
                 break;
         }
+        if (seqnum)
+                printf(" seqnum=%d", seqnum);
+
         printf("}");
+}
+
+// Values for pch_hldev_t state field from picochan/hldev.h
+#define PCH_HLDEV_IDLE          0
+#define PCH_HLDEV_STARTED       1
+#define PCH_HLDEV_RECEIVING     2
+#define PCH_HLDEV_SENDING       3
+#define PCH_HLDEV_SENDING_FINAL 4
+#define PCH_HLDEV_ENDING        5
+
+const char *hldev_state[] = {
+	[PCH_HLDEV_IDLE] = "idle",
+	[PCH_HLDEV_STARTED] = "started",
+	[PCH_HLDEV_RECEIVING] = "receiving",
+	[PCH_HLDEV_SENDING] = "sending",
+	[PCH_HLDEV_SENDING_FINAL] = "sending_final",
+	[PCH_HLDEV_ENDING] = "ending"
+};
+
+void print_hldev_state(uint8_t state) {
+       if (state >= sizeof(hldev_state)/sizeof(hldev_state[0]))
+                printf("?(%u)", state);
+        else
+                printf("%s(%u)", hldev_state[state], state);
 }

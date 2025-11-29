@@ -51,8 +51,7 @@ void __time_critical_func(send_command_with_data)(pch_chp_t *chp, pch_schib_t *s
 	if (!zeroes)
                 pch_txsm_set_pending(&chp->tx_pending, addr, count);
 
-        trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET, schib, p);
-	send_tx_packet(chp, p);
+	send_tx_packet(chp, schib, p);
 }
 
 void __time_critical_func(send_data_response)(pch_chp_t *chp, pch_schib_t *schib) {
@@ -90,8 +89,7 @@ void __time_critical_func(send_update_room)(pch_chp_t *chp, pch_schib_t *schib) 
         pch_unit_addr_t ua = schib->pmcw.unit_addr;
 	proto_packet_t p = proto_make_count_packet(op, ua,
                 schib->scsw.count);
-        trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET, schib, p);
-        send_tx_packet(chp, p);
+        send_tx_packet(chp, schib, p);
 }
 
 void __time_critical_func(do_command_chain_and_send_start)(pch_chp_t *chp, pch_schib_t *schib) {

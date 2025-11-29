@@ -37,21 +37,22 @@ static inline void trace_dev_byte(pch_trc_record_type_t rt, pch_devib_t *devib, 
                 }));
 }
 
-static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_devib_t *devib, proto_packet_t p) {
+static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_devib_t *devib, proto_packet_t p, uint16_t seqnum) {
         PCH_CUS_TRACE_COND(rt,
                 cu_or_devib_is_traced(devib),
-                ((struct pch_trdata_word_dev){
-                        .word = proto_packet_as_word(p),
+                ((struct pch_trdata_packet_dev){
+                        .packet = proto_packet_as_word(p),
+                        .seqnum = seqnum,
                         .cuaddr = pch_dev_get_cuaddr(devib),
                         .ua = pch_dev_get_ua(devib)
                 }));
 }
 
-static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t tx_head, int16_t ua_opt, pch_txsm_state_t txpstate) {
+static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t tx_head, bool tx_callback, pch_txsm_state_t txpstate) {
         PCH_CUS_TRACE_COND(rt, pch_cu_is_traced_irq(cu),
                 ((struct pch_trdata_cus_tx_complete){
                         .tx_head = tx_head,
-                        .ua_opt = ua_opt,
+                        .tx_callback = tx_callback,
                         .cuaddr = cu->cuaddr,
                         .txpstate = (uint8_t)txpstate
                 }));

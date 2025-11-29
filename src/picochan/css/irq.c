@@ -48,18 +48,26 @@ static void handle_dma_irq_chp(pch_chp_t *chp) {
         dmachan_link_t *rxl = &rx->link;
         bool progress = true;
 
+        trace_chp_irq_progress(PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS,
+                chp, rxl->complete, txl->complete, progress);
         while (rxl->complete || txl->complete || progress) {
                 if (rxl->complete) {
                         rxl->complete = false;
                         css_handle_rx_complete(chp);
                 }
 
+                trace_chp_irq_progress(PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS,
+                        chp, rxl->complete, txl->complete, progress);
                 if (txl->complete) {
                         txl->complete = false;
                         css_handle_tx_complete(chp);
                 }
 
+                trace_chp_irq_progress(PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS,
+                        chp, rxl->complete, txl->complete, progress);
                 progress = process_a_schib_waiting_for_tx(chp);
+                trace_chp_irq_progress(PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS,
+                        chp, rxl->complete, txl->complete, progress);
         }
 }
 

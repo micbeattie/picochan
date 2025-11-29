@@ -61,12 +61,9 @@ static void make_data_command(pch_devib_t *devib) {
 	proto_chop_t op = devib->op;
         // If no response packet required and not a final auto-end
         // send then arrange for callback immediately after tx of data
-	if (!proto_chop_has_response_required(op)
-                && !proto_chop_has_end(op)) {
-		cu->tx_callback_ua = (int16_t)pch_dev_get_ua(devib);
-        } else {
-		cu->tx_callback_ua = -1;
-        }
+        bool tx_callback = !proto_chop_has_response_required(op)
+                && !proto_chop_has_end(op);
+        pch_devib_set_tx_callback(devib, tx_callback);
 
         // If the End flag is set then the data we're sending has an
         // implicit following UpdateStatus with a plain
@@ -109,12 +106,17 @@ static proto_packet_t pch_cus_make_packet(pch_devib_t *devib) {
         return proto_make_packet(op, ua, devib->payload);
 }
 
+static inline void callback_if_needed(pch_devib_t *devib, uint8_t from) {
+        if (pch_devib_is_tx_callback(devib)) {
+                pch_devib_set_tx_callback(devib, false);
+                callback_devib(devib, from);
+        }
+}
+
 void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
 	pch_txsm_t *txpend = &cu->tx_pending;
-	int16_t tx_callback_uaopt = cu->tx_callback_ua;
 	int16_t tx_head = cu->tx_head;
         assert(tx_head >= 0);
-        assert(tx_callback_uaopt == -1 || tx_callback_uaopt == tx_head);
         pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
         pch_devib_t *devib = pch_get_devib(cu, ua);
         pch_devib_set_tx_busy(devib, false);
@@ -123,33 +125,27 @@ void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
         cu->tx_channel.link.cmd.raw = 0xffffffff;
 
 	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu, tx_head,
-                tx_callback_uaopt, txpend->state);
+                pch_devib_is_tx_callback(devib), txpend->state);
 
         pch_txsm_run_result_t res = pch_txsm_run(txpend, &cu->tx_channel);
         switch (res) {
         case PCH_TXSM_ACTED:
-		return;
+                return;
 
         case PCH_TXSM_FINISHED:
-		pch_pop_tx_list(cu);
-		if (tx_callback_uaopt != -1) {
-                        cu->tx_callback_ua = -1;
-			callback_devib(devib, CB_FROM_TXSM_FINISHED);
-		}
-		try_tx_next_command(cu);
-		return;
+                callback_if_needed(devib, CB_FROM_TXSM_FINISHED);
+                pch_pop_tx_list(cu);
+                try_tx_next_command(cu);
+                return;
 
-        default:
-                // fallthrough
-	}
-
-        if (pch_devib_is_tx_callback(devib)) {
-                pch_devib_set_tx_callback(devib, false);
-                callback_devib(devib, CB_FROM_TXSM_NOOP);
+        case PCH_TXSM_NOOP:
+                callback_if_needed(devib, CB_FROM_TXSM_NOOP);
+                pch_pop_tx_list(cu);
+                try_tx_next_command(cu);
+                return;
         }
 
-	pch_pop_tx_list(cu);
-	try_tx_next_command(cu);
+        panic("invalid txsm state");
 }
 
 void __no_inline_not_in_flash_func(pch_cus_send_command_to_css)(pch_cu_t *cu) {
@@ -158,7 +154,10 @@ void __no_inline_not_in_flash_func(pch_cus_send_command_to_css)(pch_cu_t *cu) {
 	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
         pch_devib_t *devib = pch_get_devib(cu, ua);
         proto_packet_t p = pch_cus_make_packet(devib);
-        DMACHAN_LINK_CMD_COPY(&cu->tx_channel.link, &p);
-        trace_dev_packet(PCH_TRC_RT_CUS_SEND_TX_PACKET, devib, p);
+        uint32_t cmd = proto_packet_as_word(p);
+        dmachan_link_t *txl = &cu->tx_channel.link;
+        dmachan_link_cmd_set(txl, dmachan_make_cmd_from_word(cmd));
+        trace_dev_packet(PCH_TRC_RT_CUS_SEND_TX_PACKET, devib, p,
+                dmachan_link_seqnum(txl));
         dmachan_start_src_cmdbuf(&cu->tx_channel);
 }

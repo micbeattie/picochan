@@ -199,8 +199,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_QUEUE_COMMAND: {
                 struct pch_trdata_dev_byte *td = vd;
-                printf("CU=%d UA=%d queues tx command after tail UA=%d",
-                        td->cuaddr, td->ua, td->byte);
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" queues tx command after tail UA=%d", td->byte);
                 break;
         }
 
@@ -270,15 +270,27 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 print_dma_irq_state(td->rx_state >> 4);
                 printf(",mem_dst_state=");
                 print_mem_dst_state(td->rx_state & 0xf);
+                if (td->rx_state & 0x10)
+                        printf(",sets rxcomplete");
+                break;
+        }
+
+        case PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS: {
+                struct pch_trdata_id_byte *td = vd;
+                bool rxcomplete = !!(td->byte & 0x04);
+                bool txcomplete = !!(td->byte & 0x02);
+                bool progress = !!(td->byte & 0x01);
+                printf("IRQ progress for CHP=%d: now rxcomplete=%d txcomplete=%d progress=%d",
+                        td->id, rxcomplete, txcomplete, progress);
                 break;
         }
 
         case PCH_TRC_RT_CSS_SEND_TX_PACKET: {
-                struct pch_trdata_word_sid *td = vd;
+                struct pch_trdata_packet_sid *td = vd;
                 printf("CSS ");
                 print_sid(td->sid);
                 printf(" sends ");
-                print_packet(td->word, true);
+                print_packet(td->packet, td->seqnum, true);
                 break;
         }
 
@@ -325,11 +337,11 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         }
 
         case PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE: {
-                struct pch_trdata_word_sid *td = vd;
+                struct pch_trdata_packet_sid *td = vd;
                 printf("CSS ");
                 print_sid(td->sid);
                 printf(" received ");
-                print_packet(td->word, false);
+                print_packet(td->packet, td->seqnum, false);
                 break;
         }
 
@@ -358,37 +370,40 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_CALL_CALLBACK: {
                 struct pch_trdata_cus_call_callback *td = vd;
-                printf("CU=%d UA=%d callback %d",
-                        td->cuaddr, td->ua, td->cbindex);
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" callback %d from %u", td->cbindex, td->from);
                 break;
         }
 
         case PCH_TRC_RT_CUS_SEND_TX_PACKET: {
-                struct pch_trdata_word_dev *td = vd;
-                printf("CU=%d UA=%d sends ", td->cuaddr, td->ua);
-                print_packet(td->word, true);
+                struct pch_trdata_packet_dev *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" sends ");
+                print_packet(td->packet, td->seqnum, true);
                 break;
         }
 
         case PCH_TRC_RT_CUS_TX_COMPLETE: {
                 struct pch_trdata_cus_tx_complete *td = vd;
-                printf("CU=%d handling tx complete for tx_head UA=%d with ua_opt UA=%d while txsm is ",
-                        td->cuaddr, td->tx_head, td->ua_opt);
+                const char *cb = td->tx_callback ? "set" : "unset";
+                printf("CU=%d handling tx complete for tx_head UA=%d, tx_callback %s, txsm is ",
+                        td->cuaddr, td->tx_head, cb);
                 print_txpending_state(td->txpstate);
                 break;
         }
 
         case PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE: {
-                struct pch_trdata_word_dev *td = vd;
-                printf("CU=%d UA=%d received ", td->cuaddr, td->ua);
-                print_packet(td->word, true);
+                struct pch_trdata_packet_dev *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" received ");
+                print_packet(td->packet, td->seqnum, true);
                 break;
         }
 
         case PCH_TRC_RT_CUS_RX_DATA_COMPLETE: {
                 struct pch_trdata_dev *td = vd;
-                printf("CU=%d UA=%d rx data complete",
-                        td->cuaddr, td->ua);
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" rx data complete");
                 break;
         }
 
@@ -411,6 +426,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 printf("rx memchan DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
                         td->dmaid);
                 print_mem_src_state(td->state);
+                if (td->state == DMACHAN_MEM_SRC_CMDBUF)
+                        printf(", sets rxcomplete and forces IRQ for tx peer");
                 break;
 	}
 
@@ -441,6 +458,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 printf("rx memchan DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
                         td->dmaid, td->count);
                 print_mem_src_state(td->state);
+                if (td->state == DMACHAN_MEM_SRC_DATA)
+                        printf(", sets rxcomplete and forces IRQ for tx peer");
                 break;
 	}
 
@@ -463,6 +482,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 printf("tx memchan DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
                         td->dmaid);
                 print_mem_dst_state(td->state);
+                if (td->state == DMACHAN_MEM_DST_CMDBUF)
+                        printf(", forces IRQ for rx peer");
                 break;
 	}
 
@@ -478,12 +499,156 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 printf("tx memchan DMAid=%d sets source to data address:%08x count=%u while rxpeer mem_dst_state=",
                         td->dmaid, td->addr, td->count);
                 print_mem_dst_state(td->state);
+                if (td->state == DMACHAN_MEM_DST_DISCARD)
+                        printf(", forces IRQ for rx peer");
                 break;
 	}
+
+        case PCH_TRC_RT_DMACHAN_FORCE_IRQ: {
+                struct pch_trdata_dmachan *td = vd;
+                printf("rx memchan DMAid=%d forces IRQ for tx peer",
+                        td->dmaid);
+                break;
+        }
+
+        case PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD: {
+                struct pch_trdata_dmachan_cmd *td = vd;
+                printf("rx memchan DMAid=%d sync receive cmd:%08x, seqnum=%d (sets rxcomplete)",
+                        td->dmaid, td->cmd, td->seqnum);
+                break;
+        }
+
+        case PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD: {
+                struct pch_trdata_dmachan_cmd *td = vd;
+                printf("tx memchan DMAid=%d sync writes to peer cmd:%08x, seqnum=%d (sets txcomplete)",
+                        td->dmaid, td->cmd, td->seqnum);
+                break;
+        }
 
         case PCH_TRC_RT_TRC_ENABLE:
                 printf("trace %s", data[0] ? "enabled" : "disabled");
                 break;
+
+        case PCH_TRC_RT_HLDEV_CONFIG_INIT: {
+                struct pch_trdata_hldev_config_init *td = vd;
+                printf("CU=%d UA_range=%d", td->cuaddr, td->first_ua);
+                uint8_t n = td->num_devices;
+                if (td->num_devices) {
+                        uint8_t last_ua = td->first_ua + n - 1;
+                        printf("-%d (count %d)", last_ua, n);
+                } else {
+                        printf("(invalid num_devices=0)");
+                }
+                printf(" hldev configuration with hdcfg:%08x callbacks start:%08x signal:%08x used cbindex=%d",
+                        td->hdcfg, td->start, td->signal, td->cbindex);
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_START: {
+                struct pch_trdata_hldev_start *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                uint8_t ccwcmd = td->ccwcmd;
+                uint8_t esize = td->esize;
+                bool write = pch_is_ccw_cmd_write(ccwcmd);
+                const char *rwtype = write ? "Write" : "Read";
+
+                printf(" hldev starts %s CCWcmd:%02x", rwtype, ccwcmd);
+                if (write) {
+                        uint16_t size = pch_bsize_decode_raw_inline(esize);
+                        if (size)
+                                printf(", %u bytes ready", size);
+                } else {
+                        printf(", ");
+                        print_bsize(esize);
+                        printf(" bytes room");
+                }
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_DEVIB_CALLBACK: {
+                struct pch_trdata_dev_byte *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev state=");
+                print_hldev_state(td->byte);
+                printf(" in devib callback");
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_RECEIVING: {
+                struct pch_trdata_counts_dev *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev received %u bytes, ", td->count1);
+                if (td->count2)
+                        printf("requesting next %u bytes", td->count2);
+                else
+                        printf("complete");
+
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_RECEIVE: {
+                struct pch_trdata_hldev_data *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev requesting to receive %u bytes to addr:%08x",
+                        td->count, td->addr);
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_RECEIVE_THEN: {
+                struct pch_trdata_hldev_data_then *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev requesting to receive %u bytes to addr:%08x",
+                        td->count, td->addr);
+                printf(" then callback:%08x", td->cbaddr);
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_SENDING: {
+                struct pch_trdata_counts_dev *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev sending %u bytes to segment with room %u",
+                        td->count1, td->count2);
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_SEND:
+        case PCH_TRC_RT_HLDEV_SEND_FINAL: {
+                struct pch_trdata_hldev_data *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev will send %u bytes from addr:%08x",
+                        td->count, td->addr);
+                if (rt == PCH_TRC_RT_HLDEV_SEND_FINAL)
+                        printf(" then end");
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_SEND_THEN:
+        case PCH_TRC_RT_HLDEV_SEND_FINAL_THEN: {
+                struct pch_trdata_hldev_data_then *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev will send %u bytes from addr:%08x",
+                        td->count, td->addr);
+                printf(" then callback:%08x", td->cbaddr);
+                break;
+        }
+
+        case PCH_TRC_RT_HLDEV_END: {
+                struct pch_trdata_hldev_end *td = vd;
+                print_cua_ua(td->cuaddr, td->ua);
+                printf(" hldev ending with devstat:%02x", td->devstat);
+                uint16_t size = pch_bsize_decode_raw_inline(td->esize);
+                if (size) {
+                        printf(" advertising room=%u for immediate start data",
+                                size);
+                }
+                if (td->sense_flags) {
+                        printf(" setting sense{flags:%02x code:%02x ASC:%02x ASCQ:%02x}",
+                                td->sense_flags, td->sense_code,
+                                td->sense_asc, td->sense_ascq);
+                }
+
+                break;
+        }
 
         default:
                 hexdump_trace_record_data(rt, data, data_size);

@@ -41,6 +41,7 @@ static void start_dst_cmdbuf_mem(dmachan_rx_channel_t *rx, dmachan_tx_channel_t 
         case DMACHAN_MEM_SRC_CMDBUF:
                 dmachan_link_t *txl = &txpeer->link;
                 dmachan_link_cmd_copy(rxl, txl);
+                trace_dmachan_cmd(PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD, rxl);
                 rxl->complete = true;
                 dmachan_set_mem_src_state(txpeer, DMACHAN_MEM_SRC_IDLE);
                 dmachan_set_link_irq_forced(txl, true);
@@ -300,6 +301,8 @@ dmachan_irq_state_t __time_critical_func(dmachan_handle_rx_irq)(dmachan_rx_chann
                         dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
 #if PCH_CONFIG_ENABLE_MEMCHAN
                         if (txpeer) {
+                                trace_dmachan(PCH_TRC_RT_DMACHAN_FORCE_IRQ,
+                                        rxl);
                                 dmachan_set_link_irq_forced(&txpeer->link,
                                         true);
                         }

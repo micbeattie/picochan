@@ -78,7 +78,6 @@ void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_devib_t 
                         pch_cus_handle_tx_complete(cu);
                 }
 	} else {
-                assert(tx_tail != ua);
 		trace_dev_byte(PCH_TRC_RT_CUS_QUEUE_COMMAND,
 			devib, (uint8_t)tx_tail);
 	}

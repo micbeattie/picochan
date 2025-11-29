@@ -26,9 +26,13 @@ static inline void trace_schib_word_byte(pch_trc_record_type_t rt, pch_schib_t *
                 ((struct pch_trdata_word_sid_byte){word, get_sid(schib), byte}));
 }
 
-static inline void trace_schib_packet(pch_trc_record_type_t rt, pch_schib_t *schib, proto_packet_t p) {
+static inline void trace_schib_packet(pch_trc_record_type_t rt, pch_schib_t *schib, proto_packet_t p, uint16_t seqnum) {
         PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),
-                ((struct pch_trdata_word_sid){proto_packet_as_word(p), get_sid(schib)}));
+                ((struct pch_trdata_packet_sid){
+                        .packet = proto_packet_as_word(p),
+                        .sid = get_sid(schib),
+                        .seqnum = seqnum
+                }));
 }
 
 static inline void trace_schib_ccw(pch_trc_record_type_t rt, pch_schib_t *schib, pch_ccw_t *ccw_addr, pch_ccw_t ccw) {
@@ -69,4 +73,13 @@ static inline void trace_chp_irq(pch_trc_record_type_t rt, pch_chp_t *chp, pch_d
                 }));
 }
 
+static inline void trace_chp_irq_progress(pch_trc_record_type_t rt, pch_chp_t *chp, bool rxcomplete, bool txcomplete, bool progress) {
+        PCH_CSS_TRACE_COND(rt,
+                pch_chp_is_traced_irq(chp), ((struct pch_trdata_id_byte){
+                        .id = pch_get_chpid(chp),
+                        .byte = ((uint8_t)rxcomplete << 2)
+                                | ((uint8_t)txcomplete << 1)
+                                | (uint8_t)progress
+                }));
+}
 #endif

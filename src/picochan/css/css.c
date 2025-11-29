@@ -249,11 +249,14 @@ bool pch_css_set_trace(bool trace) {
         return pch_trc_set_enable(&CSS.trace_bs, trace);
 }
 
-void __time_critical_func(send_tx_packet)(pch_chp_t *chp, proto_packet_t p) {
-        DMACHAN_LINK_CMD_COPY(&chp->tx_channel.link, &p);
-        pch_chp_set_tx_active(chp, true);
+void __time_critical_func(send_tx_packet)(pch_chp_t *chp, pch_schib_t *schib, proto_packet_t p) {
         dmachan_tx_channel_t *tx = &chp->tx_channel;
         dmachan_link_t *txl = &tx->link;
+        uint32_t cmd = proto_packet_as_word(p);
+        dmachan_link_cmd_set(txl, dmachan_make_cmd_from_word(cmd));
+        trace_schib_packet(PCH_TRC_RT_CSS_SEND_TX_PACKET, schib, p,
+                dmachan_link_seqnum(txl));
+        pch_chp_set_tx_active(chp, true);
         dmachan_start_src_cmdbuf(tx);
         if (txl->complete) {
                 // packet was sent synchronously via memchan...

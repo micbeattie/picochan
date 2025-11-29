@@ -24,20 +24,6 @@ static inline void pch_cu_set_flag_started(pch_cu_t *cu, bool b) {
                 cu->flags &= ~PCH_CU_STARTED;
 }
 
-static inline proto_packet_t get_rx_packet(pch_cu_t *cu) {
-        // cu.rx_channel is a dmachan_rx_channel_t which is
-        // __aligned(4) and cmd is the first member of rx_channel
-        // so is 4-byte aligned. proto_packet_t is 4-bytes and also
-        // __aligned(4) (and needing no more than 4-byte alignment)
-        // but omitting the __builtin_assume_aligned below causes
-        // gcc 14.1.0 to produce error
-        // error: cast increases required alignment of target type
-        // [-Werror=cast-align]
-        proto_packet_t *pp = (proto_packet_t *)
-                __builtin_assume_aligned(&cu->rx_channel.link.cmd, 4);
-        return *pp;
-}
-
 static inline void pch_dev_update_status_proto_error(pch_devib_t *devib) {
         pch_dev_update_status_error(devib, ((pch_dev_sense_t){
                 .flags = PCH_DEV_SENSE_PROTO_ERROR,

@@ -64,6 +64,13 @@ struct pch_trdata_count_dev {
         pch_unit_addr_t ua;
 };
 
+struct pch_trdata_packet_dev {
+        uint32_t        packet;
+        uint16_t        seqnum;
+        pch_cuaddr_t    cuaddr;
+        pch_unit_addr_t ua;
+};
+
 struct pch_trdata_word_dev {
         uint32_t        word;
         pch_cuaddr_t    cuaddr;
@@ -83,6 +90,12 @@ struct pch_trdata_word_byte {
 
 struct pch_trdata_word_sid {
         uint32_t        word;
+        pch_sid_t       sid;
+};
+
+struct pch_trdata_packet_sid {
+        uint32_t        packet;
+        uint16_t        seqnum;
         pch_sid_t       sid;
 };
 
@@ -146,9 +159,9 @@ struct pch_trdata_cus_init_mem_channel {
 
 struct pch_trdata_cus_tx_complete {
         int16_t         tx_head;
-        int16_t         ua_opt;
         pch_cuaddr_t    cuaddr;
         uint8_t         txpstate;
+        bool            tx_callback;
 };
 
 struct pch_trdata_cus_call_callback {
@@ -227,6 +240,12 @@ struct pch_trdata_dmachan_segment_memstate {
         uint32_t        count;
         pch_dmaid_t     dmaid;
         uint8_t         state;
+};
+
+struct pch_trdata_dmachan_cmd {
+        uint32_t        cmd;
+        uint16_t        seqnum;
+        pch_dmaid_t     dmaid;
 };
 
 #endif
