@@ -6,27 +6,6 @@
 #include "cu_internal.h"
 #include "cus_trace.h"
 
-// push_tx_list pushes ua onto the singly-linked list with head and
-// tail cu->tx_head and cu->tx_tail and returns the old tail.
-// All manipulation is done under the devibs_lock.
-static int16_t __no_inline_not_in_flash_func(push_tx_list)(pch_cu_t *cu, pch_unit_addr_t ua) {
-        uint32_t status = devibs_lock();
-        int16_t tx_tail = cu->tx_tail;
-        if (tx_tail < 0) {
-                cu->tx_head = (uint16_t)ua;
-                cu->tx_tail = (uint16_t)ua;
-        } else {
-                // There's already a pending list: add ourselves at the end
-                pch_unit_addr_t tx_tail_ua = (pch_unit_addr_t)tx_tail;
-                pch_devib_t *tx_tail_devib = pch_get_devib(cu, tx_tail_ua);
-                tx_tail_devib->next = ua;
-                cu->tx_tail = (int16_t)ua;
-        }
-
-        devibs_unlock(status);
-        return tx_tail;
-}
-
 // Low-level "pch_devib_" API for dev implementations. These take a
 // devib and simply update its fields.
 
@@ -63,24 +42,9 @@ void __no_inline_not_in_flash_func(pch_devib_prepare_update_status)(pch_devib_t 
 }
 
 void __no_inline_not_in_flash_func(pch_devib_send_or_queue_command)(pch_devib_t *devib) {
-        assert(!pch_devib_is_tx_busy(devib));
-        pch_devib_set_tx_busy(devib, true);
         pch_cu_t *cu = pch_dev_get_cu(devib);
-        pch_unit_addr_t ua = pch_dev_get_ua(devib);
-        int16_t tx_tail = push_tx_list(cu, ua);
-	if (tx_tail == -1) {
-		// List was empty
-		pch_cus_send_command_to_css(cu);
-                // Process any resulting immediate tx completions
-                dmachan_link_t *txl = &cu->tx_channel.link;
-                while (txl->complete) {
-                        txl->complete = false;
-                        pch_cus_handle_tx_complete(cu);
-                }
-	} else {
-		trace_dev_byte(PCH_TRC_RT_CUS_QUEUE_COMMAND,
-			devib, (uint8_t)tx_tail);
-	}
+        pch_cu_push_devib(cu, &cu->tx_list, devib);
+        pch_cu_schedule_worker(cu);
 }
 
 // (Slightly) higher-level "pch_dev_" API for dev implementations.

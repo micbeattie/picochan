@@ -161,14 +161,13 @@ struct pch_trdata_cus_tx_complete {
         int16_t         tx_head;
         pch_cuaddr_t    cuaddr;
         uint8_t         txpstate;
-        bool            tx_callback;
+        bool            cbpending;
 };
 
 struct pch_trdata_cus_call_callback {
         pch_cuaddr_t    cuaddr;
         pch_unit_addr_t ua;
         uint8_t         cbindex;
-        uint8_t         from;
 };
 
 struct pch_trdata_cus_register_callback {

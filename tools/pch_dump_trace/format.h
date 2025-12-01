@@ -32,4 +32,3 @@ void print_chop(proto_chop_t chop);
 void print_bsize(uint8_t esize);
 void print_packet(uint32_t raw, uint16_t seqnum, bool from_css);
 void print_hldev_state(uint8_t state);
-void print_cu_callback(uint8_t cbindex, uint8_t from);

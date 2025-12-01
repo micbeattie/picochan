@@ -371,8 +371,7 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         case PCH_TRC_RT_CUS_CALL_CALLBACK: {
                 struct pch_trdata_cus_call_callback *td = vd;
                 print_cua_ua(td->cuaddr, td->ua);
-                putchar(' ');
-                print_cu_callback(td->cbindex, td->from);
+                printf(" callback %d", td->cbindex);
                 break;
         }
 
@@ -386,8 +385,8 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
 
         case PCH_TRC_RT_CUS_TX_COMPLETE: {
                 struct pch_trdata_cus_tx_complete *td = vd;
-                const char *cb = td->tx_callback ? "set" : "unset";
-                printf("CU=%d handling tx complete for tx_head UA=%d, tx_callback %s, txsm is ",
+                const char *cb = td->cbpending ? "is" : "not";
+                printf("CU=%d handling tx complete for tx_head UA=%d, callback %s pending, txsm is ",
                         td->cuaddr, td->tx_head, cb);
                 print_txpending_state(td->txpstate);
                 break;

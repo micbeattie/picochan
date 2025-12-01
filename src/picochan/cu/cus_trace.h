@@ -20,6 +20,14 @@ extern pch_trc_bufferset_t pch_cus_trace_bs;
 
 #define PCH_CUS_TRACE(rt, data) PCH_CUS_TRACE_COND((rt), true, (data))
 
+// These CB_FROM numbers are only used for writing to
+// PCH_TRC_RT_CUS_CALL_CALLBACK trace records to help
+// troubleshooting. 0 is not a valid CB_FROM number.
+#define CB_FROM_RX_COMPLETE             1
+#define CB_FROM_TXSM_FINISHED           2
+#define CB_FROM_TXSM_NOOP               3
+#define CB_FROM_TX_DEFERRED_RX          4
+
 static inline void trace_dev(pch_trc_record_type_t rt, pch_devib_t *devib) {
         PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_dev){
@@ -48,11 +56,11 @@ static inline void trace_dev_packet(pch_trc_record_type_t rt, pch_devib_t *devib
                 }));
 }
 
-static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t tx_head, bool tx_callback, pch_txsm_state_t txpstate) {
+static inline void trace_tx_complete(pch_trc_record_type_t rt, pch_cu_t *cu, int16_t tx_head, bool callback_pending, pch_txsm_state_t txpstate) {
         PCH_CUS_TRACE_COND(rt, pch_cu_is_traced_irq(cu),
                 ((struct pch_trdata_cus_tx_complete){
                         .tx_head = tx_head,
-                        .tx_callback = tx_callback,
+                        .cbpending = callback_pending,
                         .cuaddr = cu->cuaddr,
                         .txpstate = (uint8_t)txpstate
                 }));
@@ -67,14 +75,13 @@ static inline void trace_register_callback(pch_trc_record_type_t rt, pch_cbindex
                 }));
 }
 
-static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *devib, pch_cbindex_t cbindex, uint8_t from) {
+static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *devib, uint8_t from) {
         PCH_CUS_TRACE_COND(rt,
                 cu_or_devib_is_traced(devib),
                 ((struct pch_trdata_cus_call_callback){
                         .cuaddr = pch_dev_get_cuaddr(devib),
                         .ua = pch_dev_get_ua(devib),
-                        .cbindex = (uint8_t)cbindex,
-                        .from = from
+                        .cbindex = devib->cbindex
                 }));
 }
 

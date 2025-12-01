@@ -11,6 +11,9 @@ pch_cu_t *pch_cus[PCH_NUM_CUS];
 
 pch_trc_bufferset_t pch_cus_trace_bs;
 
+// TODO Consider having an async_context per CU
+struct async_context_threadsafe_background pch_cus_async_context;
+
 unsigned char pch_cus_trace_buffer_space[PCH_TRC_NUM_BUFFERS * PCH_TRC_BUFFER_SIZE] __aligned(4);
 
 bool pch_cus_init_done;
@@ -42,6 +45,17 @@ void pch_cus_init() {
                 PCH_CUS_BUFFERSET_MAGIC);
         pch_trc_init_all_buffers(&pch_cus_trace_bs,
                 pch_cus_trace_buffer_space);
+
+        // TODO allow use of non-default config
+        bool ok = async_context_threadsafe_background_init_with_defaults(&pch_cus_async_context);
+        if (!ok)
+                panic("async_context init");
+
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT,
+                ((struct pch_trdata_byte){
+                        .byte = pch_cus_async_context.low_priority_irq_num
+                }));
+
         pch_cus_init_done = true;
 }
 
@@ -120,11 +134,11 @@ void pch_cu_init(pch_cu_t *cu, uint16_t num_devibs) {
         valid_params_if(PCH_CUS, num_devibs <= PCH_MAX_DEVIBS_PER_CU);
 
         memset(cu, 0, sizeof(*cu) + num_devibs * sizeof(pch_devib_t));
+        pch_devib_list_init(&cu->tx_list);
+        pch_devib_list_init(&cu->cb_list);
         cu->rx_active = -1;
-        cu->tx_head = -1;
-        cu->tx_tail = -1;
-        cu->dmairqix = -1;
         cu->num_devibs = num_devibs;
+        cu->dmairqix = -1;
 }
 
 void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua) {
@@ -252,9 +266,16 @@ void pch_cu_start(pch_cuaddr_t cua) {
                 return;
 
         for (int i = 0; i < cu->num_devibs; i++) {
-                // point devib at itself to mean "not on rx list"
+                // point devib at itself to mean "not on any list"
                 cu->devibs[i].next = (pch_unit_addr_t)i;
         }
+
+        cu->worker = ((async_when_pending_worker_t){
+                .do_work = pch_cus_async_worker_callback,
+                .user_data = cu
+        });
+        async_context_add_when_pending_worker(&pch_cus_async_context.core,
+                &cu->worker);
 
         pch_cu_set_flag_started(cu, true);
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_STARTED,
@@ -324,4 +345,48 @@ bool pch_cus_trace_dev(pch_devib_t *devib, bool trace) {
 
 void pch_cus_trace_write_user(pch_trc_record_type_t rt, void *data, uint8_t data_size) {
         pch_trc_write_raw(&pch_cus_trace_bs, rt, data, data_size);
+}
+
+pch_devib_t *__no_inline_not_in_flash_func(pch_cu_pop_devib)(pch_cu_t *cu, pch_devib_list_t *l) {
+        uint32_t status = devibs_lock();
+        int16_t head = l->head;
+        pch_devib_t *devib = NULL;
+        if (head != -1) {
+                pch_unit_addr_t ua = (pch_unit_addr_t)head;
+                devib = pch_get_devib(cu, ua);
+                pch_unit_addr_t next = devib->next;
+
+                if (next == ua) {
+                        l->head = -1;
+                        l->tail = -1;
+                } else {
+                        l->head = (int16_t)next;
+                        devib->next = ua; // remove from list by pointing at self
+                }
+        }
+        devibs_unlock(status);
+
+        return devib;
+}
+
+// pch_cu_push_devib pushes devib onto the singly-linked list with
+// head and tail l and returns the old tail.
+// All manipulation is done under the devibs_lock.
+int16_t __no_inline_not_in_flash_func(pch_cu_push_devib)(pch_cu_t *cu, pch_devib_list_t *l, pch_devib_t *devib) {
+        pch_unit_addr_t ua = pch_dev_get_ua(devib);
+        uint32_t status = devibs_lock();
+        int16_t tail = l->tail;
+        if (tail < 0) {
+                l->head = (uint16_t)ua;
+                l->tail = (uint16_t)ua;
+        } else {
+                // There's already a list: add ourselves at the end
+                pch_unit_addr_t tail_ua = (pch_unit_addr_t)tail;
+                pch_devib_t *tail_devib = pch_get_devib(cu, tail_ua);
+                tail_devib->next = ua;
+                l->tail = (int16_t)ua;
+        }
+
+        devibs_unlock(status);
+        return tail;
 }

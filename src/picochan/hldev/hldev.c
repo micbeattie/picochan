@@ -247,10 +247,18 @@ static void hldev_devib_callback(pch_devib_t *devib) {
 
         switch (hd->state) {
         case PCH_HLDEV_ENDING:
-                if (!pch_devib_is_started(devib)) {
-                        pch_hldev_reset(hdcfg, hd); // back to IDLE
+                pch_hldev_reset(hdcfg, hd); // back to IDLE
+                // Common case is that we were called back from
+                // tx_complete and are still idle...
+                if (!pch_devib_is_started(devib))
                         return;
-                }
+                // ...but CSS may have received our End (whether from
+                // Data or UpdateStatus) and already sent us a Start
+                // before our tx_complete called us back. In that case
+                // the callback from the rx_complete was deferred
+                // until the tx_complete and we have been called (now)
+                // as a single merged callback and are already Started.
+
                 // fallthrough
 
         case PCH_HLDEV_IDLE:

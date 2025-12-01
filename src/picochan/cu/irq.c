@@ -18,17 +18,8 @@ static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
         dmachan_link_t *txl = &tx->link;
         dmachan_link_t *rxl = &rx->link;
 
-        while (rxl->complete || txl->complete) {
-                if (rxl->complete) {
-                        rxl->complete = false;
-                        pch_cus_handle_rx_complete(cu);
-                }
-
-                if (txl->complete) {
-                        txl->complete = false;
-                        pch_cus_handle_tx_complete(cu);
-                }
-        }
+        if (txl->complete || rxl->complete)
+                pch_cu_schedule_worker(cu);
 }
 
 void __isr __time_critical_func(pch_cus_handle_dma_irq)() {

@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <assert.h>
 #include "hardware/uart.h"
+#include "pico/async_context.h"
 #include "picochan/dev_api.h"
 #include "picochan/dmachan.h"
 #include "txsm/txsm.h"
@@ -90,20 +91,21 @@ static_assert(PCH_NUM_CUS >= 1 && PCH_NUM_CUS <= 256,
  * but the alignment as calculated above is still required.
  */
 typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
+        async_when_pending_worker_t     worker;
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;
+	//! ua list of devibs with tx pending
+	pch_devib_list_t        tx_list;
+	//! ua list of devibs with callback pending
+	pch_devib_list_t        cb_list;
         pch_txsm_t              tx_pending;
-        pch_cuaddr_t            cuaddr;
 	//! active ua for rx data to dev or -1 if none
 	int16_t                 rx_active;
-	//! head (active) ua on tx side or -1 if none
-	int16_t                 tx_head;
-	//! tail ua on tx side pending list of -1 if none
-	int16_t                 tx_tail;
+        uint16_t                num_devibs; //!< [0, 256]
 	//! completions raise irq dma.IRQ_BASE+dmairqix, -1 before configuration
 	pch_dma_irq_index_t     dmairqix;
+        pch_cuaddr_t            cuaddr;
         uint8_t                 flags;
-        uint16_t                num_devibs; //!< [0, 256]
         //! Flexible Array Member (FAM) of size num_devibs
 	pch_devib_t             devibs[];
 } pch_cu_t;
@@ -160,11 +162,11 @@ void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix);
  * it must be a compile-time constant this should not be a problem.
  */
 #define PCH_CU_INIT(num_devices) { \
+                .tx_list = { -1, -1 }, \
+                .cb_list = { -1, -1 }, \
                 .rx_active = -1, \
-                .tx_head = -1, \
-                .tx_tail = -1, \
-                .dmairqix = -1, \
                 .num_devibs = (num_devices), \
+                .dmairqix = -1, \
                 .devibs = { [(num_devices)-1] = {0} } \
         }
 
@@ -216,6 +218,16 @@ static inline pch_cu_t *pch_get_cu(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_cus[cua];
         assert(cu != NULL);
         return cu;
+}
+
+pch_devib_t *pch_cu_pop_devib(pch_cu_t *cu, pch_devib_list_t *l);
+int16_t pch_cu_push_devib(pch_cu_t *cu, pch_devib_list_t *l, pch_devib_t *devib);
+static inline pch_devib_t *pch_cu_head_devib(pch_cu_t *cu, pch_devib_list_t *l) {
+        int16_t head = l->head;
+        if (head == -1)
+                return NULL;
+
+        return pch_get_devib(cu, (pch_unit_addr_t)head);
 }
 
 /*! \brief Initialise CU subsystem

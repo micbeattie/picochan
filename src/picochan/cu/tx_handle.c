@@ -5,29 +5,7 @@
 
 #include "cu_internal.h"
 #include "picochan/dev_status.h"
-#include "callback.h"
 #include "cus_trace.h"
-
-static inline void try_tx_next_command(pch_cu_t *cu) {
-        if (cu->tx_head > -1)
-                pch_cus_send_command_to_css(cu);
-}
-
-static void __no_inline_not_in_flash_func(pch_pop_tx_list)(pch_cu_t *cu) {
-        int16_t current = cu->tx_head;
-        assert(current != -1);
-        pch_unit_addr_t ua = (pch_unit_addr_t)current;
-        pch_devib_t *devib = pch_get_devib(cu, ua);
-
-        pch_unit_addr_t next = devib->next;
-        if (next == ua) {
-                cu->tx_head = -1;
-                cu->tx_tail = -1;
-        } else {
-                cu->tx_head = (int16_t)next;
-                devib->next = ua; // remove from list by pointing at self
-        }
-}
 
 // make_update_status verifies the prepared UpdateStatus in devib is
 // valid for sending to the CSS. It then unsets the Started flag if
@@ -61,9 +39,9 @@ static void make_data_command(pch_devib_t *devib) {
 	proto_chop_t op = devib->op;
         // If no response packet required and not a final auto-end
         // send then arrange for callback immediately after tx of data
-        bool tx_callback = !proto_chop_has_response_required(op)
+        bool callback_pending = !proto_chop_has_response_required(op)
                 && !proto_chop_has_end(op);
-        pch_devib_set_tx_callback(devib, tx_callback);
+        pch_devib_set_callback_pending(devib, callback_pending);
 
         // If the End flag is set then the data we're sending has an
         // implicit following UpdateStatus with a plain
@@ -106,53 +84,34 @@ static proto_packet_t pch_cus_make_packet(pch_devib_t *devib) {
         return proto_make_packet(op, ua, devib->payload);
 }
 
-static inline void callback_if_needed(pch_devib_t *devib, uint8_t from) {
-        if (pch_devib_is_tx_callback(devib)) {
-                pch_devib_set_tx_callback(devib, false);
-                callback_devib(devib, from);
-        }
-}
-
 void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
 	pch_txsm_t *txpend = &cu->tx_pending;
-	int16_t tx_head = cu->tx_head;
-        assert(tx_head >= 0);
-        pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
-        pch_devib_t *devib = pch_get_devib(cu, ua);
-        pch_devib_set_tx_busy(devib, false);
+        pch_devib_t *devib = pch_cu_head_devib(cu, &cu->tx_list);
+        assert(devib);
 
         // Poison TxBuf to help troubleshooting
         cu->tx_channel.link.cmd.raw = 0xffffffff;
 
-	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu, tx_head,
-                pch_devib_is_tx_callback(devib), txpend->state);
+        bool callback_pending = pch_devib_is_callback_pending(devib);
+	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu,
+                pch_dev_get_ua(devib),
+                callback_pending, txpend->state);
 
         pch_txsm_run_result_t res = pch_txsm_run(txpend, &cu->tx_channel);
-        switch (res) {
-        case PCH_TXSM_ACTED:
+        if (res == PCH_TXSM_ACTED)
                 return;
 
-        case PCH_TXSM_FINISHED:
-                callback_if_needed(devib, CB_FROM_TXSM_FINISHED);
-                pch_pop_tx_list(cu);
-                try_tx_next_command(cu);
-                return;
-
-        case PCH_TXSM_NOOP:
-                callback_if_needed(devib, CB_FROM_TXSM_NOOP);
-                pch_pop_tx_list(cu);
-                try_tx_next_command(cu);
-                return;
+        pch_cu_pop_devib(cu, &cu->tx_list);
+        pch_devib_set_tx_busy(devib, false);
+        if (callback_pending) {
+                pch_devib_set_callback_pending(devib, false);
+                pch_cu_push_devib(cu, &cu->cb_list, devib);
+                pch_cu_schedule_worker(cu);
         }
-
-        panic("invalid txsm state");
 }
 
-void __no_inline_not_in_flash_func(pch_cus_send_command_to_css)(pch_cu_t *cu) {
-	int16_t tx_head = cu->tx_head;
-        assert(tx_head >= 0);
-	pch_unit_addr_t ua = (pch_unit_addr_t)tx_head;
-        pch_devib_t *devib = pch_get_devib(cu, ua);
+void __no_inline_not_in_flash_func(pch_cu_send_pending_tx_command)(pch_cu_t *cu, pch_devib_t *devib) {
+        pch_devib_set_tx_busy(devib, true);
         proto_packet_t p = pch_cus_make_packet(devib);
         uint32_t cmd = proto_packet_as_word(p);
         dmachan_link_t *txl = &cu->tx_channel.link;

@@ -66,6 +66,7 @@ DEVIB  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 \endverbatim
  */
 typedef struct __aligned(4) pch_devib {
+        //! next in list cu->tx_head or cu->cb_head (flags distinguishes)
         pch_unit_addr_t next;
         pch_cbindex_t   cbindex;
         uint16_t        size;
@@ -83,32 +84,56 @@ static_assert(__builtin_constant_p(PCH_DEVIB_SPACE_SHIFT),
 
 #define PCH_DEVIB_FLAG_STARTED          0x80
 #define PCH_DEVIB_FLAG_CMD_WRITE        0x40
-#define PCH_DEVIB_FLAG_RX_DATA_REQUIRED 0x20
-#define PCH_DEVIB_FLAG_TX_CALLBACK      0x10
+#define PCH_DEVIB_FLAG_TX_BUSY          0x20
+#define PCH_DEVIB_FLAG_CALLBACK_PENDING 0x10
 #define PCH_DEVIB_FLAG_TRACED           0x08
 #define PCH_DEVIB_FLAG_STOPPING         0x04
-#define PCH_DEVIB_FLAG_TX_BUSY          0x02
+#define PCH_DEVIB_FLAG_START_PENDING    0x02
 
 static inline bool pch_devib_is_started(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_STARTED;
+}
+
+static inline bool pch_devib_set_started(pch_devib_t *devib, bool started) {
+        bool old_started = pch_devib_is_started(devib);
+        if (started)
+                devib->flags |= PCH_DEVIB_FLAG_STARTED;
+        else
+                devib->flags &= ~PCH_DEVIB_FLAG_STARTED;
+
+        return old_started;
 }
 
 static inline bool pch_devib_is_cmd_write(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_CMD_WRITE;
 }
 
-static inline bool pch_devib_is_tx_callback(pch_devib_t *devib) {
-        return devib->flags & PCH_DEVIB_FLAG_TX_CALLBACK;
+static inline bool pch_devib_is_tx_busy(pch_devib_t *devib) {
+        return devib->flags & PCH_DEVIB_FLAG_TX_BUSY;
 }
 
-static inline bool pch_devib_set_tx_callback(pch_devib_t *devib, bool tx_callback) {
-        bool old_tx_callback = pch_devib_is_tx_callback(devib);
-        if (tx_callback)
-                devib->flags |= PCH_DEVIB_FLAG_TX_CALLBACK;
+static inline bool pch_devib_set_tx_busy(pch_devib_t *devib, bool tx_busy) {
+        bool old_tx_busy = pch_devib_is_tx_busy(devib);
+        if (tx_busy)
+                devib->flags |= PCH_DEVIB_FLAG_TX_BUSY;
         else
-                devib->flags &= ~PCH_DEVIB_FLAG_TX_CALLBACK;
+                devib->flags &= ~PCH_DEVIB_FLAG_TX_BUSY;
 
-        return old_tx_callback;
+        return old_tx_busy;
+}
+
+static inline bool pch_devib_is_callback_pending(pch_devib_t *devib) {
+        return devib->flags & PCH_DEVIB_FLAG_CALLBACK_PENDING;
+}
+
+static inline bool pch_devib_set_callback_pending(pch_devib_t *devib, bool callback_pending) {
+        bool old_callback_pending = pch_devib_is_callback_pending(devib);
+        if (callback_pending)
+                devib->flags |= PCH_DEVIB_FLAG_CALLBACK_PENDING;
+        else
+                devib->flags &= ~PCH_DEVIB_FLAG_CALLBACK_PENDING;
+
+        return old_callback_pending;
 }
 
 static inline bool pch_devib_is_traced(pch_devib_t *devib) {
@@ -129,18 +154,18 @@ static inline bool pch_devib_is_stopping(pch_devib_t *devib) {
         return devib->flags & PCH_DEVIB_FLAG_STOPPING;
 }
 
-static inline bool pch_devib_is_tx_busy(pch_devib_t *devib) {
-        return devib->flags & PCH_DEVIB_FLAG_TX_BUSY;
+static inline bool pch_devib_is_start_pending(pch_devib_t *devib) {
+        return devib->flags & PCH_DEVIB_FLAG_START_PENDING;
 }
 
-static inline bool pch_devib_set_tx_busy(pch_devib_t *devib, bool tx_busy) {
-        bool old_tx_busy = pch_devib_is_tx_busy(devib);
-        if (tx_busy)
-                devib->flags |= PCH_DEVIB_FLAG_TX_BUSY;
+static inline bool pch_devib_set_start_pending(pch_devib_t *devib, bool start_pending) {
+        bool old_start_pending = pch_devib_is_start_pending(devib);
+        if (start_pending)
+                devib->flags |= PCH_DEVIB_FLAG_START_PENDING;
         else
-                devib->flags &= ~PCH_DEVIB_FLAG_TX_BUSY;
+                devib->flags &= ~PCH_DEVIB_FLAG_START_PENDING;
 
-        return old_tx_busy;
+        return old_start_pending;
 }
 
 // Forward declaration of pch_cu_t for identifying devib by
@@ -184,6 +209,19 @@ static inline bool pch_cbindex_is_callable(uint cbindex) {
         return pch_devib_callbacks[cbindex].func != NULL;
 }
 
+// devib list handling
+typedef struct pch_devib_list {
+        int16_t head;
+        int16_t tail;
+} pch_devib_list_t;
+
+#define PCH_DEVIB_LIST_INIT() ((pch_devib_list_t){ -1, -1 })
+
+static inline void pch_devib_list_init(pch_devib_list_t *l) {
+        l->head = -1;
+        l->tail = -1;
+}
+
 // Callback registration API
 
 /*! \brief Registers a device callback function and associated
@@ -209,7 +247,8 @@ pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cbfunc, vo
 
 void pch_default_devib_callback(pch_devib_t *devib);
 
-static inline void pch_devib_call_callback(pch_cbindex_t cbindex, pch_devib_t *devib) {
+static inline void pch_devib_call_callback(pch_devib_t *devib) {
+        pch_cbindex_t cbindex = devib->cbindex;
         assert(pch_cbindex_is_callable(cbindex));
 
         if (cbindex == PCH_DEVIB_CALLBACK_NOOP)
@@ -319,7 +358,6 @@ static inline void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr
         assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
         pch_devib_prepare_count(devib, size);
         devib->op = PROTO_CHOP_REQUEST_READ;
-        devib->flags |= PCH_DEVIB_FLAG_RX_DATA_REQUIRED;
         devib->addr = (uint32_t)dstaddr;
 }
 

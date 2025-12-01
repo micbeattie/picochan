@@ -41,4 +41,7 @@ if (PCH_COMPILE_ENABLE_STRICT_WARNINGS)
         )
 endif()
 
-target_link_libraries(picochan_cu INTERFACE picochan_base)
+target_link_libraries(picochan_cu INTERFACE
+        picochan_base
+        pico_async_context_threadsafe_background
+)
