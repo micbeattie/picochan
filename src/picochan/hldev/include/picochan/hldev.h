@@ -40,6 +40,10 @@ typedef struct pch_hldev_config {
         pch_devib_callback_t    signal;
 } pch_hldev_config_t;
 
+static inline pch_cu_t *pch_hldev_config_get_cu(pch_hldev_config_t *hdcfg) {
+        return hdcfg->dev_range.cu;
+}
+
 typedef struct pch_hldev {
         pch_devib_callback_t    callback;
         void                    *addr;  // dest/source address for receive/send
