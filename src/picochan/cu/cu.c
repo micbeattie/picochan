@@ -11,8 +11,8 @@ pch_cu_t *pch_cus[PCH_NUM_CUS];
 
 pch_trc_bufferset_t pch_cus_trace_bs;
 
-// TODO Consider having an async_context per CU
-struct async_context_threadsafe_background pch_cus_async_context;
+static struct async_context_threadsafe_background pch_cus_default_async_context;
+async_context_t *pch_cus_async_context;
 
 unsigned char pch_cus_trace_buffer_space[PCH_TRC_NUM_BUFFERS * PCH_TRC_BUFFER_SIZE] __aligned(4);
 
@@ -46,15 +46,7 @@ void pch_cus_init() {
         pch_trc_init_all_buffers(&pch_cus_trace_bs,
                 pch_cus_trace_buffer_space);
 
-        // TODO allow use of non-default config
-        bool ok = async_context_threadsafe_background_init_with_defaults(&pch_cus_async_context);
-        if (!ok)
-                panic("async_context init");
-
-        PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT,
-                ((struct pch_trdata_byte){
-                        .byte = pch_cus_async_context.low_priority_irq_num
-                }));
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT, ((struct {}){}));
 
         pch_cus_init_done = true;
 }
@@ -193,6 +185,30 @@ void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc) {
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cu->cuaddr, &dc->rx);
 }
 
+void pch_cus_configure_async_context(async_context_threadsafe_background_config_t *config) {
+        async_context_threadsafe_background_config_t default_config = async_context_threadsafe_background_default_config();
+        if (!config)
+                config = &default_config;
+
+        if (!async_context_threadsafe_background_init(&pch_cus_default_async_context,
+                config)) {
+                panic("async_context init");
+        }
+
+        PCH_CUS_TRACE(PCH_TRC_RT_CUS_INIT_ASYNC_CONTEXT,
+                ((struct pch_trdata_id_byte){
+                        .id = pch_cus_default_async_context.low_priority_irq_num,
+                        .byte = config->low_priority_irq_handler_priority
+                }));
+
+        pch_cus_async_context = &pch_cus_default_async_context.core;
+}
+
+void pch_cus_configure_async_context_if_unset(void) {
+        if (!pch_cus_async_context)
+                pch_cus_configure_async_context(NULL);
+}
+
 void pch_cu_set_configured(pch_cuaddr_t cua, bool configured) {
         pch_cu_t *cu = pch_get_cu(cua);
 
@@ -205,11 +221,20 @@ void pch_cu_set_configured(pch_cuaddr_t cua, bool configured) {
                 }));
 }
 
+void pch_cu_configure_async_context_if_unset(pch_cu_t *cu) {
+        if (cu->async_context)
+                return;
+
+        pch_cus_configure_async_context_if_unset();
+        cu->async_context = pch_cus_async_context;
+}
+
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl) {
         dma_channel_config txctrl = dmachan_uart_make_txctrl(uart, ctrl);
         dma_channel_config rxctrl = dmachan_uart_make_rxctrl(uart, ctrl);
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
         pch_cu_t *cu = pch_get_cu(cua);
+        pch_cu_configure_async_context_if_unset(cu);
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
@@ -240,6 +265,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!pch_cu_is_started(cu));
 
+        pch_cu_configure_async_context_if_unset(cu);
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
@@ -274,7 +300,7 @@ void pch_cu_start(pch_cuaddr_t cua) {
                 .do_work = pch_cus_async_worker_callback,
                 .user_data = cu
         });
-        async_context_add_when_pending_worker(&pch_cus_async_context.core,
+        async_context_add_when_pending_worker(cu->async_context,
                 &cu->worker);
 
         pch_cu_set_flag_started(cu, true);

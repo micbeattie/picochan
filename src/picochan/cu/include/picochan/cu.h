@@ -19,6 +19,7 @@
 #include <assert.h>
 #include "hardware/uart.h"
 #include "pico/async_context.h"
+#include "pico/async_context_threadsafe_background.h"
 #include "picochan/dev_api.h"
 #include "picochan/dmachan.h"
 #include "txsm/txsm.h"
@@ -91,6 +92,7 @@ static_assert(PCH_NUM_CUS >= 1 && PCH_NUM_CUS <= 256,
  * but the alignment as calculated above is still required.
  */
 typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
+        async_context_t         *async_context;
         async_when_pending_worker_t     worker;
         dmachan_tx_channel_t    tx_channel;
         dmachan_rx_channel_t    rx_channel;
@@ -246,6 +248,10 @@ void pch_cus_init(void);
 bool pch_cus_set_trace(bool trace);
 
 bool pch_cus_is_traced(void);
+
+async_context_t *pch_cus_configure_default_async_context(async_context_threadsafe_background_config_t *config);
+void pch_cus_configure_default_async_context_if_unset(void);
+void pch_cu_configure_async_context_if_unset(pch_cu_t *cu);
 
 /*
  * \brief Configure an explicit DMA IRQ for use by CUs started from the

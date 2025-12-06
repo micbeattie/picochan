@@ -204,6 +204,18 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 break;
         }
 
+        case PCH_TRC_RT_CUS_INIT: {
+                printf("CU-side initialised");
+                break;
+        }
+
+        case PCH_TRC_RT_CUS_INIT_ASYNC_CONTEXT: {
+                struct pch_trdata_id_byte *td = vd;
+                printf("CU-side initialised async_context with threadsafe background IRQ %u at priority %u",
+                        td->id, td->byte);
+                break;
+        }
+
         case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
                 struct pch_trdata_irq_handler *td = vd;
                 printf("CU-side ");
