@@ -63,6 +63,13 @@ Doxygen-generated documentation but some may be in a Topics
 sub-section, some may be in "Data Structures" and some may be under
 "Files".
 
+Although the above covers the low-levels details of what the CU does
+and how device drivers must behave, there is now a (somewhat) higher
+level API for implementing device drivers: this is the "hldev"
+("high-level device") API documented in topic picochan_hldev.
+That should typically be the first API to consider when implementing
+a device driver.
+
 ### Types
 
 ```
