@@ -5,16 +5,6 @@
 
 #include "picochan/hldev.h"
 
-void pch_hldev_dev_range_init(pch_dev_range_t *dr, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t cbfunc, void *cbctx) {
-        pch_dev_range_init(dr, cu, first_ua, num_devices);
-        pch_dev_range_register_unused_devib_callback(dr, cbfunc, cbctx);
-}
-
-void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices, pch_devib_callback_t cbfunc) {
-        pch_hldev_dev_range_init(&hdcfg->dev_range,
-                cu, first_ua, num_devices, cbfunc, hdcfg);
-}
-
 void pch_hldev_reset(pch_hldev_config_t *hdcfg, pch_hldev_t *hd) {
         hd->callback = hdcfg->start;
         hd->state = PCH_HLDEV_IDLE;
@@ -198,7 +188,9 @@ void pch_hldev_end(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t extra_
         pch_dev_update_status(devib, extra_devs);
 }
 
-void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
+static void hldev_devib_callback(pch_devib_t *devib) {
+        pch_hldev_config_t *hdcfg = pch_devib_callback_context(devib);
+
         if (pch_devib_is_stopping(devib)) {
                 if (hdcfg->signal)
                         hdcfg->signal(hdcfg, devib);
@@ -243,4 +235,12 @@ void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
                 .asc = hd->state
         }));
         pch_hldev_reset(hdcfg, hd);
+}
+
+void pch_hldev_config_init(pch_hldev_config_t *hdcfg, pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices) {
+        pch_dev_range_t *dr = &hdcfg->dev_range;
+
+        pch_dev_range_init(dr, cu, first_ua, num_devices);
+        pch_dev_range_register_unused_devib_callback(dr,
+                hldev_devib_callback, hdcfg);
 }
