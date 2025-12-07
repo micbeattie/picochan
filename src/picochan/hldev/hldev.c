@@ -7,14 +7,16 @@
 
 void pch_hldev_reset(pch_hldev_config_t *hdcfg, pch_hldev_t *hd) {
         hd->callback = hdcfg->start;
-        hd->state = PCH_HLDEV_IDLE;
         hd->addr = NULL;
         hd->size = 0;
         hd->count = 0;
+        hd->state = PCH_HLDEV_IDLE;
+        hd->flags = 0;
+        hd->ccwcmd = 0;
 }
 
-void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
-        pch_hldev_end_ok_sense(hdcfg, devib, PCH_DEV_SENSE_NONE);
+void pch_hldev_end_ok(pch_devib_t *devib) {
+        pch_hldev_end_ok_sense(devib, PCH_DEV_SENSE_NONE);
 }
 
 // do_receive progresses an hldev in RECEIVING state, meaning that it
@@ -25,7 +27,7 @@ void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
 // possible. The first call to pch_dev_receive() is from
 // pch_hldev_receive() so by the time we are called, the devib
 // contains the information sent by the CSS about the latest receive.
-static void do_receive(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *devib) {
+static void do_receive(pch_hldev_t *hd, pch_devib_t *devib) {
         assert(pch_devib_is_cmd_write(devib));
         uint16_t n = proto_parse_count_payload(devib->payload);
         assert((uint)hd->count + (uint)n <= (uint)hd->size);
@@ -43,11 +45,11 @@ static void do_receive(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *
         }
 
         hd->state = PCH_HLDEV_STARTED;
-        hd->callback(hdcfg, devib);
+        hd->callback(devib);
 }
 
-void pch_hldev_receive_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size, pch_hldev_callback_t callback) {
-        pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+void pch_hldev_receive_then(pch_devib_t *devib, void *dstaddr, uint16_t size, pch_devib_callback_t callback) {
+        pch_hldev_t *hd = pch_hldev_get(devib);
         assert(pch_hldev_is_started(hd));
         assert(pch_devib_is_cmd_write(devib));
 
@@ -61,29 +63,29 @@ void pch_hldev_receive_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void 
         pch_dev_receive(devib, dstaddr, size);
 }
 
-void pch_hldev_receive(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size) {
-        pch_hldev_receive_then(hdcfg, devib, dstaddr, size, NULL);
+void pch_hldev_receive(pch_devib_t *devib, void *dstaddr, uint16_t size) {
+        pch_hldev_receive_then(devib, dstaddr, size, NULL);
 }
 
-void pch_hldev_terminate_string(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
-        pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+void pch_hldev_terminate_string(pch_devib_t *devib) {
+        pch_hldev_t *hd = pch_hldev_get(devib);
         *(char*)hd->addr = '\0';
         hd->addr++;
         hd->count++;
 }
 
-void pch_hldev_terminate_string_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
-        pch_hldev_terminate_string(hdcfg, devib);
-        pch_hldev_end_ok(hdcfg, devib);
+void pch_hldev_terminate_string_end_ok(pch_devib_t *devib) {
+        pch_hldev_terminate_string(devib);
+        pch_hldev_end_ok(devib);
 }
 
-void pch_hldev_receive_string_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t len) {
-        pch_hldev_receive_then(hdcfg, devib, dstaddr, len,
+void pch_hldev_receive_string_final(pch_devib_t *devib, void *dstaddr, uint16_t len) {
+        pch_hldev_receive_then(devib, dstaddr, len,
                 pch_hldev_terminate_string_end_ok);
 }
 
-void pch_hldev_receive_buffer_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size) {
-        pch_hldev_receive_then(hdcfg, devib, dstaddr, size, pch_hldev_end_ok);
+void pch_hldev_receive_buffer_final(pch_devib_t *devib, void *dstaddr, uint16_t size) {
+        pch_hldev_receive_then(devib, dstaddr, size, pch_hldev_end_ok);
 }
 
 // do_send progresses an hldev in SENDING or SENDING_FINAL state,
@@ -99,7 +101,7 @@ void pch_hldev_receive_buffer_final(pch_hldev_config_t *hdcfg, pch_devib_t *devi
 // with the pch_dev_send() so that the CSS treats it as an implicit
 // "normal" end (DEVICE_END|CHANNEL_END with no sense) and we can go
 // straight to IDLE state.
-static void do_send(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *devib) {
+static void do_send(pch_hldev_t *hd, pch_devib_t *devib) {
         assert(!pch_devib_is_cmd_write(devib));
         void *srcaddr = hd->addr;
         uint16_t n = hd->size - hd->count;
@@ -114,6 +116,7 @@ static void do_send(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *dev
                 hd->state = PCH_HLDEV_STARTED;
         }
 
+        pch_hldev_config_t *hdcfg = pch_hldev_get_config(devib);
         if (flags == PROTO_CHOP_FLAG_END)
                 pch_hldev_reset(hdcfg, hd); // back to IDLE
         else {
@@ -123,8 +126,8 @@ static void do_send(pch_hldev_config_t *hdcfg, pch_hldev_t *hd, pch_devib_t *dev
         pch_dev_send(devib, srcaddr, n, flags);
 }
 
-static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback, bool final) {
-        pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+static void start_send(pch_devib_t *devib, void *srcaddr, uint16_t size, pch_devib_callback_t callback, bool final) {
+        pch_hldev_t *hd = pch_hldev_get(devib);
         assert(pch_hldev_is_started(hd));
         assert(!pch_devib_is_cmd_write(devib));
         assert(size);
@@ -141,6 +144,7 @@ static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srca
                 // enough announced room in segment to send it all
                 // here without needing to go into SENDING state
                 if (final) {
+                        pch_hldev_config_t *hdcfg = pch_hldev_get_config(devib);
                         pch_hldev_reset(hdcfg, hd); // back to IDLE
                 } else {
                         devib->size -= size; // XXX check this is OK
@@ -162,26 +166,27 @@ static void start_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srca
         assert(rc >= 0);
 }
 
-void pch_hldev_send_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback) {
-        start_send(hdcfg, devib, srcaddr, size, callback, false);
+void pch_hldev_send_then(pch_devib_t *devib, void *srcaddr, uint16_t size, pch_devib_callback_t callback) {
+        start_send(devib, srcaddr, size, callback, false);
 }
 
-void pch_hldev_send_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size) {
-        start_send(hdcfg, devib, srcaddr, size, NULL, true);
+void pch_hldev_send_final(pch_devib_t *devib, void *srcaddr, uint16_t size) {
+        start_send(devib, srcaddr, size, NULL, true);
 }
 
-void pch_hldev_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size) {
-        pch_hldev_send_then(hdcfg, devib, srcaddr, size, NULL);
+void pch_hldev_send(pch_devib_t *devib, void *srcaddr, uint16_t size) {
+        pch_hldev_send_then(devib, srcaddr, size, NULL);
 }
 
-void pch_hldev_end(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense) {
-        pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+void pch_hldev_end(pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense) {
+        pch_hldev_t *hd = pch_hldev_get(devib);
         assert(pch_hldev_is_started(hd));
         assert(!pch_hldev_is_idle(hd));
         extra_devs |= PCH_DEVS_CHANNEL_END|PCH_DEVS_DEVICE_END;
         if (sense.flags)
                 extra_devs |= PCH_DEVS_UNIT_CHECK;
 
+        pch_hldev_config_t *hdcfg = pch_hldev_get_config(devib);
         hd->callback = hdcfg->start;
         hd->state = PCH_HLDEV_IDLE;
         devib->sense = sense;
@@ -193,15 +198,15 @@ static void hldev_devib_callback(pch_devib_t *devib) {
 
         if (pch_devib_is_stopping(devib)) {
                 if (hdcfg->signal)
-                        hdcfg->signal(hdcfg, devib);
+                        hdcfg->signal(devib);
                 else
-                        pch_hldev_end_stopped(hdcfg, devib);
+                        pch_hldev_end_stopped(devib);
                 return;
         }
 
-        pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+        pch_hldev_t *hd = pch_hldev_get(devib);
         if (!hd) {
-                pch_hldev_end_reject(hdcfg, devib, EINVALIDDEV);
+                pch_hldev_end_reject(devib, EINVALIDDEV);
                 return;
         }
 
@@ -216,16 +221,16 @@ static void hldev_devib_callback(pch_devib_t *devib) {
         case PCH_HLDEV_STARTED:
                 assert(pch_devib_is_started(devib));
                 hd->state = PCH_HLDEV_STARTED;
-                hd->callback(hdcfg, devib);
+                hd->callback(devib);
                 return;
 
         case PCH_HLDEV_RECEIVING:
-                do_receive(hdcfg, hd, devib);
+                do_receive(hd, devib);
                 return;
 
         case PCH_HLDEV_SENDING:
         case PCH_HLDEV_SENDING_FINAL:
-                do_send(hdcfg, hd, devib);
+                do_send(hd, devib);
                 return;
         }
 
