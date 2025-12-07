@@ -6,4 +6,5 @@ endif()
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/base picochan_base)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/cu picochan_cu)
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/hldev picochan_hldev)
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/css picochan_css)
