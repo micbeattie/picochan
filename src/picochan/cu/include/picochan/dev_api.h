@@ -47,6 +47,7 @@ enum {
         EINVALIDVALUE           = 10,
         EDATALENZERO            = 11,
         EBUFFERTOOSHORT         = 12,
+        ECUBUSY                 = 13,
         //
         ECANCEL                 = 256
 };

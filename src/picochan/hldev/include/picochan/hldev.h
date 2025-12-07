@@ -83,8 +83,13 @@ void pch_hldev_call_callback(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
 void pch_hldev_send_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size, pch_hldev_callback_t callback);
 void pch_hldev_send(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *srcaddr, uint16_t size);
 void pch_hldev_end(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t extra_devs, pch_dev_sense_t sense);
+void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
+void pch_hldev_terminate_string(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
+void pch_hldev_terminate_string_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib);
+void pch_hldev_receive_string_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t len);
 
-static inline void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib, pch_dev_sense_t sense) {
+
+static inline void pch_hldev_end_ok_sense(pch_hldev_config_t *hdcfg, pch_devib_t *devib, pch_dev_sense_t sense) {
         pch_hldev_end(hdcfg, devib, 0, sense);
 }
 
@@ -105,6 +110,13 @@ static inline void pch_hldev_end_proto_error(pch_hldev_config_t *hdcfg, pch_devi
 static inline void pch_hldev_end_intervention(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t code) {
         pch_hldev_end(hdcfg, devib, 0, ((pch_dev_sense_t){
                 .flags = PCH_DEV_SENSE_INTERVENTION_REQUIRED,
+                .code = code
+        }));
+}
+
+static inline void pch_hldev_end_equipment_check(pch_hldev_config_t *hdcfg, pch_devib_t *devib, uint8_t code) {
+        pch_hldev_end(hdcfg, devib, 0, ((pch_dev_sense_t){
+                .flags = PCH_DEV_SENSE_EQUIPMENT_CHECK,
                 .code = code
         }));
 }

@@ -23,6 +23,10 @@ void pch_hldev_reset(pch_hldev_config_t *hdcfg, pch_hldev_t *hd) {
         hd->count = 0;
 }
 
+void pch_hldev_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
+        pch_hldev_end_ok_sense(hdcfg, devib, PCH_DEV_SENSE_NONE);
+}
+
 // do_receive progresses an hldev in RECEIVING state, meaning that it
 // has requested to receive data from a Write-type CCW into a sized
 // buffer. Unlike a low-level pch_dev_receive() which receives at most
@@ -72,6 +76,27 @@ void pch_hldev_receive_then(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void 
 
 void pch_hldev_receive(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size) {
         pch_hldev_receive_then(hdcfg, devib, dstaddr, size, NULL);
+}
+
+void pch_hldev_terminate_string(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
+        pch_hldev_t *hd = pch_hldev_get(hdcfg, devib);
+        *hd->addr = '\0';
+        hd->addr++;
+        hd->count++;
+        pch_hldev_end_ok(hdcfg, devib);
+}
+
+void pch_hldev_terminate_string_end_ok(pch_hldev_config_t *hdcfg, pch_devib_t *devib) {
+        pch_hldev_terminate_string(hdcfg, devib);
+        pch_hldev_end_ok(hdcfg, devib);
+}
+
+void pch_hldev_receive_string_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t len) {
+        pch_hldev_receive_then(hdcfg, devib, dstaddr, size, terminate_string_end_ok);
+}
+
+void pch_hldev_receive_buffer_final(pch_hldev_config_t *hdcfg, pch_devib_t *devib, void *dstaddr, uint16_t size) {
+        pch_hldev_receive_then(hdcfg, devib, dstaddr, size, pch_hldev_end_ok);
 }
 
 // do_send progresses an hldev in SENDING state, meaning that it
