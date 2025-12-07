@@ -18,8 +18,6 @@ var searchData=
   ['tracing_20for_20cu_15',['Tracing for CU',['../tracing_page.html#autotoc_md42',1,'']]],
   ['tracing_5fpage_20tracing_16',['&lt;a class=&quot;el&quot; href=&quot;tracing_page.html&quot;&gt;Tracing&lt;/a&gt;',['../index.html#autotoc_md35',1,'']]],
   ['trc_2eh_17',['trc.h',['../trc_8h.html',1,'']]],
-  ['tx_5fcallback_5fua_18',['tx_callback_ua',['../structpch__cu.html#a802d2913290701330ce9b84390725204',1,'pch_cu']]],
-  ['tx_5fhead_19',['tx_head',['../structpch__cu.html#a2a5b6366732228e38eb2a3aa90052a92',1,'pch_cu']]],
-  ['tx_5ftail_20',['tx_tail',['../structpch__cu.html#a196c71c1fe64deb6b4e9ed4dbb571e70',1,'pch_cu']]],
-  ['types_21',['Types',['../css_api_page.html#autotoc_md8',1,'Types'],['../cu_api_page.html#autotoc_md19',1,'Types']]]
+  ['tx_5flist_18',['tx_list',['../structpch__cu.html#abdeeca83de981f85799424bb43a85f54',1,'pch_cu']]],
+  ['types_19',['Types',['../css_api_page.html#autotoc_md8',1,'Types'],['../cu_api_page.html#autotoc_md19',1,'Types']]]
 ];

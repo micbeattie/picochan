@@ -57,7 +57,7 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "annotated.html",
-"structpch__trdata__dmachan__segment.html"
+"structpch__dev__sense.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronization';

@@ -114,87 +114,101 @@ $(function(){initNavTree('cus__trace_8h_source.html','',''); });
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span> </div>
 <div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#define PCH_CUS_TRACE(rt, data) PCH_CUS_TRACE_COND((rt), true, (data))</span></div>
 <div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_dev(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__dev.html">pch_trdata_dev</a>){</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                        .ua = pch_dev_get_ua(devib)</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>                }));</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>}</div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="comment">// These CB_FROM numbers are only used for writing to</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="comment">// PCH_TRC_RT_CUS_CALL_CALLBACK trace records to help</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="comment">// troubleshooting. 0 is not a valid CB_FROM number.</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="preprocessor">#define CB_FROM_RX_COMPLETE             1</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="preprocessor">#define CB_FROM_TXSM_FINISHED           2</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="preprocessor">#define CB_FROM_TXSM_NOOP               3</span></div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="preprocessor">#define CB_FROM_TX_DEFERRED_RX          4</span></div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_dev_byte(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint8_t <span class="keywordtype">byte</span>) {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_dev(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
 <div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__dev__byte.html">pch_trdata_dev_byte</a>){</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__dev.html">pch_trdata_dev</a>){</div>
 <div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>                        .ua = pch_dev_get_ua(devib),</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>                        .byte = <span class="keywordtype">byte</span></div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>                }));</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>}</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span> </div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_dev_packet(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> p) {</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>        PCH_CUS_TRACE_COND(rt,</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                cu_or_devib_is_traced(devib),</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__word__dev.html">pch_trdata_word_dev</a>){</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>                        .word = proto_packet_as_word(p),</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                        .ua = pch_dev_get_ua(devib)</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>                }));</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>}</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span> </div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_tx_complete(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, int16_t uaopt, pch_txsm_state_t txpstate) {</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>        PCH_CUS_TRACE_COND(rt, cu-&gt;traced,</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__cus__tx__complete.html">pch_trdata_cus_tx_complete</a>){</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                        .uaopt = uaopt,</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                        .cuaddr = cu-&gt;cuaddr,</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>                        .txpstate = (uint8_t)txpstate</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>                        .ua = pch_dev_get_ua(devib)</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>                }));</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>}</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_dev_byte(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint8_t <span class="keywordtype">byte</span>) {</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        PCH_CUS_TRACE_COND(rt, cu_or_devib_is_traced(devib),</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__dev__byte.html">pch_trdata_dev_byte</a>){</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                        .ua = pch_dev_get_ua(devib),</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>                        .byte = <span class="keywordtype">byte</span></div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                }));</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>}</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_dev_packet(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> p, uint16_t seqnum) {</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        PCH_CUS_TRACE_COND(rt,</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>                cu_or_devib_is_traced(devib),</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__packet__dev.html">pch_trdata_packet_dev</a>){</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                        .packet = proto_packet_as_word(p),</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                        .seqnum = seqnum,</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>                        .ua = pch_dev_get_ua(devib)</div>
 <div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                }));</div>
 <div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}</div>
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_register_callback(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> n, <a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cb) {</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        PCH_CUS_TRACE(rt,</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__word__byte.html">pch_trdata_word_byte</a>){(uint32_t)cb,n}));</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_call_callback(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> cbindex) {</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        PCH_CUS_TRACE_COND(rt,</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                cu_or_devib_is_traced(devib),</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__cus__call__callback.html">pch_trdata_cus_call_callback</a>){</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                        .ua = pch_dev_get_ua(devib),</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>                        .cbindex = (uint8_t)cbindex</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>                }));</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>}</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span> </div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_cu_irq(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        PCH_CUS_TRACE_COND(rt,</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>                cu-&gt;traced, ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__id__irq.html">pch_trdata_id_irq</a>){</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>                        .id = cu-&gt;cuaddr,</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                        .dmairqix = dmairqix,</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                        .tx_state = tx_irq_state &lt;&lt; 4</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                                | cu-&gt;tx_channel.mem_src_state,</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                        .rx_state = rx_irq_state &lt;&lt; 4</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                                | cu-&gt;rx_channel.mem_dst_state</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                }));</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>}</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span> </div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_tx_complete(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, int16_t tx_head, <span class="keywordtype">bool</span> callback_pending, pch_txsm_state_t txpstate) {</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>        PCH_CUS_TRACE_COND(rt, pch_cu_is_traced_irq(cu),</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__cus__tx__complete.html">pch_trdata_cus_tx_complete</a>){</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>                        .tx_head = tx_head,</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>                        .cbpending = callback_pending,</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>                        .cuaddr = cu-&gt;cuaddr,</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>                        .txpstate = (uint8_t)txpstate</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                }));</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>}</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_register_callback(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> cbindex, <a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cbfunc, <span class="keywordtype">void</span> *cbctx) {</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        PCH_CUS_TRACE(rt,</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__cus__register__callback.html">pch_trdata_cus_register_callback</a>){</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                        .cbfunc = (uint32_t)cbfunc,</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>                        .cbctx = (uint32_t)cbctx,</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                        .cbindex = (uint8_t)cbindex</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>                }));</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>}</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_call_callback(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint8_t from) {</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        PCH_CUS_TRACE_COND(rt,</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                cu_or_devib_is_traced(devib),</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__cus__call__callback.html">pch_trdata_cus_call_callback</a>){</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                        .cuaddr = pch_dev_get_cuaddr(devib),</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                        .ua = pch_dev_get_ua(devib),</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>                        .cbindex = devib-&gt;cbindex</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>                }));</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>}</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_cu_irq(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        PCH_CUS_TRACE_COND(rt,</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                pch_cu_is_traced_irq(cu), ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__id__irq.html">pch_trdata_id_irq</a>){</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>                        .id = cu-&gt;cuaddr,</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                        .dmairqix = dmairqix,</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>                        .tx_state = tx_irq_state &lt;&lt; 4</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>                                | cu-&gt;tx_channel.mem_src_state,</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>                        .rx_state = rx_irq_state &lt;&lt; 4</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>                                | cu-&gt;rx_channel.mem_dst_state</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>                }));</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>}</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="acu_8h_html"><div class="ttname"><a href="cu_8h.html">cu.h</a></div></div>
 <div class="ttc" id="adevib_8h_html"><div class="ttname"><a href="devib_8h.html">devib.h</a></div><div class="ttdoc">The structures and API for a device on a CU.</div></div>
 <div class="ttc" id="agroup__internal__proto_html_ga5df73c893a490a12597d177b842ee582"><div class="ttname"><a href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a></div><div class="ttdeci">struct proto_packet proto_packet_t</div><div class="ttdoc">a 4-byte command packet sent on a channel between CSS and CU or vice versa</div></div>
 <div class="ttc" id="agroup__internal__trc_html_gaa743327244077c1e3d25b48982c4481c"><div class="ttname"><a href="group__internal__trc.html#gaa743327244077c1e3d25b48982c4481c">pch_trc_bufferset_t</a></div><div class="ttdeci">struct pch_trc_bufferset pch_trc_bufferset_t</div><div class="ttdoc">set of buffers and metadata for a subsystem to use tracing</div></div>
 <div class="ttc" id="agroup__picochan__base_html_ga2051559b1a04ebbe80a064254c160209"><div class="ttname"><a href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a></div><div class="ttdeci">int8_t pch_dma_irq_index_t</div><div class="ttdoc">a DMA IRQ index</div><div class="ttdef"><b>Definition</b> ids.h:64</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_ga6924049f57a02761af083fa5498bc092"><div class="ttname"><a href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a></div><div class="ttdeci">uint8_t pch_cbindex_t</div><div class="ttdoc">An 8-bit index into an array of callbacks that the CU can make to a devicepch_cbindex_t is an 8-bit i...</div><div class="ttdef"><b>Definition</b> devib.h:27</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga70efb52d8b560c38dff57960ae653d9b"><div class="ttname"><a href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a></div><div class="ttdeci">void(* pch_devib_callback_t)(pch_devib_t *devib)</div><div class="ttdoc">pch_devib_callback_t is a function for the CU to callback a device</div><div class="ttdef"><b>Definition</b> devib.h:126</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga70efb52d8b560c38dff57960ae653d9b"><div class="ttname"><a href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a></div><div class="ttdeci">void(* pch_devib_callback_t)(pch_devib_t *devib)</div><div class="ttdoc">pch_devib_callback_t is a function for the CU to callback a device</div><div class="ttdef"><b>Definition</b> devib.h:181</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_gad255fd60b677de465d03fa6505775044"><div class="ttname"><a href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a></div><div class="ttdeci">struct pch_cu pch_cu_t</div><div class="ttdoc">pch_cu_t is a Control Unit (CU)</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_gae778375f43278246f52713c263113a2a"><div class="ttname"><a href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a></div><div class="ttdeci">struct pch_devib pch_devib_t</div><div class="ttdoc">pch_devib_t represents a device on a CU</div></div>
 <div class="ttc" id="apacket_8h_html"><div class="ttname"><a href="packet_8h.html">packet.h</a></div></div>
-<div class="ttc" id="astructpch__trdata__cus__call__callback_html"><div class="ttname"><a href="structpch__trdata__cus__call__callback.html">pch_trdata_cus_call_callback</a></div><div class="ttdef"><b>Definition</b> trc_records.h:140</div></div>
-<div class="ttc" id="astructpch__trdata__cus__tx__complete_html"><div class="ttname"><a href="structpch__trdata__cus__tx__complete.html">pch_trdata_cus_tx_complete</a></div><div class="ttdef"><b>Definition</b> trc_records.h:134</div></div>
+<div class="ttc" id="astructpch__trdata__cus__call__callback_html"><div class="ttname"><a href="structpch__trdata__cus__call__callback.html">pch_trdata_cus_call_callback</a></div><div class="ttdef"><b>Definition</b> trc_records.h:167</div></div>
+<div class="ttc" id="astructpch__trdata__cus__register__callback_html"><div class="ttname"><a href="structpch__trdata__cus__register__callback.html">pch_trdata_cus_register_callback</a></div><div class="ttdef"><b>Definition</b> trc_records.h:173</div></div>
+<div class="ttc" id="astructpch__trdata__cus__tx__complete_html"><div class="ttname"><a href="structpch__trdata__cus__tx__complete.html">pch_trdata_cus_tx_complete</a></div><div class="ttdef"><b>Definition</b> trc_records.h:160</div></div>
 <div class="ttc" id="astructpch__trdata__dev__byte_html"><div class="ttname"><a href="structpch__trdata__dev__byte.html">pch_trdata_dev_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:48</div></div>
 <div class="ttc" id="astructpch__trdata__dev_html"><div class="ttname"><a href="structpch__trdata__dev.html">pch_trdata_dev</a></div><div class="ttdef"><b>Definition</b> trc_records.h:43</div></div>
 <div class="ttc" id="astructpch__trdata__id__irq_html"><div class="ttname"><a href="structpch__trdata__id__irq.html">pch_trdata_id_irq</a></div><div class="ttdef"><b>Definition</b> trc_records.h:36</div></div>
-<div class="ttc" id="astructpch__trdata__word__byte_html"><div class="ttname"><a href="structpch__trdata__word__byte.html">pch_trdata_word_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:66</div></div>
-<div class="ttc" id="astructpch__trdata__word__dev_html"><div class="ttname"><a href="structpch__trdata__word__dev.html">pch_trdata_word_dev</a></div><div class="ttdef"><b>Definition</b> trc_records.h:54</div></div>
+<div class="ttc" id="astructpch__trdata__packet__dev_html"><div class="ttname"><a href="structpch__trdata__packet__dev.html">pch_trdata_packet_dev</a></div><div class="ttdef"><b>Definition</b> trc_records.h:67</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

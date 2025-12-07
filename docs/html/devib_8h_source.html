@@ -124,151 +124,253 @@ $(function(){initNavTree('devib_8h_source.html','',''); });
 <div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span></div>
 <div class="foldopen" id="foldopen00068" data-start="{" data-end="};">
 <div class="line"><a id="l00068" name="l00068"></a><span class="lineno"><a class="line" href="structpch__devib.html">   68</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structpch__devib.html">pch_devib</a> {</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <a class="code hl_typedef" href="group__picochan__base.html#gab7ab0df86c352a560a2376290862a2ee">pch_unit_addr_t</a> next;</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a>   cbindex;</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        uint16_t        size;</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        proto_chop_t    op;</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        uint8_t         flags;</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        proto_payload_t payload;</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        uint32_t        addr;</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a> sense;</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">   77</a></span>} <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a>;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno"><a class="line" href="structpch__devib.html#aa8306bbe5e01c209af961e8ba6cace62">   70</a></span>        <a class="code hl_typedef" href="group__picochan__base.html#gab7ab0df86c352a560a2376290862a2ee">pch_unit_addr_t</a> <a class="code hl_variable" href="structpch__devib.html#aa8306bbe5e01c209af961e8ba6cace62">next</a>;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>        <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a>   cbindex;</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>        uint16_t        size;</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>        proto_chop_t    op;</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        uint8_t         flags;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        proto_payload_t payload;</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        uint32_t        addr;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a> sense;</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">   78</a></span>} <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a>;</div>
 </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="preprocessor">#define PCH_DEVIB_SPACE_SHIFT (31U - __builtin_clz(2 * sizeof(pch_devib_t) - 1))</span></div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="keyword">static_assert</span>(__builtin_constant_p(PCH_DEVIB_SPACE_SHIFT),</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>        <span class="stringliteral">&quot;__builtin_clz() did not produce compile-time constant for PCH_DEVIB_SPACE_SHIFT&quot;</span>);</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="preprocessor">#define PCH_DEVIB_FLAG_STARTED          0x80</span></div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#define PCH_DEVIB_FLAG_CMD_WRITE        0x40</span></div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="preprocessor">#define PCH_DEVIB_FLAG_RX_DATA_REQUIRED 0x20</span></div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span><span class="preprocessor">#define PCH_DEVIB_FLAG_TX_CALLBACK      0x10</span></div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="preprocessor">#define PCH_DEVIB_FLAG_TRACED           0x08</span></div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="preprocessor">#define PCH_DEVIB_FLAG_STOPPING         0x04</span></div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_started(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED;</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>}</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span> </div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_cmd_write(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_CMD_WRITE;</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>}</div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_traced(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_TRACED;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>}</div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_set_traced(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">bool</span> trace) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>        <span class="keywordtype">bool</span> old_trace = pch_devib_is_traced(devib);</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>        <span class="keywordflow">if</span> (trace)</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>                devib-&gt;flags |= PCH_DEVIB_FLAG_TRACED;</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>                devib-&gt;flags &amp;= ~PCH_DEVIB_FLAG_TRACED;</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        <span class="keywordflow">return</span> old_trace;</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>}</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span> </div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_stopping(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_STOPPING;</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>}</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span><span class="comment">// Forward declaration of pch_cu_t for identifying devib by</span></div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span><span class="comment">// (pch_cu_t, pch_unit_addr_t) for callbacks and dev implementations.</span></div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__cu.html">pch_cu</a> <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a>;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span><span class="comment">// Callbacks</span></div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span></div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">  126</a></span><span class="keyword">typedef</span> void (*<a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a>)(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span> </div>
-<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span><span class="keyword">extern</span> <a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> pch_devib_callbacks[];</div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span> </div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_cbindex_is_callable(uint cbindex) {</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        <span class="keywordflow">if</span> (cbindex == PCH_DEVIB_CALLBACK_NOOP)</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span> </div>
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>        <span class="keywordflow">if</span> (cbindex &gt;= <a class="code hl_define" href="group__picochan__cu.html#gac3d768c94fb42cb196655b81f30cf3d4">NUM_DEVIB_CALLBACKS</a>)</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span> </div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>        <span class="keywordflow">return</span> pch_devib_callbacks[cbindex] != NULL;</div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>}</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span> </div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span><span class="comment">// Callback registration API</span></div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span></div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga3ddc35aaef2f2adea854c65b93a49eb8">  148</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga3ddc35aaef2f2adea854c65b93a49eb8">pch_register_devib_callback</a>(<a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> n, <a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cb);</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span></div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gade93f39153a74a00a13a0080d994c080">  160</a></span><a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> <a class="code hl_function" href="group__picochan__cu.html#gade93f39153a74a00a13a0080d994c080">pch_register_unused_devib_callback</a>(<a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cb);</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span> </div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span><span class="keywordtype">void</span> pch_default_devib_callback(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span> </div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span><span class="comment">// Low-level API for dev implementation updating devib</span></div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span></div>
-<div class="foldopen" id="foldopen00177" data-start="{" data-end="}">
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">  177</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">pch_devib_prepare_callback</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> cbindex) {</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>        assert(pch_cbindex_is_callable(cbindex));</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>        devib-&gt;cbindex = cbindex;</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>}</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="preprocessor">#define PCH_DEVIB_SPACE_SHIFT (31U - __builtin_clz(2 * sizeof(pch_devib_t) - 1))</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span> </div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="keyword">static_assert</span>(__builtin_constant_p(PCH_DEVIB_SPACE_SHIFT),</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>        <span class="stringliteral">&quot;__builtin_clz() did not produce compile-time constant for PCH_DEVIB_SPACE_SHIFT&quot;</span>);</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span> </div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#define PCH_DEVIB_FLAG_STARTED          0x80</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span><span class="preprocessor">#define PCH_DEVIB_FLAG_CMD_WRITE        0x40</span></div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span><span class="preprocessor">#define PCH_DEVIB_FLAG_TX_BUSY          0x20</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="preprocessor">#define PCH_DEVIB_FLAG_CALLBACK_PENDING 0x10</span></div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span><span class="preprocessor">#define PCH_DEVIB_FLAG_TRACED           0x08</span></div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span><span class="preprocessor">#define PCH_DEVIB_FLAG_STOPPING         0x04</span></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span><span class="preprocessor">#define PCH_DEVIB_FLAG_START_PENDING    0x02</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span> </div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_started(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>}</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span> </div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_set_started(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">bool</span> started) {</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>        <span class="keywordtype">bool</span> old_started = pch_devib_is_started(devib);</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>        <span class="keywordflow">if</span> (started)</div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>                devib-&gt;flags |= PCH_DEVIB_FLAG_STARTED;</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>                devib-&gt;flags &amp;= ~PCH_DEVIB_FLAG_STARTED;</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span> </div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>        <span class="keywordflow">return</span> old_started;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>}</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span> </div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_cmd_write(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_CMD_WRITE;</div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>}</div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span> </div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_tx_busy(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_TX_BUSY;</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>}</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span> </div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_set_tx_busy(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">bool</span> tx_busy) {</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>        <span class="keywordtype">bool</span> old_tx_busy = pch_devib_is_tx_busy(devib);</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>        <span class="keywordflow">if</span> (tx_busy)</div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>                devib-&gt;flags |= PCH_DEVIB_FLAG_TX_BUSY;</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>                devib-&gt;flags &amp;= ~PCH_DEVIB_FLAG_TX_BUSY;</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        <span class="keywordflow">return</span> old_tx_busy;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>}</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_callback_pending(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_CALLBACK_PENDING;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>}</div>
+<div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_set_callback_pending(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">bool</span> callback_pending) {</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        <span class="keywordtype">bool</span> old_callback_pending = pch_devib_is_callback_pending(devib);</div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        <span class="keywordflow">if</span> (callback_pending)</div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>                devib-&gt;flags |= PCH_DEVIB_FLAG_CALLBACK_PENDING;</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>                devib-&gt;flags &amp;= ~PCH_DEVIB_FLAG_CALLBACK_PENDING;</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span> </div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>        <span class="keywordflow">return</span> old_callback_pending;</div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>}</div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span> </div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_traced(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_TRACED;</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>}</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_set_traced(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">bool</span> trace) {</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>        <span class="keywordtype">bool</span> old_trace = pch_devib_is_traced(devib);</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>        <span class="keywordflow">if</span> (trace)</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>                devib-&gt;flags |= PCH_DEVIB_FLAG_TRACED;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>                devib-&gt;flags &amp;= ~PCH_DEVIB_FLAG_TRACED;</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        <span class="keywordflow">return</span> old_trace;</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>}</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span> </div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_stopping(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_STOPPING;</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>}</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span> </div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_is_start_pending(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span>        <span class="keywordflow">return</span> devib-&gt;flags &amp; PCH_DEVIB_FLAG_START_PENDING;</div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>}</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span> </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_devib_set_start_pending(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">bool</span> start_pending) {</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        <span class="keywordtype">bool</span> old_start_pending = pch_devib_is_start_pending(devib);</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>        <span class="keywordflow">if</span> (start_pending)</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>                devib-&gt;flags |= PCH_DEVIB_FLAG_START_PENDING;</div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>                devib-&gt;flags &amp;= ~PCH_DEVIB_FLAG_START_PENDING;</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span> </div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>        <span class="keywordflow">return</span> old_start_pending;</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>}</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span> </div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span><span class="comment">// Forward declaration of pch_cu_t for identifying devib by</span></div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span><span class="comment">// (pch_cu_t, pch_unit_addr_t) for callbacks and dev implementations.</span></div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__cu.html">pch_cu</a> <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a>;</div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span> </div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span><span class="comment">// Callbacks</span></div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span></div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">  181</a></span><span class="keyword">typedef</span> void (*<a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a>)(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span></div>
+<div class="foldopen" id="foldopen00188" data-start="{" data-end="};">
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno"><a class="line" href="structpch__devib__callback__info.html">  188</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__devib__callback__info.html">pch_devib_callback_info</a> {</div>
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span>        <a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a>    func;</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        <span class="keywordtype">void</span>                    *context;</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4">  191</a></span>} <a class="code hl_typedef" href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4">pch_devib_callback_info_t</a>;</div>
 </div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span></div>
-<div class="foldopen" id="foldopen00192" data-start="{" data-end="}">
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">  192</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint16_t count) {</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        devib-&gt;payload = proto_make_count_payload(count);</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>}</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span> </div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span><span class="keyword">extern</span> <a class="code hl_typedef" href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4">pch_devib_callback_info_t</a> pch_devib_callbacks[];</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span> </div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_cbindex_is_registered(uint cbindex) {</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>        <span class="keywordflow">if</span> (cbindex &gt;= <a class="code hl_define" href="group__picochan__cu.html#gac3d768c94fb42cb196655b81f30cf3d4">NUM_DEVIB_CALLBACKS</a>)</div>
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span> </div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        <span class="keywordflow">return</span> pch_devib_callbacks[cbindex].func != NULL;</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>}</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_cbindex_is_callable(uint cbindex) {</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        <span class="keywordflow">if</span> (cbindex == PCH_DEVIB_CALLBACK_NOOP)</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>                <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span> </div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        <span class="keywordflow">if</span> (cbindex &gt;= <a class="code hl_define" href="group__picochan__cu.html#gac3d768c94fb42cb196655b81f30cf3d4">NUM_DEVIB_CALLBACKS</a>)</div>
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>                <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span> </div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        <span class="keywordflow">return</span> pch_devib_callbacks[cbindex].func != NULL;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>}</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span><span class="comment">// devib list handling</span></div>
+<div class="foldopen" id="foldopen00213" data-start="{" data-end="};">
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno"><a class="line" href="structpch__devib__list.html">  213</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__devib__list.html">pch_devib_list</a> {</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        int16_t head;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        int16_t tail;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>} pch_devib_list_t;</div>
 </div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span></div>
-<div class="foldopen" id="foldopen00210" data-start="{" data-end="}">
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga7f322dd118043b79dcae4dd33dea8a6e">  210</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga7f322dd118043b79dcae4dd33dea8a6e">pch_devib_prepare_write_data</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">void</span> *srcaddr, uint16_t n, proto_chop_flags_t flags) {</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        assert(devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED);</div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(devib, n);</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        devib-&gt;op = PROTO_CHOP_DATA | flags;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        devib-&gt;addr = (uint32_t)srcaddr;</div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>}</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span><span class="preprocessor">#define PCH_DEVIB_LIST_INIT() ((pch_devib_list_t){ -1, -1 })</span></div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span> </div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_devib_list_init(pch_devib_list_t *l) {</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        l-&gt;head = -1;</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>        l-&gt;tail = -1;</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>}</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span> </div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span><span class="comment">// Callback registration API</span></div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span></div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gae93c2f5db6e43fc8d32fb23c26130a84">  234</a></span><span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#gae93c2f5db6e43fc8d32fb23c26130a84">pch_register_devib_callback</a>(<a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> n, <a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cbfunc, <span class="keywordtype">void</span> *cbctx);</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span></div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span><a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> <a class="code hl_function" href="group__picochan__cu.html#ga76d4bc8e62c08b204f7d207c1f9d5826">pch_register_unused_devib_callback</a>(<a class="code hl_typedef" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cbfunc, <span class="keywordtype">void</span> *cbctx);</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="keywordtype">void</span> pch_default_devib_callback(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_devib_call_callback(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>        <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> cbindex = devib-&gt;cbindex;</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span>        assert(pch_cbindex_is_callable(cbindex));</div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span> </div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        <span class="keywordflow">if</span> (cbindex == PCH_DEVIB_CALLBACK_NOOP)</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>                <span class="keywordflow">return</span>;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span> </div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>        pch_devib_callbacks[cbindex].func(devib);</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>}</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span></div>
+<div class="foldopen" id="foldopen00264" data-start="{" data-end="}">
+<div class="line"><a id="l00264" name="l00264"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gadd401e37dd9bfa4b6710e844460453a7">  264</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> *<a class="code hl_function" href="group__picochan__cu.html#gadd401e37dd9bfa4b6710e844460453a7">pch_devib_callback_context</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>        <span class="keywordflow">return</span> pch_devib_callbacks[devib-&gt;cbindex].context;</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>}</div>
 </div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span></div>
-<div class="foldopen" id="foldopen00233" data-start="{" data-end="}">
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6">  233</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6">pch_devib_prepare_write_zeroes</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint16_t n, proto_chop_flags_t flags) {</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>        assert(devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED);</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>        <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(devib, n);</div>
-<div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span>        <span class="comment">// hard-code the ResponseRequired flag for now</span></div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>        devib-&gt;op = PROTO_CHOP_DATA | PROTO_CHOP_FLAG_SKIP | flags;</div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>}</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span> </div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span><span class="comment">// Low-level API for dev implementation updating devib</span></div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span></div>
+<div class="foldopen" id="foldopen00281" data-start="{" data-end="}">
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">  281</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">pch_devib_prepare_callback</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <a class="code hl_typedef" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> cbindex) {</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span>        assert(pch_cbindex_is_callable(cbindex));</div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span>        devib-&gt;cbindex = cbindex;</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>}</div>
 </div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span></div>
-<div class="foldopen" id="foldopen00253" data-start="{" data-end="}">
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930">  253</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930">pch_devib_prepare_read_data</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">void</span> *dstaddr, uint16_t size) {</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        assert(devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED);</div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(devib, size);</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>        devib-&gt;op = PROTO_CHOP_REQUEST_READ;</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>        devib-&gt;flags |= PCH_DEVIB_FLAG_RX_DATA_REQUIRED;</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>        devib-&gt;addr = (uint32_t)dstaddr;</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span>}</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span></div>
+<div class="foldopen" id="foldopen00296" data-start="{" data-end="}">
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">  296</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint16_t count) {</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>        devib-&gt;payload = proto_make_count_payload(count);</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>}</div>
 </div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span></div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga9beeb816e81331c2e0032111670f7348">pch_devib_prepare_update_status</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint8_t devs, <span class="keywordtype">void</span> *dstaddr, uint16_t size);</div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span> </div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span><span class="keywordtype">void</span> pch_devib_send_or_queue_command(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span></div>
+<div class="foldopen" id="foldopen00314" data-start="{" data-end="}">
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga7f322dd118043b79dcae4dd33dea8a6e">  314</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga7f322dd118043b79dcae4dd33dea8a6e">pch_devib_prepare_write_data</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">void</span> *srcaddr, uint16_t n, proto_chop_flags_t flags) {</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        assert(devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED);</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>        <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(devib, n);</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>        devib-&gt;op = PROTO_CHOP_DATA | flags;</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span>        devib-&gt;addr = (uint32_t)srcaddr;</div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>}</div>
+</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span></div>
+<div class="foldopen" id="foldopen00337" data-start="{" data-end="}">
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6">  337</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6">pch_devib_prepare_write_zeroes</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint16_t n, proto_chop_flags_t flags) {</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>        assert(devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED);</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span>        <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(devib, n);</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>        <span class="comment">// hard-code the ResponseRequired flag for now</span></div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>        devib-&gt;op = PROTO_CHOP_DATA | PROTO_CHOP_FLAG_SKIP | flags;</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span>}</div>
+</div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span></div>
+<div class="foldopen" id="foldopen00357" data-start="{" data-end="}">
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno"><a class="line" href="group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930">  357</a></span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930">pch_devib_prepare_read_data</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <span class="keywordtype">void</span> *dstaddr, uint16_t size) {</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>        assert(devib-&gt;flags &amp; PCH_DEVIB_FLAG_STARTED);</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>        <a class="code hl_function" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a>(devib, size);</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>        devib-&gt;op = PROTO_CHOP_REQUEST_READ;</div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>        devib-&gt;addr = (uint32_t)dstaddr;</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>}</div>
+</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span></div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span><span class="keywordtype">void</span> <a class="code hl_function" href="group__picochan__cu.html#ga9beeb816e81331c2e0032111670f7348">pch_devib_prepare_update_status</a>(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint8_t devs, <span class="keywordtype">void</span> *dstaddr, uint16_t size);</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span> </div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span><span class="keywordtype">void</span> pch_devib_send_or_queue_command(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="adev__sense_8h_html"><div class="ttname"><a href="dev__sense_8h.html">dev_sense.h</a></div><div class="ttdoc">Device sense.</div></div>
 <div class="ttc" id="adev__status_8h_html"><div class="ttname"><a href="dev__status_8h.html">dev_status.h</a></div><div class="ttdoc">Device status bit values.</div></div>
 <div class="ttc" id="agroup__picochan__base_html_ga7c762e6d91ddd3a8c187ba2bbca3baf2"><div class="ttname"><a href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a></div><div class="ttdeci">struct pch_dev_sense pch_dev_sense_t</div><div class="ttdoc">The device sense structure by which a device can communicate additional error information on request ...</div></div>
 <div class="ttc" id="agroup__picochan__base_html_gab7ab0df86c352a560a2376290862a2ee"><div class="ttname"><a href="group__picochan__base.html#gab7ab0df86c352a560a2376290862a2ee">pch_unit_addr_t</a></div><div class="ttdeci">uint8_t pch_unit_addr_t</div><div class="ttdoc">a unit address that identifies a device on a given CU on the control unit side.</div><div class="ttdef"><b>Definition</b> ids.h:34</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga03805add6a5b0eaef16f9cc7b8669cc6"><div class="ttname"><a href="group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6">pch_devib_prepare_write_zeroes</a></div><div class="ttdeci">static void pch_devib_prepare_write_zeroes(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags)</div><div class="ttdoc">Low-level API to prepare a Data channel operation command for a device that will implicitly send zero...</div><div class="ttdef"><b>Definition</b> devib.h:233</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga1b059c3052f1b92e4881178f94b69930"><div class="ttname"><a href="group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930">pch_devib_prepare_read_data</a></div><div class="ttdeci">static void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr, uint16_t size)</div><div class="ttdoc">Low-level API to prepare a RequestRead channel operation command for a device.</div><div class="ttdef"><b>Definition</b> devib.h:253</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga3ddc35aaef2f2adea854c65b93a49eb8"><div class="ttname"><a href="group__picochan__cu.html#ga3ddc35aaef2f2adea854c65b93a49eb8">pch_register_devib_callback</a></div><div class="ttdeci">void pch_register_devib_callback(pch_cbindex_t n, pch_devib_callback_t cb)</div><div class="ttdoc">Registers a device callback function at a specific index.</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga659cf5aa8d7ec04d7a6f4dcdda887a35"><div class="ttname"><a href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">pch_devib_prepare_callback</a></div><div class="ttdeci">static void pch_devib_prepare_callback(pch_devib_t *devib, pch_cbindex_t cbindex)</div><div class="ttdoc">Low-level API to update devib-&gt;cbindex.</div><div class="ttdef"><b>Definition</b> devib.h:177</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga03805add6a5b0eaef16f9cc7b8669cc6"><div class="ttname"><a href="group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6">pch_devib_prepare_write_zeroes</a></div><div class="ttdeci">static void pch_devib_prepare_write_zeroes(pch_devib_t *devib, uint16_t n, proto_chop_flags_t flags)</div><div class="ttdoc">Low-level API to prepare a Data channel operation command for a device that will implicitly send zero...</div><div class="ttdef"><b>Definition</b> devib.h:337</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga1b059c3052f1b92e4881178f94b69930"><div class="ttname"><a href="group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930">pch_devib_prepare_read_data</a></div><div class="ttdeci">static void pch_devib_prepare_read_data(pch_devib_t *devib, void *dstaddr, uint16_t size)</div><div class="ttdoc">Low-level API to prepare a RequestRead channel operation command for a device.</div><div class="ttdef"><b>Definition</b> devib.h:357</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga62acc090fff8859409699a37f045acf4"><div class="ttname"><a href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4">pch_devib_callback_info_t</a></div><div class="ttdeci">struct pch_devib_callback_info pch_devib_callback_info_t</div><div class="ttdoc">pch_devib_callback_info_t is a struct the CU uses for device callback. It holds a function to call (a...</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga659cf5aa8d7ec04d7a6f4dcdda887a35"><div class="ttname"><a href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">pch_devib_prepare_callback</a></div><div class="ttdeci">static void pch_devib_prepare_callback(pch_devib_t *devib, pch_cbindex_t cbindex)</div><div class="ttdoc">Low-level API to update devib-&gt;cbindex.</div><div class="ttdef"><b>Definition</b> devib.h:281</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_ga6924049f57a02761af083fa5498bc092"><div class="ttname"><a href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a></div><div class="ttdeci">uint8_t pch_cbindex_t</div><div class="ttdoc">An 8-bit index into an array of callbacks that the CU can make to a devicepch_cbindex_t is an 8-bit i...</div><div class="ttdef"><b>Definition</b> devib.h:27</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga70efb52d8b560c38dff57960ae653d9b"><div class="ttname"><a href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a></div><div class="ttdeci">void(* pch_devib_callback_t)(pch_devib_t *devib)</div><div class="ttdoc">pch_devib_callback_t is a function for the CU to callback a device</div><div class="ttdef"><b>Definition</b> devib.h:126</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga7f322dd118043b79dcae4dd33dea8a6e"><div class="ttname"><a href="group__picochan__cu.html#ga7f322dd118043b79dcae4dd33dea8a6e">pch_devib_prepare_write_data</a></div><div class="ttdeci">static void pch_devib_prepare_write_data(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags)</div><div class="ttdoc">Low-level API to prepare a Data channel operation command for a device.</div><div class="ttdef"><b>Definition</b> devib.h:210</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga70efb52d8b560c38dff57960ae653d9b"><div class="ttname"><a href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a></div><div class="ttdeci">void(* pch_devib_callback_t)(pch_devib_t *devib)</div><div class="ttdoc">pch_devib_callback_t is a function for the CU to callback a device</div><div class="ttdef"><b>Definition</b> devib.h:181</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga76d4bc8e62c08b204f7d207c1f9d5826"><div class="ttname"><a href="group__picochan__cu.html#ga76d4bc8e62c08b204f7d207c1f9d5826">pch_register_unused_devib_callback</a></div><div class="ttdeci">pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cbfunc, void *cbctx)</div><div class="ttdoc">Registers a device callback function at an unused index.</div><div class="ttdef"><b>Definition</b> callback.c:31</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga7f322dd118043b79dcae4dd33dea8a6e"><div class="ttname"><a href="group__picochan__cu.html#ga7f322dd118043b79dcae4dd33dea8a6e">pch_devib_prepare_write_data</a></div><div class="ttdeci">static void pch_devib_prepare_write_data(pch_devib_t *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags)</div><div class="ttdoc">Low-level API to prepare a Data channel operation command for a device.</div><div class="ttdef"><b>Definition</b> devib.h:314</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_ga804c2468b9a775d3f5c26e6375a2279a"><div class="ttname"><a href="group__picochan__cu.html#ga804c2468b9a775d3f5c26e6375a2279a">MAX_DEVIB_CALLBACKS</a></div><div class="ttdeci">#define MAX_DEVIB_CALLBACKS</div><div class="ttdoc">The maximum number of registered callbacks.</div><div class="ttdef"><b>Definition</b> devib.h:37</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_ga9beeb816e81331c2e0032111670f7348"><div class="ttname"><a href="group__picochan__cu.html#ga9beeb816e81331c2e0032111670f7348">pch_devib_prepare_update_status</a></div><div class="ttdeci">void pch_devib_prepare_update_status(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size)</div><div class="ttdoc">Low-level API to prepare an UpdateStatus channel operation command for a device.</div><div class="ttdef"><b>Definition</b> dev_api.c:44</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_ga9beeb816e81331c2e0032111670f7348"><div class="ttname"><a href="group__picochan__cu.html#ga9beeb816e81331c2e0032111670f7348">pch_devib_prepare_update_status</a></div><div class="ttdeci">void pch_devib_prepare_update_status(pch_devib_t *devib, uint8_t devs, void *dstaddr, uint16_t size)</div><div class="ttdoc">Low-level API to prepare an UpdateStatus channel operation command for a device.</div><div class="ttdef"><b>Definition</b> dev_api.c:23</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_gac3d768c94fb42cb196655b81f30cf3d4"><div class="ttname"><a href="group__picochan__cu.html#gac3d768c94fb42cb196655b81f30cf3d4">NUM_DEVIB_CALLBACKS</a></div><div class="ttdeci">#define NUM_DEVIB_CALLBACKS</div><div class="ttdoc">The size of the global callbacks array.</div><div class="ttdef"><b>Definition</b> devib.h:46</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_gac778dd8d87870a413bb9f712784d10b9"><div class="ttname"><a href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a></div><div class="ttdeci">static void pch_devib_prepare_count(pch_devib_t *devib, uint16_t count)</div><div class="ttdoc">Low-level API to update devib-&gt;payload with a count field.</div><div class="ttdef"><b>Definition</b> devib.h:192</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_gac778dd8d87870a413bb9f712784d10b9"><div class="ttname"><a href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a></div><div class="ttdeci">static void pch_devib_prepare_count(pch_devib_t *devib, uint16_t count)</div><div class="ttdoc">Low-level API to update devib-&gt;payload with a count field.</div><div class="ttdef"><b>Definition</b> devib.h:296</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_gad255fd60b677de465d03fa6505775044"><div class="ttname"><a href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a></div><div class="ttdeci">struct pch_cu pch_cu_t</div><div class="ttdoc">pch_cu_t is a Control Unit (CU)</div></div>
-<div class="ttc" id="agroup__picochan__cu_html_gade93f39153a74a00a13a0080d994c080"><div class="ttname"><a href="group__picochan__cu.html#gade93f39153a74a00a13a0080d994c080">pch_register_unused_devib_callback</a></div><div class="ttdeci">pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb)</div><div class="ttdoc">Registers a device callback function at an unused index.</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_gadd401e37dd9bfa4b6710e844460453a7"><div class="ttname"><a href="group__picochan__cu.html#gadd401e37dd9bfa4b6710e844460453a7">pch_devib_callback_context</a></div><div class="ttdeci">static void * pch_devib_callback_context(pch_devib_t *devib)</div><div class="ttdoc">Fetches the context pointer associated with the current callback index of the devib when the callback...</div><div class="ttdef"><b>Definition</b> devib.h:264</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_gae778375f43278246f52713c263113a2a"><div class="ttname"><a href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a></div><div class="ttdeci">struct pch_devib pch_devib_t</div><div class="ttdoc">pch_devib_t represents a device on a CU</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_gae93c2f5db6e43fc8d32fb23c26130a84"><div class="ttname"><a href="group__picochan__cu.html#gae93c2f5db6e43fc8d32fb23c26130a84">pch_register_devib_callback</a></div><div class="ttdeci">void pch_register_devib_callback(pch_cbindex_t n, pch_devib_callback_t cbfunc, void *cbctx)</div><div class="ttdoc">Registers a device callback function and associated context pointer at a specific index.</div></div>
 <div class="ttc" id="aids_8h_html"><div class="ttname"><a href="ids_8h.html">ids.h</a></div></div>
-<div class="ttc" id="astructpch__cu_html"><div class="ttname"><a href="structpch__cu.html">pch_cu</a></div><div class="ttdoc">pch_cu_t is a Control Unit (CU)</div><div class="ttdef"><b>Definition</b> cu.h:92</div></div>
+<div class="ttc" id="astructpch__cu_html"><div class="ttname"><a href="structpch__cu.html">pch_cu</a></div><div class="ttdoc">pch_cu_t is a Control Unit (CU)</div><div class="ttdef"><b>Definition</b> cu.h:94</div></div>
+<div class="ttc" id="astructpch__devib__callback__info_html"><div class="ttname"><a href="structpch__devib__callback__info.html">pch_devib_callback_info</a></div><div class="ttdoc">pch_devib_callback_info_t is a struct the CU uses for device callback. It holds a function to call (a...</div><div class="ttdef"><b>Definition</b> devib.h:188</div></div>
+<div class="ttc" id="astructpch__devib__list_html"><div class="ttname"><a href="structpch__devib__list.html">pch_devib_list</a></div><div class="ttdef"><b>Definition</b> devib.h:213</div></div>
 <div class="ttc" id="astructpch__devib_html"><div class="ttname"><a href="structpch__devib.html">pch_devib</a></div><div class="ttdoc">pch_devib_t represents a device on a CU</div><div class="ttdef"><b>Definition</b> devib.h:68</div></div>
+<div class="ttc" id="astructpch__devib_html_aa8306bbe5e01c209af961e8ba6cace62"><div class="ttname"><a href="structpch__devib.html#aa8306bbe5e01c209af961e8ba6cace62">pch_devib::next</a></div><div class="ttdeci">pch_unit_addr_t next</div><div class="ttdoc">next in list cu-&gt;tx_head or cu-&gt;cb_head (flags distinguishes)</div><div class="ttdef"><b>Definition</b> devib.h:70</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

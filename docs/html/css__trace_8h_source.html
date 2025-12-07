@@ -120,50 +120,63 @@ $(function(){initNavTree('css__trace_8h_source.html','',''); });
 <div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__word__sid__byte.html">pch_trdata_word_sid_byte</a>){word, get_sid(schib), <span class="keywordtype">byte</span>}));</div>
 <div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>}</div>
 <div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_packet(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> p) {</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_packet(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> p, uint16_t seqnum) {</div>
 <div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__word__sid.html">pch_trdata_word_sid</a>){proto_packet_as_word(p), get_sid(schib)}));</div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>}</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_ccw(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="group__picochan__base.html#ga0182de6d6c4649114059eb89a140ad6a">pch_ccw_t</a> *ccw_addr, <a class="code hl_typedef" href="group__picochan__base.html#ga0182de6d6c4649114059eb89a140ad6a">pch_ccw_t</a> ccw) {</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__ccw__addr__sid.html">pch_trdata_ccw_addr_sid</a>){</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>                        .ccw = ccw,</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>                        .addr = (uint32_t)ccw_addr,</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>                        .sid = get_sid(schib)</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                }));</div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_callback(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="intcode_8h.html#a842ba171eeebce9d1277c4d801753759">pch_intcode_t</a> *ic) {</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__intcode__scsw.html">pch_trdata_intcode_scsw</a>){</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>                        .intcode = *ic,</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>                        .scsw = schib-&gt;scsw,</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>                }));</div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>}</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_scsw_cc(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="scsw_8h.html#ad6e95e2ce5ec537f79eda577b03cae8b">pch_scsw_t</a> *scsw, uint8_t cc) {</div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__scsw__sid__cc.html">pch_trdata_scsw_sid_cc</a>){</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span>                        .scsw = *scsw,</div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>                        .sid = get_sid(schib),</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                        .cc = cc</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                }));</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>}</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_chp_irq(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__internal__css.html#ga518b79be5ed7747d123c2aea76f01922">pch_chp_t</a> *chp, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        PCH_CSS_TRACE_COND(rt,</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>                chp-&gt;traced, ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__id__irq.html">pch_trdata_id_irq</a>){</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>                        .id = pch_get_chpid(chp),</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>                        .dmairqix = dmairqix,</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>                        .tx_state = tx_irq_state &lt;&lt; 4</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                                | chp-&gt;tx_channel.mem_src_state,</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                        .rx_state = rx_irq_state &lt;&lt; 4</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                                | chp-&gt;rx_channel.mem_dst_state</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                }));</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>}</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__packet__sid.html">pch_trdata_packet_sid</a>){</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>                        .packet = proto_packet_as_word(p),</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>                        .sid = get_sid(schib),</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>                        .seqnum = seqnum</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>                }));</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_ccw(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="group__picochan__base.html#ga0182de6d6c4649114059eb89a140ad6a">pch_ccw_t</a> *ccw_addr, <a class="code hl_typedef" href="group__picochan__base.html#ga0182de6d6c4649114059eb89a140ad6a">pch_ccw_t</a> ccw) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__ccw__addr__sid.html">pch_trdata_ccw_addr_sid</a>){</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>                        .ccw = ccw,</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>                        .addr = (uint32_t)ccw_addr,</div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>                        .sid = get_sid(schib)</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>                }));</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>}</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span> </div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_callback(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="intcode_8h.html#a842ba171eeebce9d1277c4d801753759">pch_intcode_t</a> *ic) {</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__intcode__scsw.html">pch_trdata_intcode_scsw</a>){</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>                        .intcode = *ic,</div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>                        .scsw = schib-&gt;scsw,</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>                }));</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>}</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_schib_scsw_cc(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a> *schib, <a class="code hl_typedef" href="scsw_8h.html#ad6e95e2ce5ec537f79eda577b03cae8b">pch_scsw_t</a> *scsw, uint8_t cc) {</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        PCH_CSS_TRACE_COND(rt, schib_is_traced(schib),</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>                ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__scsw__sid__cc.html">pch_trdata_scsw_sid_cc</a>){</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>                        .scsw = *scsw,</div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>                        .sid = get_sid(schib),</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span>                        .cc = cc</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>                }));</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>}</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_chp_irq(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__internal__css.html#ga518b79be5ed7747d123c2aea76f01922">pch_chp_t</a> *chp, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        PCH_CSS_TRACE_COND(rt,</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>                pch_chp_is_traced_irq(chp), ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__id__irq.html">pch_trdata_id_irq</a>){</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>                        .id = pch_get_chpid(chp),</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>                        .dmairqix = dmairqix,</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>                        .tx_state = tx_irq_state &lt;&lt; 4</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>                                | chp-&gt;tx_channel.mem_src_state,</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>                        .rx_state = rx_irq_state &lt;&lt; 4</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                                | chp-&gt;rx_channel.mem_dst_state</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>                }));</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>}</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span> </div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> trace_chp_irq_progress(pch_trc_record_type_t rt, <a class="code hl_typedef" href="group__internal__css.html#ga518b79be5ed7747d123c2aea76f01922">pch_chp_t</a> *chp, <span class="keywordtype">bool</span> rxcomplete, <span class="keywordtype">bool</span> txcomplete, <span class="keywordtype">bool</span> progress) {</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>        PCH_CSS_TRACE_COND(rt,</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                pch_chp_is_traced_irq(chp), ((<span class="keyword">struct</span> <a class="code hl_struct" href="structpch__trdata__id__byte.html">pch_trdata_id_byte</a>){</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>                        .id = pch_get_chpid(chp),</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>                        .byte = ((uint8_t)rxcomplete &lt;&lt; 2)</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>                                | ((uint8_t)txcomplete &lt;&lt; 1)</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>                                | (uint8_t)progress</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>                }));</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>}</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="acss__internal_8h_html"><div class="ttname"><a href="css__internal_8h.html">css_internal.h</a></div></div>
 <div class="ttc" id="agroup__internal__css_html_ga518b79be5ed7747d123c2aea76f01922"><div class="ttname"><a href="group__internal__css.html#ga518b79be5ed7747d123c2aea76f01922">pch_chp_t</a></div><div class="ttdeci">struct pch_chp pch_chp_t</div><div class="ttdoc">pch_chp_t is the CSS-side representation of a channel path to a control unit.</div></div>
 <div class="ttc" id="agroup__internal__proto_html_ga5df73c893a490a12597d177b842ee582"><div class="ttname"><a href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a></div><div class="ttdeci">struct proto_packet proto_packet_t</div><div class="ttdoc">a 4-byte command packet sent on a channel between CSS and CU or vice versa</div></div>
@@ -172,13 +185,14 @@ $(function(){initNavTree('css__trace_8h_source.html','',''); });
 <div class="ttc" id="agroup__picochan__base_html_ga3b35c1d1ecbdbb04f997457dc8b28506"><div class="ttname"><a href="group__picochan__base.html#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a></div><div class="ttdeci">struct pch_schib pch_schib_t</div><div class="ttdoc">pch_schib_t is the Subchannel Information Block (SCHIB)</div></div>
 <div class="ttc" id="aintcode_8h_html_a842ba171eeebce9d1277c4d801753759"><div class="ttname"><a href="intcode_8h.html#a842ba171eeebce9d1277c4d801753759">pch_intcode_t</a></div><div class="ttdeci">struct pch_intcode pch_intcode_t</div></div>
 <div class="ttc" id="ascsw_8h_html_ad6e95e2ce5ec537f79eda577b03cae8b"><div class="ttname"><a href="scsw_8h.html#ad6e95e2ce5ec537f79eda577b03cae8b">pch_scsw_t</a></div><div class="ttdeci">struct pch_scsw pch_scsw_t</div></div>
-<div class="ttc" id="astructpch__trdata__ccw__addr__sid_html"><div class="ttname"><a href="structpch__trdata__ccw__addr__sid.html">pch_trdata_ccw_addr_sid</a></div><div class="ttdef"><b>Definition</b> trc_records.h:81</div></div>
+<div class="ttc" id="astructpch__trdata__ccw__addr__sid_html"><div class="ttname"><a href="structpch__trdata__ccw__addr__sid.html">pch_trdata_ccw_addr_sid</a></div><div class="ttdef"><b>Definition</b> trc_records.h:107</div></div>
+<div class="ttc" id="astructpch__trdata__id__byte_html"><div class="ttname"><a href="structpch__trdata__id__byte.html">pch_trdata_id_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:20</div></div>
 <div class="ttc" id="astructpch__trdata__id__irq_html"><div class="ttname"><a href="structpch__trdata__id__irq.html">pch_trdata_id_irq</a></div><div class="ttdef"><b>Definition</b> trc_records.h:36</div></div>
-<div class="ttc" id="astructpch__trdata__intcode__scsw_html"><div class="ttname"><a href="structpch__trdata__intcode__scsw.html">pch_trdata_intcode_scsw</a></div><div class="ttdef"><b>Definition</b> trc_records.h:87</div></div>
-<div class="ttc" id="astructpch__trdata__scsw__sid__cc_html"><div class="ttname"><a href="structpch__trdata__scsw__sid__cc.html">pch_trdata_scsw_sid_cc</a></div><div class="ttdef"><b>Definition</b> trc_records.h:92</div></div>
-<div class="ttc" id="astructpch__trdata__sid__byte_html"><div class="ttname"><a href="structpch__trdata__sid__byte.html">pch_trdata_sid_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:76</div></div>
-<div class="ttc" id="astructpch__trdata__word__sid__byte_html"><div class="ttname"><a href="structpch__trdata__word__sid__byte.html">pch_trdata_word_sid_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:60</div></div>
-<div class="ttc" id="astructpch__trdata__word__sid_html"><div class="ttname"><a href="structpch__trdata__word__sid.html">pch_trdata_word_sid</a></div><div class="ttdef"><b>Definition</b> trc_records.h:71</div></div>
+<div class="ttc" id="astructpch__trdata__intcode__scsw_html"><div class="ttname"><a href="structpch__trdata__intcode__scsw.html">pch_trdata_intcode_scsw</a></div><div class="ttdef"><b>Definition</b> trc_records.h:113</div></div>
+<div class="ttc" id="astructpch__trdata__packet__sid_html"><div class="ttname"><a href="structpch__trdata__packet__sid.html">pch_trdata_packet_sid</a></div><div class="ttdef"><b>Definition</b> trc_records.h:96</div></div>
+<div class="ttc" id="astructpch__trdata__scsw__sid__cc_html"><div class="ttname"><a href="structpch__trdata__scsw__sid__cc.html">pch_trdata_scsw_sid_cc</a></div><div class="ttdef"><b>Definition</b> trc_records.h:118</div></div>
+<div class="ttc" id="astructpch__trdata__sid__byte_html"><div class="ttname"><a href="structpch__trdata__sid__byte.html">pch_trdata_sid_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:102</div></div>
+<div class="ttc" id="astructpch__trdata__word__sid__byte_html"><div class="ttname"><a href="structpch__trdata__word__sid__byte.html">pch_trdata_word_sid_byte</a></div><div class="ttdef"><b>Definition</b> trc_records.h:80</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

@@ -108,6 +108,9 @@ $(function(){initNavTree('devib_8h.html','',''); });
 Data Structures</h2></td></tr>
 <tr class="memitem:pch_5Fdevib" id="r_pch_5Fdevib"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpch__devib.html">pch_devib</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a" title="pch_devib_t represents a device on a CU">pch_devib_t</a> represents a device on a CU  <a href="structpch__devib.html#details">More...</a><br /></td></tr>
+<tr class="memitem:pch_5Fdevib_5Fcallback_5Finfo" id="r_pch_5Fdevib_5Fcallback_5Finfo"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpch__devib__callback__info.html">pch_devib_callback_info</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4" title="pch_devib_callback_info_t is a struct the CU uses for device callback. It holds a function to call (a...">pch_devib_callback_info_t</a> is a struct the CU uses for device callback. It holds a function to call (a <a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b" title="pch_devib_callback_t is a function for the CU to callback a device">pch_devib_callback_t</a>) and a void *context field.  <a href="structpch__devib__callback__info.html#details">More...</a><br /></td></tr>
+<tr class="memitem:pch_5Fdevib_5Flist" id="r_pch_5Fdevib_5Flist"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structpch__devib__list.html">pch_devib_list</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
@@ -125,14 +128,17 @@ Macros</h2></td></tr>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_STARTED</b>&#160;&#160;&#160;0x80</td></tr>
 <tr class="memitem:a83e1bf8445a2e0ff661835e1d738c496" id="r_a83e1bf8445a2e0ff661835e1d738c496"><td class="memItemLeft" align="right" valign="top"><a id="a83e1bf8445a2e0ff661835e1d738c496" name="a83e1bf8445a2e0ff661835e1d738c496"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_CMD_WRITE</b>&#160;&#160;&#160;0x40</td></tr>
-<tr class="memitem:a2b737effd77b42781a77e3eab786ab29" id="r_a2b737effd77b42781a77e3eab786ab29"><td class="memItemLeft" align="right" valign="top"><a id="a2b737effd77b42781a77e3eab786ab29" name="a2b737effd77b42781a77e3eab786ab29"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_RX_DATA_REQUIRED</b>&#160;&#160;&#160;0x20</td></tr>
-<tr class="memitem:aa443576e98b20f0956e4d087ac9c635d" id="r_aa443576e98b20f0956e4d087ac9c635d"><td class="memItemLeft" align="right" valign="top"><a id="aa443576e98b20f0956e4d087ac9c635d" name="aa443576e98b20f0956e4d087ac9c635d"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_TX_CALLBACK</b>&#160;&#160;&#160;0x10</td></tr>
+<tr class="memitem:a6b17217df75c4b60c0c8717f280e2f76" id="r_a6b17217df75c4b60c0c8717f280e2f76"><td class="memItemLeft" align="right" valign="top"><a id="a6b17217df75c4b60c0c8717f280e2f76" name="a6b17217df75c4b60c0c8717f280e2f76"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_TX_BUSY</b>&#160;&#160;&#160;0x20</td></tr>
+<tr class="memitem:a4cb124aa5030da78ea18cdcf3d8f16fd" id="r_a4cb124aa5030da78ea18cdcf3d8f16fd"><td class="memItemLeft" align="right" valign="top"><a id="a4cb124aa5030da78ea18cdcf3d8f16fd" name="a4cb124aa5030da78ea18cdcf3d8f16fd"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_CALLBACK_PENDING</b>&#160;&#160;&#160;0x10</td></tr>
 <tr class="memitem:a478022a7e7f6b99e5872e7ec273e1722" id="r_a478022a7e7f6b99e5872e7ec273e1722"><td class="memItemLeft" align="right" valign="top"><a id="a478022a7e7f6b99e5872e7ec273e1722" name="a478022a7e7f6b99e5872e7ec273e1722"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_TRACED</b>&#160;&#160;&#160;0x08</td></tr>
 <tr class="memitem:a7fd582092d9bfee613575839606c59a9" id="r_a7fd582092d9bfee613575839606c59a9"><td class="memItemLeft" align="right" valign="top"><a id="a7fd582092d9bfee613575839606c59a9" name="a7fd582092d9bfee613575839606c59a9"></a>
 #define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_STOPPING</b>&#160;&#160;&#160;0x04</td></tr>
+<tr class="memitem:a889513865a6ea1ca0c3b0e2ab15c3a7c" id="r_a889513865a6ea1ca0c3b0e2ab15c3a7c"><td class="memItemLeft" align="right" valign="top"><a id="a889513865a6ea1ca0c3b0e2ab15c3a7c" name="a889513865a6ea1ca0c3b0e2ab15c3a7c"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PCH_DEVIB_FLAG_START_PENDING</b>&#160;&#160;&#160;0x02</td></tr>
+<tr class="memitem:a71ad6b2d8177eee2461972b795e36812" id="r_a71ad6b2d8177eee2461972b795e36812"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a71ad6b2d8177eee2461972b795e36812">PCH_DEVIB_LIST_INIT</a>()</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-typedef-members" class="groupheader"><a id="typedef-members" name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -144,27 +150,55 @@ typedef uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>pch_cbinde
 <tr class="memitem:ga70efb52d8b560c38dff57960ae653d9b" id="r_ga70efb52d8b560c38dff57960ae653d9b"><td class="memItemLeft" align="right" valign="top">
 typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_callback_t</b>) (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
 <tr class="memdesc:ga70efb52d8b560c38dff57960ae653d9b"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b" title="pch_devib_callback_t is a function for the CU to callback a device">pch_devib_callback_t</a> is a function for the CU to callback a device <br /></td></tr>
+<tr class="memitem:ga62acc090fff8859409699a37f045acf4" id="r_ga62acc090fff8859409699a37f045acf4"><td class="memItemLeft" align="right" valign="top">
+typedef struct <a class="el" href="structpch__devib__callback__info.html">pch_devib_callback_info</a>&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_callback_info_t</b></td></tr>
+<tr class="memdesc:ga62acc090fff8859409699a37f045acf4"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4" title="pch_devib_callback_info_t is a struct the CU uses for device callback. It holds a function to call (a...">pch_devib_callback_info_t</a> is a struct the CU uses for device callback. It holds a function to call (a <a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b" title="pch_devib_callback_t is a function for the CU to callback a device">pch_devib_callback_t</a>) and a void *context field. <br /></td></tr>
+<tr class="memitem:a9d995e565765aee7c9ff1905987fb27d" id="r_a9d995e565765aee7c9ff1905987fb27d"><td class="memItemLeft" align="right" valign="top"><a id="a9d995e565765aee7c9ff1905987fb27d" name="a9d995e565765aee7c9ff1905987fb27d"></a>
+typedef struct <a class="el" href="structpch__devib__list.html">pch_devib_list</a>&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_list_t</b></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:acea7abd2b00cb67e59e27c0e202b9738" id="r_acea7abd2b00cb67e59e27c0e202b9738"><td class="memItemLeft" align="right" valign="top"><a id="acea7abd2b00cb67e59e27c0e202b9738" name="acea7abd2b00cb67e59e27c0e202b9738"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_started</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:a101ffffb225fde3b5cf420848a8f3c00" id="r_a101ffffb225fde3b5cf420848a8f3c00"><td class="memItemLeft" align="right" valign="top"><a id="a101ffffb225fde3b5cf420848a8f3c00" name="a101ffffb225fde3b5cf420848a8f3c00"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_set_started</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, bool started)</td></tr>
 <tr class="memitem:ae98aba4d23d3bf2312d74279d4a95dd5" id="r_ae98aba4d23d3bf2312d74279d4a95dd5"><td class="memItemLeft" align="right" valign="top"><a id="ae98aba4d23d3bf2312d74279d4a95dd5" name="ae98aba4d23d3bf2312d74279d4a95dd5"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_cmd_write</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:a3da8a45d06e8c6a1416f396a545b60e6" id="r_a3da8a45d06e8c6a1416f396a545b60e6"><td class="memItemLeft" align="right" valign="top"><a id="a3da8a45d06e8c6a1416f396a545b60e6" name="a3da8a45d06e8c6a1416f396a545b60e6"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_tx_busy</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:ac21ff05033b4e8a05de7f348758deb57" id="r_ac21ff05033b4e8a05de7f348758deb57"><td class="memItemLeft" align="right" valign="top"><a id="ac21ff05033b4e8a05de7f348758deb57" name="ac21ff05033b4e8a05de7f348758deb57"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_set_tx_busy</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, bool tx_busy)</td></tr>
+<tr class="memitem:a2c56c156bfa421a92da5c2d1c048c953" id="r_a2c56c156bfa421a92da5c2d1c048c953"><td class="memItemLeft" align="right" valign="top"><a id="a2c56c156bfa421a92da5c2d1c048c953" name="a2c56c156bfa421a92da5c2d1c048c953"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_callback_pending</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:a21324e3085907358c495409f119b9a26" id="r_a21324e3085907358c495409f119b9a26"><td class="memItemLeft" align="right" valign="top"><a id="a21324e3085907358c495409f119b9a26" name="a21324e3085907358c495409f119b9a26"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_set_callback_pending</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, bool callback_pending)</td></tr>
 <tr class="memitem:a2038c976bcae3842f4caf270baa4da04" id="r_a2038c976bcae3842f4caf270baa4da04"><td class="memItemLeft" align="right" valign="top"><a id="a2038c976bcae3842f4caf270baa4da04" name="a2038c976bcae3842f4caf270baa4da04"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_traced</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
 <tr class="memitem:abe1fa0f73bba47a018a104fcf0d145f1" id="r_abe1fa0f73bba47a018a104fcf0d145f1"><td class="memItemLeft" align="right" valign="top"><a id="abe1fa0f73bba47a018a104fcf0d145f1" name="abe1fa0f73bba47a018a104fcf0d145f1"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_set_traced</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, bool trace)</td></tr>
 <tr class="memitem:a053df58509ff1b2fb254c2b4aed4d763" id="r_a053df58509ff1b2fb254c2b4aed4d763"><td class="memItemLeft" align="right" valign="top"><a id="a053df58509ff1b2fb254c2b4aed4d763" name="a053df58509ff1b2fb254c2b4aed4d763"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_stopping</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:a09ddc05a8f26d9b9a624339a4c888bf9" id="r_a09ddc05a8f26d9b9a624339a4c888bf9"><td class="memItemLeft" align="right" valign="top"><a id="a09ddc05a8f26d9b9a624339a4c888bf9" name="a09ddc05a8f26d9b9a624339a4c888bf9"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_is_start_pending</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:a188ce4b3f1f189974ff8c75250654573" id="r_a188ce4b3f1f189974ff8c75250654573"><td class="memItemLeft" align="right" valign="top"><a id="a188ce4b3f1f189974ff8c75250654573" name="a188ce4b3f1f189974ff8c75250654573"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_set_start_pending</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, bool start_pending)</td></tr>
+<tr class="memitem:adc4ef088d9a60c92a4e753bdd6ab71a6" id="r_adc4ef088d9a60c92a4e753bdd6ab71a6"><td class="memItemLeft" align="right" valign="top"><a id="adc4ef088d9a60c92a4e753bdd6ab71a6" name="adc4ef088d9a60c92a4e753bdd6ab71a6"></a>
+static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_cbindex_is_registered</b> (uint cbindex)</td></tr>
 <tr class="memitem:a88c76056506f4f86ded0f5e172cede26" id="r_a88c76056506f4f86ded0f5e172cede26"><td class="memItemLeft" align="right" valign="top"><a id="a88c76056506f4f86ded0f5e172cede26" name="a88c76056506f4f86ded0f5e172cede26"></a>
 static bool&#160;</td><td class="memItemRight" valign="bottom"><b>pch_cbindex_is_callable</b> (uint cbindex)</td></tr>
-<tr class="memitem:ga3ddc35aaef2f2adea854c65b93a49eb8" id="r_ga3ddc35aaef2f2adea854c65b93a49eb8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__picochan__cu.html#ga3ddc35aaef2f2adea854c65b93a49eb8">pch_register_devib_callback</a> (<a class="el" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> n, <a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cb)</td></tr>
-<tr class="memdesc:ga3ddc35aaef2f2adea854c65b93a49eb8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a device callback function at a specific index.  <br /></td></tr>
-<tr class="memitem:gade93f39153a74a00a13a0080d994c080" id="r_gade93f39153a74a00a13a0080d994c080"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__picochan__cu.html#gade93f39153a74a00a13a0080d994c080">pch_register_unused_devib_callback</a> (<a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cb)</td></tr>
-<tr class="memdesc:gade93f39153a74a00a13a0080d994c080"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a device callback function at an unused index.  <br /></td></tr>
+<tr class="memitem:a66f7ef662da02e0e90e0840666d9d89f" id="r_a66f7ef662da02e0e90e0840666d9d89f"><td class="memItemLeft" align="right" valign="top"><a id="a66f7ef662da02e0e90e0840666d9d89f" name="a66f7ef662da02e0e90e0840666d9d89f"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_list_init</b> (<a class="el" href="structpch__devib__list.html">pch_devib_list_t</a> *l)</td></tr>
+<tr class="memitem:gae93c2f5db6e43fc8d32fb23c26130a84" id="r_gae93c2f5db6e43fc8d32fb23c26130a84"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__picochan__cu.html#gae93c2f5db6e43fc8d32fb23c26130a84">pch_register_devib_callback</a> (<a class="el" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> n, <a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cbfunc, void *cbctx)</td></tr>
+<tr class="memdesc:gae93c2f5db6e43fc8d32fb23c26130a84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a device callback function and associated context pointer at a specific index.  <br /></td></tr>
+<tr class="memitem:ga76d4bc8e62c08b204f7d207c1f9d5826" id="r_ga76d4bc8e62c08b204f7d207c1f9d5826"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__picochan__cu.html#ga76d4bc8e62c08b204f7d207c1f9d5826">pch_register_unused_devib_callback</a> (<a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a> cbfunc, void *cbctx)</td></tr>
+<tr class="memdesc:ga76d4bc8e62c08b204f7d207c1f9d5826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a device callback function at an unused index.  <br /></td></tr>
 <tr class="memitem:af5e7b2c774bf002263015f4f6c984ee7" id="r_af5e7b2c774bf002263015f4f6c984ee7"><td class="memItemLeft" align="right" valign="top"><a id="af5e7b2c774bf002263015f4f6c984ee7" name="af5e7b2c774bf002263015f4f6c984ee7"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>pch_default_devib_callback</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:a399b627dbc0b512d40b78b9baee51f43" id="r_a399b627dbc0b512d40b78b9baee51f43"><td class="memItemLeft" align="right" valign="top"><a id="a399b627dbc0b512d40b78b9baee51f43" name="a399b627dbc0b512d40b78b9baee51f43"></a>
+static void&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_call_callback</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memitem:gadd401e37dd9bfa4b6710e844460453a7" id="r_gadd401e37dd9bfa4b6710e844460453a7"><td class="memItemLeft" align="right" valign="top">
+static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_callback_context</b> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib)</td></tr>
+<tr class="memdesc:gadd401e37dd9bfa4b6710e844460453a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetches the context pointer associated with the current callback index of the devib when the callback was registered. <br /></td></tr>
 <tr class="memitem:ga659cf5aa8d7ec04d7a6f4dcdda887a35" id="r_ga659cf5aa8d7ec04d7a6f4dcdda887a35"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35">pch_devib_prepare_callback</a> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, <a class="el" href="group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092">pch_cbindex_t</a> cbindex)</td></tr>
 <tr class="memdesc:ga659cf5aa8d7ec04d7a6f4dcdda887a35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Low-level API to update devib-&gt;cbindex.  <br /></td></tr>
 <tr class="memitem:gac778dd8d87870a413bb9f712784d10b9" id="r_gac778dd8d87870a413bb9f712784d10b9"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9">pch_devib_prepare_count</a> (<a class="el" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, uint16_t count)</td></tr>
@@ -182,12 +216,31 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_send_or_que
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-var-members" class="groupheader"><a id="var-members" name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:a77cd606ded3b0f3404eab496b497a8d0" id="r_a77cd606ded3b0f3404eab496b497a8d0"><td class="memItemLeft" align="right" valign="top"><a id="a77cd606ded3b0f3404eab496b497a8d0" name="a77cd606ded3b0f3404eab496b497a8d0"></a>
-<a class="el" href="group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b">pch_devib_callback_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_callbacks</b> []</td></tr>
+<tr class="memitem:acaca74efc11314d286c3bb1a2223cacf" id="r_acaca74efc11314d286c3bb1a2223cacf"><td class="memItemLeft" align="right" valign="top"><a id="acaca74efc11314d286c3bb1a2223cacf" name="acaca74efc11314d286c3bb1a2223cacf"></a>
+<a class="el" href="group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4">pch_devib_callback_info_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_callbacks</b> []</td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>The structures and API for a device on a CU. </p>
-</div></div><!-- contents -->
+</div><a name="doc-define-members" id="doc-define-members"></a><h2 id="header-doc-define-members" class="groupheader">Macro Definition Documentation</h2>
+<a id="a71ad6b2d8177eee2461972b795e36812" name="a71ad6b2d8177eee2461972b795e36812"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71ad6b2d8177eee2461972b795e36812">&#9670;&#160;</a></span>PCH_DEVIB_LIST_INIT</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PCH_DEVIB_LIST_INIT</td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">((pch_devib_list_t){ -1, -1 })</div>
+</div><!-- fragment -->
+</div>
+</div>
+</div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">
 <div id="page-nav-resize-handle"></div>

@@ -155,7 +155,11 @@ $(function(){initNavTree('ccw_8h_source.html','',''); });
 <div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        <span class="keywordflow">return</span> (cmd &amp; 0x01) == 1;</div>
 <div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>}</div>
 <div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span> </div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_is_ccw_cmd_read(uint8_t cmd) {</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>        <span class="keywordflow">return</span> !pch_is_ccw_cmd_write(cmd);</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>}</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span> </div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="agroup__picochan__base_html_ga0182de6d6c4649114059eb89a140ad6a"><div class="ttname"><a href="group__picochan__base.html#ga0182de6d6c4649114059eb89a140ad6a">pch_ccw_t</a></div><div class="ttdeci">struct pch_ccw pch_ccw_t</div><div class="ttdoc">I/O Channel-Command Word (CCW)</div></div>
 <div class="ttc" id="agroup__picochan__base_html_gaaa25ce8bdee8a9e649cf1befedc1ef70"><div class="ttname"><a href="group__picochan__base.html#gaaa25ce8bdee8a9e649cf1befedc1ef70">pch_ccw_flags_t</a></div><div class="ttdeci">uint8_t pch_ccw_flags_t</div><div class="ttdoc">the flags of a CCW</div><div class="ttdef"><b>Definition</b> ccw.h:21</div></div>
 <div class="ttc" id="astructpch__ccw_html"><div class="ttname"><a href="structpch__ccw.html">pch_ccw</a></div><div class="ttdoc">I/O Channel-Command Word (CCW)</div><div class="ttdef"><b>Definition</b> ccw.h:59</div></div>

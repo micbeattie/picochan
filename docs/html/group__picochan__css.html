@@ -132,8 +132,9 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga1932f014cc6ce6cad8ae08518b31653a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts CSS operation after setting the io_callback (if non-NULL), configuring and enabling any needed CSS IRQ handlers that have not yet been set and setting the mask of ISCs that trigger I/O interrupts to be isc_mask.  <br /></td></tr>
 <tr class="memitem:gaedf8e71c06ad7f28503e277dc052d800" id="r_gaedf8e71c06ad7f28503e277dc052d800"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaedf8e71c06ad7f28503e277dc052d800">pch_css_set_trace</a> (bool trace)</td></tr>
 <tr class="memdesc:gaedf8e71c06ad7f28503e277dc052d800"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether CSS tracing is enabled.  <br /></td></tr>
-<tr class="memitem:gaaafebc66ebd6d5ae93ac4862f8df0fff" id="r_gaaafebc66ebd6d5ae93ac4862f8df0fff"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaaafebc66ebd6d5ae93ac4862f8df0fff">pch_chp_set_trace</a> (<a class="el" href="group__picochan__base.html#gad50e88c5418c063d8bb3b66df7ef04ff">pch_chpid_t</a> chpid, bool trace)</td></tr>
-<tr class="memdesc:gaaafebc66ebd6d5ae93ac4862f8df0fff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether CSS tracing is enabled for channel chpid.  <br /></td></tr>
+<tr class="memitem:gab710cce44defd25af46cf69b878061e9" id="r_gab710cce44defd25af46cf69b878061e9"><td class="memItemLeft" align="right" valign="top"><a id="gab710cce44defd25af46cf69b878061e9" name="gab710cce44defd25af46cf69b878061e9"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>pch_chp_set_trace_flags</b> (<a class="el" href="group__picochan__base.html#gad50e88c5418c063d8bb3b66df7ef04ff">pch_chpid_t</a> chpid, uint8_t trace_flags)</td></tr>
+<tr class="memdesc:gab710cce44defd25af46cf69b878061e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets what CSS trace events are enabled for channel chpid. Flags may be a combination of PCH_CHP_TRACED_GENERAL, PCH_CHP_TRACED_LINK, PCH_CHP_TRACED_IRQ. Value PCH_CHP_TRACED_MASK is the set of all valid trace flags. If these flags do not include PCH_CHP_TRACED_GENERAL then no trace records are written for schibs using this channel regardless of any per-schib trace flags. Returns the old set of trace flags. <br /></td></tr>
 <tr class="memitem:ga3f588a511e0125681057591500e154d8" id="r_ga3f588a511e0125681057591500e154d8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga3f588a511e0125681057591500e154d8">pch_chp_start</a> (<a class="el" href="group__picochan__base.html#gad50e88c5418c063d8bb3b66df7ef04ff">pch_chpid_t</a> chpid)</td></tr>
 <tr class="memdesc:ga3f588a511e0125681057591500e154d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts channel chpid connection to its remote CU.  <br /></td></tr>
 <tr class="memitem:gae0cc140a8e4e4ac120081dee3f78ebe5" id="r_gae0cc140a8e4e4ac120081dee3f78ebe5"><td class="memItemLeft" align="right" valign="top"><a id="gae0cc140a8e4e4ac120081dee3f78ebe5" name="gae0cc140a8e4e4ac120081dee3f78ebe5"></a>
@@ -420,30 +421,6 @@ int&#160;</td><td class="memItemRight" valign="bottom"><b>pch_chp_claim_unused</
 
 <p>Fetch the internal tx side of a channel from CSS to CU. </p>
 <p>This function is only needed when configuring a memchan between a CSS and CU on different cores of a single Pico. The CU initialisation procedure uses this function to find its peer CSS structure in order to cross-connect the channels. </p>
-
-</div>
-</div>
-<a id="gaaafebc66ebd6d5ae93ac4862f8df0fff" name="gaaafebc66ebd6d5ae93ac4862f8df0fff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaaafebc66ebd6d5ae93ac4862f8df0fff">&#9670;&#160;</a></span>pch_chp_set_trace()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool pch_chp_set_trace </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__picochan__base.html#gad50e88c5418c063d8bb3b66df7ef04ff">pch_chpid_t</a></td>          <td class="paramname"><span class="paramname"><em>chpid</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool</td>          <td class="paramname"><span class="paramname"><em>trace</em></span>&#160;)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Sets whether CSS tracing is enabled for channel chpid. </p>
-<p>If this flag is not set to be true then no channel trace records are written for this channel and no subchannel trace records, regardless of any per-subchannel trace flags. </p>
 
 </div>
 </div>

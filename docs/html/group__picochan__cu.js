@@ -4,26 +4,30 @@ var group__picochan__cu =
     [ "dev_api.h", "dev__api_8h.html", null ],
     [ "devib.h", "devib_8h.html", null ],
     [ "pch_cu", "structpch__cu.html", [
+      [ "cb_list", "structpch__cu.html#a7739e697275242d2a7633ffdcd846775", null ],
       [ "devibs", "structpch__cu.html#a1314b2edfdbccb80c29f6e9e629c277e", null ],
       [ "dmairqix", "structpch__cu.html#ae18acec3bdd50730308f8f3766a93d23", null ],
       [ "num_devibs", "structpch__cu.html#a7f6201dce07dacce1a4c7278325ce172", null ],
       [ "rx_active", "structpch__cu.html#ace8fb0f25aa7f5a661551f543e861759", null ],
-      [ "tx_callback_ua", "structpch__cu.html#a802d2913290701330ce9b84390725204", null ],
-      [ "tx_head", "structpch__cu.html#a2a5b6366732228e38eb2a3aa90052a92", null ],
-      [ "tx_tail", "structpch__cu.html#a196c71c1fe64deb6b4e9ed4dbb571e70", null ]
+      [ "tx_list", "structpch__cu.html#abdeeca83de981f85799424bb43a85f54", null ]
     ] ],
-    [ "pch_devib", "structpch__devib.html", null ],
+    [ "pch_devib", "structpch__devib.html", [
+      [ "next", "structpch__devib.html#aa8306bbe5e01c209af961e8ba6cace62", null ]
+    ] ],
+    [ "pch_devib_callback_info", "structpch__devib__callback__info.html", null ],
     [ "MAX_DEVIB_CALLBACKS", "group__picochan__cu.html#ga804c2468b9a775d3f5c26e6375a2279a", null ],
     [ "NUM_DEVIB_CALLBACKS", "group__picochan__cu.html#gac3d768c94fb42cb196655b81f30cf3d4", null ],
     [ "PCH_CU_INIT", "group__picochan__cu.html#ga0efd003a16afa7e31235ae596533c9b0", null ],
     [ "PCH_NUM_CUS", "group__picochan__cu.html#gaa877558571f3a5b0234cc54dbfd88bdf", null ],
     [ "pch_cbindex_t", "group__picochan__cu.html#ga6924049f57a02761af083fa5498bc092", null ],
     [ "pch_cu_t", "group__picochan__cu.html#gad255fd60b677de465d03fa6505775044", null ],
+    [ "pch_devib_callback_info_t", "group__picochan__cu.html#ga62acc090fff8859409699a37f045acf4", null ],
     [ "pch_devib_callback_t", "group__picochan__cu.html#ga70efb52d8b560c38dff57960ae653d9b", null ],
     [ "pch_devib_t", "group__picochan__cu.html#gae778375f43278246f52713c263113a2a", null ],
     [ "pch_cu_get_tx_channel", "group__picochan__cu.html#ga98dd293308d9db0561e6ebdd68edaeef", null ],
     [ "pch_cu_init", "group__picochan__cu.html#gad1b76d50296613b3f60ec58c8a17564b", null ],
     [ "pch_cu_register", "group__picochan__cu.html#ga06d9bac1fb2e0470773a747f2e21820d", null ],
+    [ "pch_cu_set_trace_flags", "group__picochan__cu.html#ga701e63cbe1dc8e7017efcc38aad2e3cd", null ],
     [ "pch_cu_start", "group__picochan__cu.html#ga74b09005ab0b15100aff9c8ceb943875", null ],
     [ "pch_cus_init", "group__picochan__cu.html#ga176071963f4c0ee29dd30a34a2241edc", null ],
     [ "pch_cus_memcu_configure", "group__picochan__cu.html#gaca2bd54cbc04af2fac3a3f2114c1f4f5", null ],
@@ -35,6 +39,7 @@ var group__picochan__cu =
     [ "pch_dev_send_then", "group__picochan__cu.html#ga8c56b5359547ca2ab681f3a307f43f5c", null ],
     [ "pch_dev_send_zeroes_then", "group__picochan__cu.html#ga9ffb2aff8b77d1fc87336c986de3c1af", null ],
     [ "pch_dev_set_callback", "group__picochan__cu.html#gac3e9e409735deb678f3aa637929e2308", null ],
+    [ "pch_devib_callback_context", "group__picochan__cu.html#gadd401e37dd9bfa4b6710e844460453a7", null ],
     [ "pch_devib_prepare_callback", "group__picochan__cu.html#ga659cf5aa8d7ec04d7a6f4dcdda887a35", null ],
     [ "pch_devib_prepare_count", "group__picochan__cu.html#gac778dd8d87870a413bb9f712784d10b9", null ],
     [ "pch_devib_prepare_read_data", "group__picochan__cu.html#ga1b059c3052f1b92e4881178f94b69930", null ],
@@ -43,6 +48,6 @@ var group__picochan__cu =
     [ "pch_devib_prepare_write_zeroes", "group__picochan__cu.html#ga03805add6a5b0eaef16f9cc7b8669cc6", null ],
     [ "pch_get_cu", "group__picochan__cu.html#ga442f8f46a9245648dfaa3e9ed252ab22", null ],
     [ "pch_get_devib", "group__picochan__cu.html#ga5469add7f91acb499ed9d0d1a71d8393", null ],
-    [ "pch_register_devib_callback", "group__picochan__cu.html#ga3ddc35aaef2f2adea854c65b93a49eb8", null ],
-    [ "pch_register_unused_devib_callback", "group__picochan__cu.html#gade93f39153a74a00a13a0080d994c080", null ]
+    [ "pch_register_devib_callback", "group__picochan__cu.html#gae93c2f5db6e43fc8d32fb23c26130a84", null ],
+    [ "pch_register_unused_devib_callback", "group__picochan__cu.html#ga76d4bc8e62c08b204f7d207c1f9d5826", null ]
 ];

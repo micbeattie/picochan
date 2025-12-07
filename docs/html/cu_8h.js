@@ -7,6 +7,7 @@ var cu_8h =
     [ "pch_cu_get_tx_channel", "group__picochan__cu.html#ga98dd293308d9db0561e6ebdd68edaeef", null ],
     [ "pch_cu_init", "group__picochan__cu.html#gad1b76d50296613b3f60ec58c8a17564b", null ],
     [ "pch_cu_register", "group__picochan__cu.html#ga06d9bac1fb2e0470773a747f2e21820d", null ],
+    [ "pch_cu_set_trace_flags", "group__picochan__cu.html#ga701e63cbe1dc8e7017efcc38aad2e3cd", null ],
     [ "pch_cu_start", "group__picochan__cu.html#ga74b09005ab0b15100aff9c8ceb943875", null ],
     [ "pch_cus_auto_configure_uartcu", "group__picochan__css.html#gae8d99610900108b3b9ea3cc460784b5c", null ],
     [ "pch_cus_init", "group__picochan__cu.html#ga176071963f4c0ee29dd30a34a2241edc", null ],

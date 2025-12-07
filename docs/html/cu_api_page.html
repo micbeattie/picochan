@@ -130,6 +130,7 @@ Introduction</h2>
 </li>
 </ul>
 <p>Since there are not yet enough code comment Doxygen annotations to divide the generated documentation into topics properly, there follows a summary of the main definitions (e.g. types, macros and API functions) for use by CU-side code. They are described in the Doxygen-generated documentation but some may be in a Topics sub-section, some may be in "Data Structures" and some may be under "Files".</p>
+<p>Although the above covers the low-levels details of what the CU does and how device drivers must behave, there is now a (somewhat) higher level API for implementing device drivers: this is the "hldev" ("high-level device") API documented in topic picochan_hldev. That should typically be the first API to consider when implementing a device driver.</p>
 <h2 class="doxsection"><a class="anchor" id="autotoc_md19"></a>
 Types</h2>
 <div class="fragment"><div class="line">typedef struct pch_cu pch_cu_t;</div>
@@ -155,7 +156,7 @@ Initialisation of whole CU subsystem</h2>
 <div class="line"> </div>
 <div class="line">bool pch_cus_set_trace(bool trace);</div>
 <div class="line"> </div>
-<div class="line">pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_t cb);</div>
+<div class="line">pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_func_t cbfunc, void *cbctx);</div>
 <div class="line"> </div>
 <div class="line">// Optionally configure explicit DMA IRQ index(es) (or leave to auto-configure)</div>
 <div class="line">void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix);</div>

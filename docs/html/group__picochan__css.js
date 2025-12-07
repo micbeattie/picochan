@@ -13,7 +13,7 @@ var group__picochan__css =
     [ "pch_chp_configure_memchan", "group__picochan__css.html#gae4c6bcc8a8da784541ae088dc90a7b43", null ],
     [ "pch_chp_configure_uartchan", "group__picochan__css.html#gaf5e75ab1d05aede4691768fe564a7a6a", null ],
     [ "pch_chp_get_tx_channel", "group__picochan__css.html#ga1ff6be2ad0654c29681d3d0332e57c89", null ],
-    [ "pch_chp_set_trace", "group__picochan__css.html#gaaafebc66ebd6d5ae93ac4862f8df0fff", null ],
+    [ "pch_chp_set_trace_flags", "group__picochan__css.html#gab710cce44defd25af46cf69b878061e9", null ],
     [ "pch_chp_start", "group__picochan__css.html#ga3f588a511e0125681057591500e154d8", null ],
     [ "pch_css_init", "group__picochan__css.html#ga73efa9ddbc2d32f8df54eb2317c7043c", null ],
     [ "pch_css_set_func_irq", "group__picochan__css.html#ga055b98261b6ae445b00ad90de7ca25c0", null ],

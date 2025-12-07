@@ -100,32 +100,57 @@ $(function(){initNavTree('cu__internal_8h_source.html','',''); });
 <div class="line"><a id="l00006" name="l00006"></a><span class="lineno">    6</span><span class="preprocessor">#ifndef _PCH_CUS_CU_INTERNAL_H</span></div>
 <div class="line"><a id="l00007" name="l00007"></a><span class="lineno">    7</span><span class="preprocessor">#define _PCH_CUS_CU_INTERNAL_H</span></div>
 <div class="line"><a id="l00008" name="l00008"></a><span class="lineno">    8</span> </div>
-<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;<a class="code" href="cu_8h.html">picochan/cu.h</a>&quot;</span></div>
-<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="packet_8h.html">proto/packet.h</a>&quot;</span></div>
-<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;devibs_lock.h&quot;</span></div>
-<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span> </div>
-<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span><span class="keyword">static</span> <span class="keyword">inline</span> <a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> get_rx_packet(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu) {</div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span>        <span class="comment">// cu.rx_channel is a dmachan_rx_channel_t which is</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span>        <span class="comment">// __aligned(4) and cmd is the first member of rx_channel</span></div>
-<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span>        <span class="comment">// so is 4-byte aligned. proto_packet_t is 4-bytes and also</span></div>
-<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>        <span class="comment">// __aligned(4) (and needing no more than 4-byte alignment)</span></div>
-<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>        <span class="comment">// but omitting the __builtin_assume_aligned below causes</span></div>
-<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>        <span class="comment">// gcc 14.1.0 to produce error</span></div>
-<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>        <span class="comment">// error: cast increases required alignment of target type</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>        <span class="comment">// [-Werror=cast-align]</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span>        <a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> *pp = (<a class="code hl_typedef" href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a> *)</div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span>                __builtin_assume_aligned(&amp;cu-&gt;rx_channel.link.cmd, 4);</div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>        <span class="keywordflow">return</span> *pp;</div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>}</div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keywordtype">void</span> pch_cus_send_command_to_css(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu);</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span><span class="keywordtype">void</span> pch_cus_handle_rx_complete(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu);</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keywordtype">void</span> pch_cus_handle_tx_complete(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu);</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span> </div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00009" name="l00009"></a><span class="lineno">    9</span><span class="preprocessor">#include &quot;pico/async_context_threadsafe_background.h&quot;</span></div>
+<div class="line"><a id="l00010" name="l00010"></a><span class="lineno">   10</span><span class="preprocessor">#include &quot;<a class="code" href="cu_8h.html">picochan/cu.h</a>&quot;</span></div>
+<div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#include &quot;<a class="code" href="packet_8h.html">proto/packet.h</a>&quot;</span></div>
+<div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#include &quot;devibs_lock.h&quot;</span></div>
+<div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="keyword">extern</span> async_context_t *pch_cus_async_context;</div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span> </div>
+<div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_cu_set_flag_configured(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, <span class="keywordtype">bool</span> b) {</div>
+<div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span>        <span class="keywordflow">if</span> (b)</div>
+<div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span>                cu-&gt;flags |= PCH_CU_CONFIGURED;</div>
+<div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span>                cu-&gt;flags &amp;= ~PCH_CU_CONFIGURED;</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span>}</div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span> </div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_cu_set_flag_started(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, <span class="keywordtype">bool</span> b) {</div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span>        <span class="keywordflow">if</span> (b)</div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span>                cu-&gt;flags |= PCH_CU_STARTED;</div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span>                cu-&gt;flags &amp;= ~PCH_CU_STARTED;</div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>}</div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span> </div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_dev_update_status_proto_error(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        pch_dev_update_status_error(devib, ((<a class="code hl_typedef" href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a>){</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>                .flags = PCH_DEV_SENSE_PROTO_ERROR,</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>                .code = devib-&gt;op,</div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>                .asc = devib-&gt;payload.p0,</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>                .ascq = devib-&gt;payload.p1</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>        }));</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>}</div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span> </div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_cu_schedule_worker(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu) {</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        async_context_set_work_pending(cu-&gt;async_context, &amp;cu-&gt;worker);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_devib_schedule_callback(<a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib) {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        <a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu = pch_dev_get_cu(devib);</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        pch_cu_push_devib(cu, &amp;cu-&gt;cb_list, devib);</div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        pch_cu_schedule_worker(cu);</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>}</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="keywordtype">void</span> pch_cus_async_worker_callback(async_context_t *context, async_when_pending_worker_t *worker);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="keywordtype">void</span> pch_cu_send_pending_tx_command(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, <a class="code hl_typedef" href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib);</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="keywordtype">void</span> pch_cus_handle_rx_complete(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu);</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span><span class="keywordtype">void</span> pch_cus_handle_tx_complete(<a class="code hl_typedef" href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu);</div>
+<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="acu_8h_html"><div class="ttname"><a href="cu_8h.html">cu.h</a></div></div>
-<div class="ttc" id="agroup__internal__proto_html_ga5df73c893a490a12597d177b842ee582"><div class="ttname"><a href="group__internal__proto.html#ga5df73c893a490a12597d177b842ee582">proto_packet_t</a></div><div class="ttdeci">struct proto_packet proto_packet_t</div><div class="ttdoc">a 4-byte command packet sent on a channel between CSS and CU or vice versa</div></div>
+<div class="ttc" id="agroup__picochan__base_html_ga7c762e6d91ddd3a8c187ba2bbca3baf2"><div class="ttname"><a href="group__picochan__base.html#ga7c762e6d91ddd3a8c187ba2bbca3baf2">pch_dev_sense_t</a></div><div class="ttdeci">struct pch_dev_sense pch_dev_sense_t</div><div class="ttdoc">The device sense structure by which a device can communicate additional error information on request ...</div></div>
 <div class="ttc" id="agroup__picochan__cu_html_gad255fd60b677de465d03fa6505775044"><div class="ttname"><a href="group__picochan__cu.html#gad255fd60b677de465d03fa6505775044">pch_cu_t</a></div><div class="ttdeci">struct pch_cu pch_cu_t</div><div class="ttdoc">pch_cu_t is a Control Unit (CU)</div></div>
+<div class="ttc" id="agroup__picochan__cu_html_gae778375f43278246f52713c263113a2a"><div class="ttname"><a href="group__picochan__cu.html#gae778375f43278246f52713c263113a2a">pch_devib_t</a></div><div class="ttdeci">struct pch_devib pch_devib_t</div><div class="ttdoc">pch_devib_t represents a device on a CU</div></div>
 <div class="ttc" id="apacket_8h_html"><div class="ttname"><a href="packet_8h.html">packet.h</a></div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
