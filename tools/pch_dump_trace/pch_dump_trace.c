@@ -80,6 +80,576 @@ void hexdump_trace_record_data(uint rt, unsigned char *data, int data_size) {
         hexdump(data, data_size);
 }
 
+static void print_css_sch_start(uint rt, void *vd) {
+        struct pch_trdata_word_sid_byte *td = vd;
+        printf("start subchannel ");
+        print_sid(td->sid);
+        putchar(' ');
+        print_ccwaddr(td->word);
+        putchar(' ');
+        print_cc(td->byte);
+}
+
+static void print_css_sch_resume(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        print_sch_func(td, "resume");
+}
+
+static void print_css_sch_cancel(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        print_sch_func(td, "cancel");
+}
+
+static void print_css_sch_halt(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        print_sch_func(td, "halt");
+}
+
+static void print_css_sch_test(uint rt, void *vd) {
+        struct pch_trdata_scsw_sid_cc *td = vd;
+        printf("test subchannel ");
+        print_sid(td->sid);
+        putchar(' ');
+        print_cc(td->cc);
+        if (td->cc == 0) {
+                putchar(' ');
+                print_scsw(&td->scsw);
+        }
+}
+
+static void print_css_sch_store(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        printf("store subchannel ");
+        print_sid(td->sid);
+        putchar(' ');
+        print_cc(td->byte);
+}
+
+static void print_css_sch_modify(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        printf("modify subchannel ");
+        print_sid(td->sid);
+        putchar(' ');
+        print_cc(td->byte);
+}
+
+static void print_css_func_irq(uint rt, void *vd) {
+        struct pch_trdata_func_irq *td = vd;
+        printf("CSS Function IRQ raised for CU=%d with pending UA=%d while tx_active=%d",
+                td->chpid, td->ua_opt, td->tx_active);
+}
+
+static void print_css_ccw_fetch(uint rt, void *vd) {
+        struct pch_trdata_ccw_addr_sid *td = vd;
+        printf("CSS CCW fetch for ");
+        print_sid(td->sid);
+        putchar(' ');
+        print_ccwaddr(td->addr);
+        printf(" provides ");
+        print_ccw(td->ccw);
+}
+
+static void print_css_chp_alloc(uint rt, void *vd) {
+        struct pch_trdata_chp_alloc *td = vd;
+        printf("CHPID=%d allocates %d subchannels starting with ",
+                td->chpid, td->num_devices);
+        print_sid(td->first_sid);
+}
+
+static void print_css_chp_tx_dma_init(uint rt, void *vd) {
+        struct pch_trdata_dma_init *td = vd;
+        print_dma_irq_init(td, "CHPID", "tx");
+}
+
+static void print_css_chp_rx_dma_init(uint rt, void *vd) {
+        struct pch_trdata_dma_init *td = vd;
+        print_dma_irq_init(td, "CHPID", "rx");
+}
+
+static void print_configured(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_CONFIGURED);
+        printf("%s=%d is now %s",
+                idtype, td->id, td->byte ? "configured" : "unconfigured");
+}
+
+static void print_traced(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_TRACED);
+        printf("%s=%d is now %s",
+                idtype, td->id, td->byte ? "traced" : "untraced");
+}
+
+static void print_started(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_STARTED);
+        printf("%s=%d is now %s",
+                idtype, td->id, td->byte ? "started" : "stopped");
+}
+
+static void print_irq(uint rt, void *vd) {
+        struct pch_trdata_id_irq *td = vd;
+        const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_IRQ);
+        printf("IRQ for %s=%d with DMA_IRQ_%d tx:irq_state=",
+               idtype, td->id, td->dmairqix);
+        print_dma_irq_state(td->tx_state >> 4);
+        printf(",mem_src_state=");
+        print_mem_src_state(td->tx_state & 0xf);
+        printf(" rx:irq_state=");
+        print_dma_irq_state(td->rx_state >> 4);
+        printf(",mem_dst_state=");
+        print_mem_dst_state(td->rx_state & 0xf);
+        if (td->rx_state & 0x10)
+                printf(",sets rxcomplete");
+}
+
+static void print_css_init_irq_handler(uint rt, void *vd) {
+        struct pch_trdata_irq_handler *td = vd;
+        const char *irqtype = pick_irqtype(rt);
+        printf("CSS ");
+        print_dma_handler_init(td, irqtype);
+}
+
+static void print_cus_queue_command(uint rt, void *vd) {
+        struct pch_trdata_dev_byte *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" queues tx command after tail UA=%d", td->byte);
+}
+
+static void print_cus_init_async_context(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        printf("CU-side initialised async_context with threadsafe background IRQ %u at priority %u",
+                td->id, td->byte);
+}
+
+static void print_cus_init_dma_irq_handler(uint rt, void *vd) {
+        struct pch_trdata_irq_handler *td = vd;
+        printf("CU-side ");
+        print_dma_handler_init(td, "DMA");
+}
+
+static void print_cus_cu_register(uint rt, void *vd) {
+        struct pch_trdata_cu_register *td = vd;
+        printf("CU=%d registers with %d devices",
+                td->cuaddr, td->num_devices);
+}
+
+static void print_cus_cu_tx_dma_init(uint rt, void *vd) {
+        struct pch_trdata_dma_init *td = vd;
+        print_dma_irq_init(td, "CU", "tx");
+}
+
+static void print_cus_cu_rx_dma_init(uint rt, void *vd) {
+        struct pch_trdata_dma_init *td = vd;
+        print_dma_irq_init(td, "CU", "rx");
+}
+
+static void print_css_chp_irq_progress(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        bool rxcomplete = !!(td->byte & 0x04);
+        bool txcomplete = !!(td->byte & 0x02);
+        bool progress = !!(td->byte & 0x01);
+        printf("IRQ progress for CHP=%d: now rxcomplete=%d txcomplete=%d progress=%d",
+                td->id, rxcomplete, txcomplete, progress);
+}
+
+static void print_css_send_tx_packet(uint rt, void *vd) {
+        struct pch_trdata_packet_sid *td = vd;
+        printf("CSS ");
+        print_sid(td->sid);
+        printf(" sends ");
+        print_packet(td->packet, td->seqnum, true);
+}
+
+static void print_css_tx_complete(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        printf("CHPID=%d handling tx complete while txsm is ",
+                td->id);
+        print_txpending_state(td->byte);
+}
+
+static void print_css_core_num(uint rt, void *vd) {
+        struct pch_trdata_byte *td = vd;
+        printf("CSS is running on core number %d", td->byte);
+}
+
+static void print_css_set_irq(uint rt, void *vd) {
+        struct pch_trdata_irqnum_opt *td = vd;
+        const char *irqtype = pick_irqtype(rt);
+        int16_t irqnum_opt = td->irqnum_opt;
+        if (irqnum_opt == -1) {
+                printf("CSS unsets %s IRQ number", irqtype);
+        } else {
+                printf("CSS sets %s IRQ number to %d",
+                        irqtype, irqnum_opt);
+        }
+}
+
+static void print_css_set_io_callback(uint rt, void *vd) {
+        struct pch_trdata_address_change *td = vd;
+        print_address_change(td, "I/O callback");
+}
+
+static void print_css_io_callback(uint rt, void *vd) {
+        struct pch_trdata_intcode_scsw *td = vd;
+        print_io_callback(&td->intcode, &td->scsw);
+}
+
+static void print_css_rx_command_complete(uint rt, void *vd) {
+        struct pch_trdata_packet_sid *td = vd;
+        printf("CSS ");
+        print_sid(td->sid);
+        printf(" received ");
+        print_packet(td->packet, td->seqnum, false);
+}
+
+static void print_css_rx_data_complete(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        printf("CSS rx data complete for ");
+        print_sid(td->sid);
+        printf(" with device status:%02x", td->byte);
+}
+
+static void print_css_notify(uint rt, void *vd) {
+        struct pch_trdata_sid_byte *td = vd;
+        printf("CSS Notify for ");
+        print_sid(td->sid);
+        printf(" with device status:%02x", td->byte);
+}
+
+static void print_cus_register_callback(uint rt, void *vd) {
+        struct pch_trdata_word_byte *td = vd;
+        printf("registers ");
+        print_devib_callback(td->byte, td->word);
+}
+
+static void print_cus_call_callback(uint rt, void *vd) {
+        struct pch_trdata_cus_call_callback *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" callback %d", td->cbindex);
+}
+
+static void print_cus_send_tx_packet(uint rt, void *vd) {
+        struct pch_trdata_packet_dev *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" sends ");
+        print_packet(td->packet, td->seqnum, true);
+}
+
+static void print_cus_tx_complete(uint rt, void *vd) {
+        struct pch_trdata_cus_tx_complete *td = vd;
+        const char *cb = td->cbpending ? "is" : "not";
+        printf("CU=%d handling tx complete for tx_head UA=%d, callback %s pending, txsm is ",
+                td->cuaddr, td->tx_head, cb);
+        print_txpending_state(td->txpstate);
+}
+
+static void print_cus_rx_command_complete(uint rt, void *vd) {
+        struct pch_trdata_packet_dev *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" received ");
+        print_packet(td->packet, td->seqnum, true);
+}
+
+static void print_cus_rx_data_complete(uint rt, void *vd) {
+        struct pch_trdata_dev *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" rx data complete");
+}
+
+static void print_dmachan_dst_reset_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan *td = vd;
+        printf("rx channel DMAid=%d reset in progress", td->dmaid);
+}
+
+static void print_dmachan_dst_cmdbuf_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan *td = vd;
+        printf("rx channel DMAid=%d sets destination to cmdbuf",
+                td->dmaid);
+}
+
+static void print_dmachan_dst_cmdbuf_mem(uint rt, void *vd) {
+        struct pch_trdata_dmachan_memstate *td = vd;
+        printf("rx memchan DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
+                td->dmaid);
+        print_mem_src_state(td->state);
+        if (td->state == DMACHAN_MEM_SRC_CMDBUF)
+                printf(", sets rxcomplete and forces IRQ for tx peer");
+}
+
+static void print_dmachan_dst_data_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan_segment *td = vd;
+        printf("rx channel DMAid=%d sets destination to data address:%08x count=%u",
+                td->dmaid, td->addr, td->count);
+}
+
+static void print_dmachan_dst_data_mem(uint rt, void *vd) {
+        struct pch_trdata_dmachan_segment_memstate *td = vd;
+        printf("rx memchan DMAid=%d sets destination to data address:%08x count=%u while txpeer mem_src_state=",
+                td->dmaid, td->addr, td->count);
+        print_mem_src_state(td->state);
+}
+
+static void print_dmachan_dst_discard_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan_segment *td = vd;
+        printf("rx channel DMAid=%d sets destination to discard data count=%u",
+                td->dmaid, td->count);
+}
+
+static void print_dmachan_dst_discard_mem(uint rt, void *vd) {
+        struct pch_trdata_dmachan_segment_memstate *td = vd;
+        printf("rx memchan DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
+                td->dmaid, td->count);
+        print_mem_src_state(td->state);
+        if (td->state == DMACHAN_MEM_SRC_DATA)
+                printf(", sets rxcomplete and forces IRQ for tx peer");
+}
+
+static void print_dmachan_src_reset_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan *td = vd;
+        printf("tx channel DMAid=%d reset in progress", td->dmaid);
+}
+
+static void print_dmachan_src_cmdbuf_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan *td = vd;
+        printf("tx channel DMAid=%d sets source to cmdbuf",
+                td->dmaid);
+}
+
+static void print_dmachan_src_cmdbuf_mem(uint rt, void *vd) {
+        struct pch_trdata_dmachan_memstate *td = vd;
+        printf("tx memchan DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
+                td->dmaid);
+        print_mem_dst_state(td->state);
+        if (td->state == DMACHAN_MEM_DST_CMDBUF)
+                printf(", forces IRQ for rx peer");
+}
+
+static void print_dmachan_src_data_remote(uint rt, void *vd) {
+        struct pch_trdata_dmachan_segment *td = vd;
+        printf("tx channel DMAid=%d sets source to data address:%08x count=%u",
+                td->dmaid, td->addr, td->count);
+}
+
+static void print_dmachan_src_data_mem(uint rt, void *vd) {
+        struct pch_trdata_dmachan_segment_memstate *td = vd;
+        printf("tx memchan DMAid=%d sets source to data address:%08x count=%u while rxpeer mem_dst_state=",
+                td->dmaid, td->addr, td->count);
+        print_mem_dst_state(td->state);
+        if (td->state == DMACHAN_MEM_DST_DISCARD)
+                printf(", forces IRQ for rx peer");
+}
+
+static void print_dmachan_force_irq(uint rt, void *vd) {
+        struct pch_trdata_dmachan *td = vd;
+        printf("rx memchan DMAid=%d forces IRQ for tx peer",
+                td->dmaid);
+}
+
+static void print_dmachan_memchan_rx_cmd(uint rt, void *vd) {
+        struct pch_trdata_dmachan_cmd *td = vd;
+        printf("rx memchan DMAid=%d sync receive cmd:%08x, seqnum=%d (sets rxcomplete)",
+                td->dmaid, td->cmd, td->seqnum);
+}
+
+static void print_dmachan_memchan_tx_cmd(uint rt, void *vd) {
+        struct pch_trdata_dmachan_cmd *td = vd;
+        printf("tx memchan DMAid=%d sync writes to peer cmd:%08x, seqnum=%d (sets txcomplete)",
+                td->dmaid, td->cmd, td->seqnum);
+}
+
+static void print_enable(uint rt, void *vd) {
+        char *td = vd;
+        printf("trace %s", td[0] ? "enabled" : "disabled");
+}
+
+static void print_hldev_config_init(uint rt, void *vd) {
+        struct pch_trdata_hldev_config_init *td = vd;
+        printf("CU=%d UA_range=%d", td->cuaddr, td->first_ua);
+        uint8_t n = td->num_devices;
+        if (td->num_devices) {
+                uint8_t last_ua = td->first_ua + n - 1;
+                printf("-%d (count %d)", last_ua, n);
+        } else {
+                printf("(invalid num_devices=0)");
+        }
+        printf(" hldev configuration with hdcfg:%08x callbacks start:%08x signal:%08x used cbindex=%d",
+                td->hdcfg, td->start, td->signal, td->cbindex);
+}
+
+static void print_hldev_start(uint rt, void *vd) {
+        struct pch_trdata_hldev_start *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        uint8_t ccwcmd = td->ccwcmd;
+        uint8_t esize = td->esize;
+        bool write = pch_is_ccw_cmd_write(ccwcmd);
+        const char *rwtype = write ? "Write" : "Read";
+
+        printf(" hldev starts %s CCWcmd:%02x", rwtype, ccwcmd);
+        if (write) {
+                uint16_t size = pch_bsize_decode_raw_inline(esize);
+                if (size)
+                        printf(", %u bytes ready", size);
+        } else {
+                printf(", ");
+                print_bsize(esize);
+                printf(" bytes room");
+        }
+}
+
+static void print_hldev_devib_callback(uint rt, void *vd) {
+        struct pch_trdata_dev_byte *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev state=");
+        print_hldev_state(td->byte);
+        printf(" in devib callback");
+}
+
+static void print_hldev_receiving(uint rt, void *vd) {
+        struct pch_trdata_counts_dev *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev received %u bytes, ", td->count1);
+        if (td->count2)
+                printf("requesting next %u bytes", td->count2);
+        else
+                printf("complete");
+}
+
+static void print_hldev_receive(uint rt, void *vd) {
+        struct pch_trdata_hldev_data *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev requesting to receive %u bytes to addr:%08x",
+                td->count, td->addr);
+}
+
+static void print_hldev_receive_then(uint rt, void *vd) {
+        struct pch_trdata_hldev_data_then *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev requesting to receive %u bytes to addr:%08x",
+                td->count, td->addr);
+        printf(" then callback:%08x", td->cbaddr);
+}
+
+static void print_hldev_sending(uint rt, void *vd) {
+        struct pch_trdata_counts_dev *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev sending %u bytes to segment with room %u",
+                td->count1, td->count2);
+}
+
+static void print_hldev_send(uint rt, void *vd) {
+        struct pch_trdata_hldev_data *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev will send %u bytes from addr:%08x",
+                td->count, td->addr);
+        if (rt == PCH_TRC_RT_HLDEV_SEND_FINAL)
+                printf(" then end");
+}
+
+static void print_hldev_send_then(uint rt, void *vd) {
+        struct pch_trdata_hldev_data_then *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev will send %u bytes from addr:%08x",
+                td->count, td->addr);
+        printf(" then callback:%08x", td->cbaddr);
+}
+
+static void print_hldev_end(uint rt, void *vd) {
+        struct pch_trdata_hldev_end *td = vd;
+        print_cua_ua(td->cuaddr, td->ua);
+        printf(" hldev ending with devstat:%02x", td->devstat);
+        uint16_t size = pch_bsize_decode_raw_inline(td->esize);
+        if (size) {
+                printf(" advertising room=%u for immediate start data",
+                        size);
+        }
+        if (td->sense_flags) {
+                printf(" setting sense{flags:%02x code:%02x ASC:%02x ASCQ:%02x}",
+                        td->sense_flags, td->sense_code,
+                        td->sense_asc, td->sense_ascq);
+        }
+}
+
+typedef void (*trace_record_print_func_t)(uint rt, void *data);
+
+trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
+	[PCH_TRC_RT_CSS_SCH_START] = print_css_sch_start,
+	[PCH_TRC_RT_CSS_SCH_RESUME] = print_css_sch_resume,
+	[PCH_TRC_RT_CSS_SCH_CANCEL] = print_css_sch_cancel,
+	[PCH_TRC_RT_CSS_SCH_HALT] = print_css_sch_halt,
+	[PCH_TRC_RT_CSS_SCH_TEST] = print_css_sch_test,
+	[PCH_TRC_RT_CSS_SCH_STORE] = print_css_sch_store,
+	[PCH_TRC_RT_CSS_SCH_MODIFY] = print_css_sch_modify,
+	[PCH_TRC_RT_CSS_FUNC_IRQ] = print_css_func_irq,
+	[PCH_TRC_RT_CSS_CCW_FETCH] = print_css_ccw_fetch,
+	[PCH_TRC_RT_CSS_CHP_ALLOC] = print_css_chp_alloc,
+	[PCH_TRC_RT_CSS_CHP_TX_DMA_INIT] = print_css_chp_tx_dma_init,
+	[PCH_TRC_RT_CSS_CHP_RX_DMA_INIT] = print_css_chp_rx_dma_init,
+	[PCH_TRC_RT_CSS_CHP_CONFIGURED] = print_configured,
+	[PCH_TRC_RT_CUS_CU_CONFIGURED] = print_configured,
+	[PCH_TRC_RT_CSS_CHP_TRACED] = print_traced,
+	[PCH_TRC_RT_CUS_CU_TRACED] = print_traced,
+	[PCH_TRC_RT_CSS_CHP_STARTED] = print_started,
+	[PCH_TRC_RT_CUS_CU_STARTED] = print_started,
+	[PCH_TRC_RT_CSS_CHP_IRQ] = print_irq,
+	[PCH_TRC_RT_CUS_CU_IRQ] = print_irq,
+	[PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER] = print_css_init_irq_handler,
+	[PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER] = print_css_init_irq_handler,
+	[PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER] = print_css_init_irq_handler,
+	[PCH_TRC_RT_CUS_QUEUE_COMMAND] = print_cus_queue_command,
+	[PCH_TRC_RT_CUS_INIT_ASYNC_CONTEXT] = print_cus_init_async_context,
+	[PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER] = print_cus_init_dma_irq_handler,
+	[PCH_TRC_RT_CUS_CU_REGISTER] = print_cus_cu_register,
+	[PCH_TRC_RT_CUS_CU_TX_DMA_INIT] = print_cus_cu_tx_dma_init,
+	[PCH_TRC_RT_CUS_CU_RX_DMA_INIT] = print_cus_cu_rx_dma_init,
+	[PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS] = print_css_chp_irq_progress,
+	[PCH_TRC_RT_CSS_SEND_TX_PACKET] = print_css_send_tx_packet,
+	[PCH_TRC_RT_CSS_TX_COMPLETE] = print_css_tx_complete,
+	[PCH_TRC_RT_CSS_CORE_NUM] = print_css_core_num,
+	[PCH_TRC_RT_CSS_SET_DMA_IRQ] = print_css_set_irq,
+	[PCH_TRC_RT_CSS_SET_FUNC_IRQ] = print_css_set_irq,
+	[PCH_TRC_RT_CSS_SET_IO_IRQ] = print_css_set_irq,
+	[PCH_TRC_RT_CSS_SET_IO_CALLBACK] = print_css_set_io_callback,
+	[PCH_TRC_RT_CSS_IO_CALLBACK] = print_css_io_callback,
+	[PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE] = print_css_rx_command_complete,
+	[PCH_TRC_RT_CSS_RX_DATA_COMPLETE] = print_css_rx_data_complete,
+	[PCH_TRC_RT_CSS_NOTIFY] = print_css_notify,
+	[PCH_TRC_RT_CUS_REGISTER_CALLBACK] = print_cus_register_callback,
+	[PCH_TRC_RT_CUS_CALL_CALLBACK] = print_cus_call_callback,
+	[PCH_TRC_RT_CUS_SEND_TX_PACKET] = print_cus_send_tx_packet,
+	[PCH_TRC_RT_CUS_TX_COMPLETE] = print_cus_tx_complete,
+	[PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE] = print_cus_rx_command_complete,
+	[PCH_TRC_RT_CUS_RX_DATA_COMPLETE] = print_cus_rx_data_complete,
+	[PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE] = print_dmachan_dst_reset_remote,
+	[PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE] = print_dmachan_dst_cmdbuf_remote,
+	[PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM] = print_dmachan_dst_cmdbuf_mem,
+	[PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE] = print_dmachan_dst_data_remote,
+	[PCH_TRC_RT_DMACHAN_DST_DATA_MEM] = print_dmachan_dst_data_mem,
+	[PCH_TRC_RT_DMACHAN_DST_DISCARD_REMOTE] = print_dmachan_dst_discard_remote,
+	[PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM] = print_dmachan_dst_discard_mem,
+	[PCH_TRC_RT_DMACHAN_SRC_RESET_REMOTE] = print_dmachan_src_reset_remote,
+	[PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE] = print_dmachan_src_cmdbuf_remote,
+	[PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM] = print_dmachan_src_cmdbuf_mem,
+	[PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE] = print_dmachan_src_data_remote,
+	[PCH_TRC_RT_DMACHAN_SRC_DATA_MEM] = print_dmachan_src_data_mem,
+	[PCH_TRC_RT_DMACHAN_FORCE_IRQ] = print_dmachan_force_irq,
+	[PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD] = print_dmachan_memchan_rx_cmd,
+	[PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD] = print_dmachan_memchan_tx_cmd,
+	[PCH_TRC_RT_TRC_ENABLE] = print_enable,
+	[PCH_TRC_RT_HLDEV_CONFIG_INIT] = print_hldev_config_init,
+	[PCH_TRC_RT_HLDEV_START] = print_hldev_start,
+	[PCH_TRC_RT_HLDEV_DEVIB_CALLBACK] = print_hldev_devib_callback,
+	[PCH_TRC_RT_HLDEV_RECEIVING] = print_hldev_receiving,
+	[PCH_TRC_RT_HLDEV_RECEIVE] = print_hldev_receive,
+	[PCH_TRC_RT_HLDEV_RECEIVE_THEN] = print_hldev_receive_then,
+	[PCH_TRC_RT_HLDEV_SENDING] = print_hldev_sending,
+	[PCH_TRC_RT_HLDEV_SEND] = print_hldev_send,
+	[PCH_TRC_RT_HLDEV_SEND_FINAL] = print_hldev_send,
+	[PCH_TRC_RT_HLDEV_SEND_THEN] = print_hldev_send_then,
+	[PCH_TRC_RT_HLDEV_SEND_FINAL_THEN] = print_hldev_send_then,
+	[PCH_TRC_RT_HLDEV_END] = print_hldev_end,
+};
+
 void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
         void *vd = data;
 
@@ -88,583 +658,14 @@ void print_trace_record_data(uint rt, unsigned char *data, int data_size) {
                 return;
         }
 
-        switch (rt) {
-        case PCH_TRC_RT_CSS_SCH_START: {
-                struct pch_trdata_word_sid_byte *td = vd;
-                printf("start subchannel ");
-                print_sid(td->sid);
-                putchar(' ');
-                print_ccwaddr(td->word);
-                putchar(' ');
-                print_cc(td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SCH_RESUME: {
-                struct pch_trdata_sid_byte *td = vd;
-                print_sch_func(td, "resume");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SCH_CANCEL: {
-                struct pch_trdata_sid_byte *td = vd;
-                print_sch_func(td, "cancel");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SCH_HALT: {
-                struct pch_trdata_sid_byte *td = vd;
-                print_sch_func(td, "halt");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SCH_TEST: {
-                struct pch_trdata_scsw_sid_cc *td = vd;
-                printf("test subchannel ");
-                print_sid(td->sid);
-                putchar(' ');
-                print_cc(td->cc);
-                if (td->cc == 0) {
-                        putchar(' ');
-                        print_scsw(&td->scsw);
-                }
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SCH_STORE: {
-                struct pch_trdata_sid_byte *td = vd;
-                printf("store subchannel ");
-                print_sid(td->sid);
-                putchar(' ');
-                print_cc(td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SCH_MODIFY: {
-                struct pch_trdata_sid_byte *td = vd;
-                printf("modify subchannel ");
-                print_sid(td->sid);
-                putchar(' ');
-                print_cc(td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_FUNC_IRQ: {
-                struct pch_trdata_func_irq *td = vd;
-                printf("CSS Function IRQ raised for CU=%d with pending UA=%d while tx_active=%d",
-                        td->chpid, td->ua_opt, td->tx_active);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CCW_FETCH: {
-                struct pch_trdata_ccw_addr_sid *td = vd;
-                printf("CSS CCW fetch for ");
-                print_sid(td->sid);
-                putchar(' ');
-                print_ccwaddr(td->addr);
-                printf(" provides ");
-                print_ccw(td->ccw);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_ALLOC: {
-                struct pch_trdata_chp_alloc *td = vd;
-                printf("CHPID=%d allocates %d subchannels starting with ",
-                        td->chpid, td->num_devices);
-                print_sid(td->first_sid);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_TX_DMA_INIT: {
-                struct pch_trdata_dma_init *td = vd;
-                print_dma_irq_init(td, "CHPID", "tx");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_RX_DMA_INIT: {
-                struct pch_trdata_dma_init *td = vd;
-                print_dma_irq_init(td, "CHPID", "rx");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER:
-        case PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER:
-        case PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER: {
-                const char *irqtype = pick_irqtype(rt);
-                struct pch_trdata_irq_handler *td = vd;
-                printf("CSS ");
-                print_dma_handler_init(td, irqtype);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_QUEUE_COMMAND: {
-                struct pch_trdata_dev_byte *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" queues tx command after tail UA=%d", td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_INIT: {
-                printf("CU-side initialised");
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_INIT_ASYNC_CONTEXT: {
-                struct pch_trdata_id_byte *td = vd;
-                printf("CU-side initialised async_context with threadsafe background IRQ %u at priority %u",
-                        td->id, td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER: {
-                struct pch_trdata_irq_handler *td = vd;
-                printf("CU-side ");
-                print_dma_handler_init(td, "DMA");
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_CU_REGISTER: {
-                struct pch_trdata_cu_register *td = vd;
-                printf("CU=%d registers with %d devices",
-                        td->cuaddr, td->num_devices);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_CU_TX_DMA_INIT: {
-                struct pch_trdata_dma_init *td = vd;
-                print_dma_irq_init(td, "CU", "tx");
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_CU_RX_DMA_INIT: {
-                struct pch_trdata_dma_init *td = vd;
-                print_dma_irq_init(td, "CU", "rx");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_CONFIGURED:
-        case PCH_TRC_RT_CUS_CU_CONFIGURED: {
-                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_CONFIGURED);
-                struct pch_trdata_id_byte *td = vd;
-                printf("%s=%d is now %s",
-                        idtype, td->id, td->byte ? "configured" : "unconfigured");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_TRACED:
-        case PCH_TRC_RT_CUS_CU_TRACED: {
-                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_TRACED);
-                struct pch_trdata_id_byte *td = vd;
-                printf("%s=%d is now %s",
-                        idtype, td->id, td->byte ? "traced" : "untraced");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_STARTED:
-        case PCH_TRC_RT_CUS_CU_STARTED: {
-                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_STARTED);
-                struct pch_trdata_id_byte *td = vd;
-                printf("%s=%d is now %s",
-                        idtype, td->id, td->byte ? "started" : "stopped");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_IRQ:
-        case PCH_TRC_RT_CUS_CU_IRQ: {
-                const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_IRQ);
-                struct pch_trdata_id_irq *td = vd;
-                printf("IRQ for %s=%d with DMA_IRQ_%d tx:irq_state=",
-                       idtype, td->id, td->dmairqix);
-                print_dma_irq_state(td->tx_state >> 4);
-                printf(",mem_src_state=");
-                print_mem_src_state(td->tx_state & 0xf);
-                printf(" rx:irq_state=");
-                print_dma_irq_state(td->rx_state >> 4);
-                printf(",mem_dst_state=");
-                print_mem_dst_state(td->rx_state & 0xf);
-                if (td->rx_state & 0x10)
-                        printf(",sets rxcomplete");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS: {
-                struct pch_trdata_id_byte *td = vd;
-                bool rxcomplete = !!(td->byte & 0x04);
-                bool txcomplete = !!(td->byte & 0x02);
-                bool progress = !!(td->byte & 0x01);
-                printf("IRQ progress for CHP=%d: now rxcomplete=%d txcomplete=%d progress=%d",
-                        td->id, rxcomplete, txcomplete, progress);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SEND_TX_PACKET: {
-                struct pch_trdata_packet_sid *td = vd;
-                printf("CSS ");
-                print_sid(td->sid);
-                printf(" sends ");
-                print_packet(td->packet, td->seqnum, true);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_TX_COMPLETE: {
-                struct pch_trdata_id_byte *td = vd;
-                printf("CHPID=%d handling tx complete while txsm is ",
-                        td->id);
-                print_txpending_state(td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_CORE_NUM: {
-                struct pch_trdata_byte *td = vd;
-                printf("CSS is running on core number %d", td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SET_DMA_IRQ:
-        case PCH_TRC_RT_CSS_SET_FUNC_IRQ:
-        case PCH_TRC_RT_CSS_SET_IO_IRQ: {
-                const char *irqtype = pick_irqtype(rt);
-                struct pch_trdata_irqnum_opt *td = vd;
-                int16_t irqnum_opt = td->irqnum_opt;
-                if (irqnum_opt == -1) {
-                        printf("CSS unsets %s IRQ number", irqtype);
-                } else {
-                        printf("CSS sets %s IRQ number to %d",
-                                irqtype, irqnum_opt);
-                }
-
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_SET_IO_CALLBACK: {
-                struct pch_trdata_address_change *td = vd;
-                print_address_change(td, "I/O callback");
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_IO_CALLBACK: {
-                struct pch_trdata_intcode_scsw *td = vd;
-                print_io_callback(&td->intcode, &td->scsw);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE: {
-                struct pch_trdata_packet_sid *td = vd;
-                printf("CSS ");
-                print_sid(td->sid);
-                printf(" received ");
-                print_packet(td->packet, td->seqnum, false);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_RX_DATA_COMPLETE: {
-                struct pch_trdata_sid_byte *td = vd;
-                printf("CSS rx data complete for ");
-                print_sid(td->sid);
-                printf(" with device status:%02x", td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CSS_NOTIFY: {
-                struct pch_trdata_sid_byte *td = vd;
-                printf("CSS Notify for ");
-                print_sid(td->sid);
-                printf(" with device status:%02x", td->byte);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_REGISTER_CALLBACK: {
-                struct pch_trdata_word_byte *td = vd;
-                printf("registers ");
-                print_devib_callback(td->byte, td->word);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_CALL_CALLBACK: {
-                struct pch_trdata_cus_call_callback *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" callback %d", td->cbindex);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_SEND_TX_PACKET: {
-                struct pch_trdata_packet_dev *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" sends ");
-                print_packet(td->packet, td->seqnum, true);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_TX_COMPLETE: {
-                struct pch_trdata_cus_tx_complete *td = vd;
-                const char *cb = td->cbpending ? "is" : "not";
-                printf("CU=%d handling tx complete for tx_head UA=%d, callback %s pending, txsm is ",
-                        td->cuaddr, td->tx_head, cb);
-                print_txpending_state(td->txpstate);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE: {
-                struct pch_trdata_packet_dev *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" received ");
-                print_packet(td->packet, td->seqnum, true);
-                break;
-        }
-
-        case PCH_TRC_RT_CUS_RX_DATA_COMPLETE: {
-                struct pch_trdata_dev *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" rx data complete");
-                break;
-        }
-
-	case PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE: {
-		struct pch_trdata_dmachan *td = vd;
-                printf("rx channel DMAid=%d reset in progress",
-                        td->dmaid);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE: {
-		struct pch_trdata_dmachan *td = vd;
-                printf("rx channel DMAid=%d sets destination to cmdbuf",
-                        td->dmaid);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM: {
-		struct pch_trdata_dmachan_memstate *td = vd;
-                printf("rx memchan DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
-                        td->dmaid);
-                print_mem_src_state(td->state);
-                if (td->state == DMACHAN_MEM_SRC_CMDBUF)
-                        printf(", sets rxcomplete and forces IRQ for tx peer");
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE: {
-		struct pch_trdata_dmachan_segment *td = vd;
-                printf("rx channel DMAid=%d sets destination to data address:%08x count=%u",
-                        td->dmaid, td->addr, td->count);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_DST_DATA_MEM: {
-		struct pch_trdata_dmachan_segment_memstate *td = vd;
-                printf("rx memchan DMAid=%d sets destination to data address:%08x count=%u while txpeer mem_src_state=",
-                        td->dmaid, td->addr, td->count);
-                print_mem_src_state(td->state);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_DST_DISCARD_REMOTE: {
-		struct pch_trdata_dmachan_segment *td = vd;
-                printf("rx channel DMAid=%d sets destination to discard data count=%u",
-                        td->dmaid, td->count);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM: {
-		struct pch_trdata_dmachan_segment_memstate *td = vd;
-                printf("rx memchan DMAid=%d sets destination to discard data count=%u while txpeer mem_src_state=",
-                        td->dmaid, td->count);
-                print_mem_src_state(td->state);
-                if (td->state == DMACHAN_MEM_SRC_DATA)
-                        printf(", sets rxcomplete and forces IRQ for tx peer");
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_SRC_RESET_REMOTE: {
-		struct pch_trdata_dmachan *td = vd;
-                printf("tx channel DMAid=%d reset in progress",
-                        td->dmaid);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_SRC_CMDBUF_REMOTE: {
-		struct pch_trdata_dmachan *td = vd;
-                printf("tx channel DMAid=%d sets source to cmdbuf",
-                        td->dmaid);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM: {
-		struct pch_trdata_dmachan_memstate *td = vd;
-                printf("tx memchan DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
-                        td->dmaid);
-                print_mem_dst_state(td->state);
-                if (td->state == DMACHAN_MEM_DST_CMDBUF)
-                        printf(", forces IRQ for rx peer");
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_SRC_DATA_REMOTE: {
-		struct pch_trdata_dmachan_segment *td = vd;
-                printf("tx channel DMAid=%d sets source to data address:%08x count=%u",
-                        td->dmaid, td->addr, td->count);
-                break;
-	}
-
-	case PCH_TRC_RT_DMACHAN_SRC_DATA_MEM: {
-		struct pch_trdata_dmachan_segment_memstate *td = vd;
-                printf("tx memchan DMAid=%d sets source to data address:%08x count=%u while rxpeer mem_dst_state=",
-                        td->dmaid, td->addr, td->count);
-                print_mem_dst_state(td->state);
-                if (td->state == DMACHAN_MEM_DST_DISCARD)
-                        printf(", forces IRQ for rx peer");
-                break;
-	}
-
-        case PCH_TRC_RT_DMACHAN_FORCE_IRQ: {
-                struct pch_trdata_dmachan *td = vd;
-                printf("rx memchan DMAid=%d forces IRQ for tx peer",
-                        td->dmaid);
-                break;
-        }
-
-        case PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD: {
-                struct pch_trdata_dmachan_cmd *td = vd;
-                printf("rx memchan DMAid=%d sync receive cmd:%08x, seqnum=%d (sets rxcomplete)",
-                        td->dmaid, td->cmd, td->seqnum);
-                break;
-        }
-
-        case PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD: {
-                struct pch_trdata_dmachan_cmd *td = vd;
-                printf("tx memchan DMAid=%d sync writes to peer cmd:%08x, seqnum=%d (sets txcomplete)",
-                        td->dmaid, td->cmd, td->seqnum);
-                break;
-        }
-
-        case PCH_TRC_RT_TRC_ENABLE:
-                printf("trace %s", data[0] ? "enabled" : "disabled");
-                break;
-
-        case PCH_TRC_RT_HLDEV_CONFIG_INIT: {
-                struct pch_trdata_hldev_config_init *td = vd;
-                printf("CU=%d UA_range=%d", td->cuaddr, td->first_ua);
-                uint8_t n = td->num_devices;
-                if (td->num_devices) {
-                        uint8_t last_ua = td->first_ua + n - 1;
-                        printf("-%d (count %d)", last_ua, n);
-                } else {
-                        printf("(invalid num_devices=0)");
-                }
-                printf(" hldev configuration with hdcfg:%08x callbacks start:%08x signal:%08x used cbindex=%d",
-                        td->hdcfg, td->start, td->signal, td->cbindex);
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_START: {
-                struct pch_trdata_hldev_start *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                uint8_t ccwcmd = td->ccwcmd;
-                uint8_t esize = td->esize;
-                bool write = pch_is_ccw_cmd_write(ccwcmd);
-                const char *rwtype = write ? "Write" : "Read";
-
-                printf(" hldev starts %s CCWcmd:%02x", rwtype, ccwcmd);
-                if (write) {
-                        uint16_t size = pch_bsize_decode_raw_inline(esize);
-                        if (size)
-                                printf(", %u bytes ready", size);
-                } else {
-                        printf(", ");
-                        print_bsize(esize);
-                        printf(" bytes room");
-                }
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_DEVIB_CALLBACK: {
-                struct pch_trdata_dev_byte *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev state=");
-                print_hldev_state(td->byte);
-                printf(" in devib callback");
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_RECEIVING: {
-                struct pch_trdata_counts_dev *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev received %u bytes, ", td->count1);
-                if (td->count2)
-                        printf("requesting next %u bytes", td->count2);
-                else
-                        printf("complete");
-
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_RECEIVE: {
-                struct pch_trdata_hldev_data *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev requesting to receive %u bytes to addr:%08x",
-                        td->count, td->addr);
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_RECEIVE_THEN: {
-                struct pch_trdata_hldev_data_then *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev requesting to receive %u bytes to addr:%08x",
-                        td->count, td->addr);
-                printf(" then callback:%08x", td->cbaddr);
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_SENDING: {
-                struct pch_trdata_counts_dev *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev sending %u bytes to segment with room %u",
-                        td->count1, td->count2);
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_SEND:
-        case PCH_TRC_RT_HLDEV_SEND_FINAL: {
-                struct pch_trdata_hldev_data *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev will send %u bytes from addr:%08x",
-                        td->count, td->addr);
-                if (rt == PCH_TRC_RT_HLDEV_SEND_FINAL)
-                        printf(" then end");
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_SEND_THEN:
-        case PCH_TRC_RT_HLDEV_SEND_FINAL_THEN: {
-                struct pch_trdata_hldev_data_then *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev will send %u bytes from addr:%08x",
-                        td->count, td->addr);
-                printf(" then callback:%08x", td->cbaddr);
-                break;
-        }
-
-        case PCH_TRC_RT_HLDEV_END: {
-                struct pch_trdata_hldev_end *td = vd;
-                print_cua_ua(td->cuaddr, td->ua);
-                printf(" hldev ending with devstat:%02x", td->devstat);
-                uint16_t size = pch_bsize_decode_raw_inline(td->esize);
-                if (size) {
-                        printf(" advertising room=%u for immediate start data",
-                                size);
-                }
-                if (td->sense_flags) {
-                        printf(" setting sense{flags:%02x code:%02x ASC:%02x ASCQ:%02x}",
-                                td->sense_flags, td->sense_code,
-                                td->sense_asc, td->sense_ascq);
-                }
-
-                break;
-        }
-
-        default:
+        trace_record_print_func_t f = NULL;
+        if (rt < NUM_RECORD_TYPES)
+                f = trace_record_printer_table[rt];
+
+        if (f)
+                f(rt, vd);
+        else
                 hexdump_trace_record_data(rt, data, data_size);
-        }
 }
 
 // dump_tracebs is a crude function to dump a single trace record.
