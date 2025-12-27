@@ -77,7 +77,7 @@ static void css_handle_tx_command_complete(pch_chp_t *chp) {
 }
 
 // css_handle_tx_complete handles a tx completion for
-// chp->tx_channel. It is called either from the DMA IRQ handler
+// chp->channel.tx. It is called either from the DMA IRQ handler
 // after a DMA tx completes or directly from send_tx_packet() if
 // the packet was sent synchronously via memory channel as indicated
 // by the dmachan link's txl->complete flag being set.
@@ -90,7 +90,7 @@ void __time_critical_func(css_handle_tx_complete)(pch_chp_t *chp) {
                 }));
 
         assert(pch_chp_is_tx_active(chp));
-        enum pch_txsm_run_result tr = pch_txsm_run(txpend, &chp->tx_channel);
+        enum pch_txsm_run_result tr = pch_txsm_run(txpend, &chp->channel.tx);
 	if (tr == PCH_TXSM_ACTED)
 		return; // tx dma not free - still sending pending data
 

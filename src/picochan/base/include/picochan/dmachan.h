@@ -235,6 +235,11 @@ typedef struct __aligned(4) dmachan_rx_channel {
 #endif
 } dmachan_rx_channel_t;
 
+typedef struct pch_channel {
+        dmachan_tx_channel_t    tx;
+        dmachan_rx_channel_t    rx;
+} pch_channel_t;
+
 static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool forced, bool complete) {
         return ((dmachan_irq_state_t)raised)
                 | ((dmachan_irq_state_t)forced) << 1

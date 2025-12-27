@@ -94,8 +94,8 @@ static_assert(PCH_NUM_CUS >= 1 && PCH_NUM_CUS <= 256,
 typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
         async_context_t         *async_context;
         async_when_pending_worker_t     worker;
-        dmachan_tx_channel_t    tx_channel;
-        dmachan_rx_channel_t    rx_channel;
+        //! channel connected to the CSS
+        pch_channel_t           channel;
 	//! ua list of devibs with tx pending
 	pch_devib_list_t        tx_list;
 	//! ua list of devibs with callback pending

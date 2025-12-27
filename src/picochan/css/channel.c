@@ -10,14 +10,14 @@ dmachan_tx_channel_t *pch_chp_get_tx_channel(pch_chpid_t chpid) {
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
 
-        return &chp->tx_channel;
+        return &chp->channel.tx;
 }
 
 dmachan_rx_channel_t *pch_chp_get_rx_channel(pch_chpid_t chpid) {
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
 
-        return &chp->rx_channel;
+        return &chp->channel.rx;
 }
 
 void pch_chp_claim(pch_chpid_t chpid) {
@@ -122,8 +122,8 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, CSS.dmairqix);
 
-        dmachan_init_uart_tx_channel(&chp->tx_channel, &dc.tx);
-        dmachan_init_uart_rx_channel(&chp->rx_channel, &dc.rx);
+        dmachan_init_uart_tx_channel(&chp->channel.tx, &dc.tx);
+        dmachan_init_uart_rx_channel(&chp->channel.rx, &dc.rx);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, &dc.tx);
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, &dc.rx);
@@ -152,8 +152,8 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
 
-        dmachan_init_mem_tx_channel(&chp->tx_channel, &dc.tx);
-        dmachan_init_mem_rx_channel(&chp->rx_channel, &dc.rx, txpeer);
+        dmachan_init_mem_tx_channel(&chp->channel.tx, &dc.tx);
+        dmachan_init_mem_rx_channel(&chp->channel.rx, &dc.rx, txpeer);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, &dc.tx);
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, &dc.rx);
@@ -161,8 +161,8 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
 }
 
 static void set_dmachan_links_bs(pch_chp_t *chp, pch_trc_bufferset_t *bs) {
-        dmachan_set_link_bs(&chp->tx_channel.link, bs);
-        dmachan_set_link_bs(&chp->rx_channel.link, bs);
+        dmachan_set_link_bs(&chp->channel.tx.link, bs);
+        dmachan_set_link_bs(&chp->channel.rx.link, bs);
 }
 
 uint8_t pch_chp_set_trace_flags(pch_chpid_t chpid, uint8_t trace_flags) {
@@ -207,6 +207,6 @@ void pch_chp_start(pch_chpid_t chpid) {
         }));
 
         pch_chp_set_started(chp, true);
-        dmachan_start_dst_cmdbuf(&chp->rx_channel);
-        dmachan_write_src_reset(&chp->tx_channel);
+        dmachan_start_dst_cmdbuf(&chp->channel.rx);
+        dmachan_write_src_reset(&chp->channel.tx);
 }

@@ -14,10 +14,10 @@ static void __not_in_flash_func(cus_handle_rx_chop_data)(pch_devib_t *devib, pro
 	uint32_t dstaddr = devib->addr;
 	uint32_t count = (uint32_t)proto_get_count(p);
         if (proto_chop_has_skip(p.chop)) {
-                dmachan_start_dst_data_src_zeroes(&cu->rx_channel,
+                dmachan_start_dst_data_src_zeroes(&cu->channel.rx,
                         dstaddr, count);
 	} else {
-                dmachan_start_dst_data(&cu->rx_channel,
+                dmachan_start_dst_data(&cu->channel.rx,
                         dstaddr, count);
         }
 
@@ -28,7 +28,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_room)(pch_devib_t *devib, pro
         pch_cu_t *cu = pch_dev_get_cu(devib);
         assert(devib->flags & PCH_DEVIB_FLAG_STARTED);
         devib->size = proto_get_count(p);
-        dmachan_start_dst_cmdbuf(&cu->rx_channel);
+        dmachan_start_dst_cmdbuf(&cu->channel.rx);
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_halt)(pch_devib_t *devib, proto_packet_t p) {
@@ -43,7 +43,7 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_read)(pch_devib_t *devi
         devib->flags &= ~PCH_DEVIB_FLAG_CMD_WRITE;
         devib->size = count; // advertised window we can write to
 
-        dmachan_start_dst_cmdbuf(&cu->rx_channel);
+        dmachan_start_dst_cmdbuf(&cu->channel.rx);
 }
 
 static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *devib, uint8_t ccwcmd, uint16_t count) {
@@ -52,14 +52,14 @@ static void __not_in_flash_func(cus_handle_rx_chop_start_write)(pch_devib_t *dev
         devib->flags |= PCH_DEVIB_FLAG_CMD_WRITE;
 
         if (count == 0) {
-                dmachan_start_dst_cmdbuf(&cu->rx_channel);
+                dmachan_start_dst_cmdbuf(&cu->channel.rx);
                 return;
         }
 
         assert(count <= devib->size);
         assert(cu->rx_active == -1);
         cu->rx_active = (int16_t)pch_dev_get_ua(devib);
-        dmachan_start_dst_data(&cu->rx_channel,
+        dmachan_start_dst_data(&cu->channel.rx,
                 devib->addr, (uint32_t)count);
         // rx completion of incoming data will do callback
 }
@@ -87,7 +87,7 @@ static inline proto_packet_t get_rx_packet(dmachan_link_t *l) {
 
 static pch_devib_t *__not_in_flash_func(cus_handle_rx_command_complete)(pch_cu_t *cu) {
 	// DMA has received a command packet from CSS into RxBuf
-        dmachan_link_t *rxl = &cu->rx_channel.link;
+        dmachan_link_t *rxl = &cu->channel.rx.link;
         proto_packet_t p = get_rx_packet(rxl);
         pch_unit_addr_t ua = p.unit_addr;
 	assert(ua < cu->num_devibs);
@@ -123,7 +123,7 @@ static pch_devib_t *__not_in_flash_func(cus_handle_rx_command_complete)(pch_cu_t
 
 static void __not_in_flash_func(cus_handle_rx_data_complete)(pch_cu_t *cu, pch_devib_t *devib) {
 	cu->rx_active = -1;
-        dmachan_start_dst_cmdbuf(&cu->rx_channel);
+        dmachan_start_dst_cmdbuf(&cu->channel.rx);
 	trace_dev(PCH_TRC_RT_CUS_RX_DATA_COMPLETE, devib);
 }
 

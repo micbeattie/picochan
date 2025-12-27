@@ -91,9 +91,9 @@ static inline void trace_cu_irq(pch_trc_record_type_t rt, pch_cu_t *cu, pch_dma_
                         .id = cu->cuaddr,
                         .dmairqix = dmairqix,
                         .tx_state = tx_irq_state << 4
-                                | cu->tx_channel.mem_src_state,
+                                | cu->channel.tx.mem_src_state,
                         .rx_state = rx_irq_state << 4
-                                | cu->rx_channel.mem_dst_state
+                                | cu->channel.rx.mem_dst_state
                 }));
 }
 

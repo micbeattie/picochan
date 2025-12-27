@@ -155,12 +155,12 @@ void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix) {
 
 dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
-        return &cu->tx_channel;
+        return &cu->channel.tx;
 }
 
 dmachan_rx_channel_t *pch_cu_get_rx_channel(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
-        return &cu->rx_channel;
+        return &cu->channel.rx;
 }
 
 static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmachan_1way_config_t *d1c) {
@@ -230,8 +230,8 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_c
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, cu->dmairqix);
 
-        dmachan_init_uart_tx_channel(&cu->tx_channel, &dc.tx);
-        dmachan_init_uart_rx_channel(&cu->rx_channel, &dc.rx);
+        dmachan_init_uart_tx_channel(&cu->channel.tx, &dc.tx);
+        dmachan_init_uart_rx_channel(&cu->channel.rx, &dc.rx);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, &dc.tx);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, &dc.rx);
@@ -263,8 +263,8 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, cu->dmairqix);
 
-        dmachan_init_mem_tx_channel(&cu->tx_channel, &dc.tx);
-        dmachan_init_mem_rx_channel(&cu->rx_channel, &dc.rx, txpeer);
+        dmachan_init_mem_tx_channel(&cu->channel.tx, &dc.tx);
+        dmachan_init_mem_rx_channel(&cu->channel.rx, &dc.rx, txpeer);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, &dc.tx);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, &dc.rx);
@@ -298,7 +298,7 @@ void pch_cu_start(pch_cuaddr_t cua) {
                         .byte = 1
                 }));
 
-        dmachan_start_dst_reset(&cu->rx_channel);
+        dmachan_start_dst_reset(&cu->channel.rx);
 }
 
 bool pch_cus_set_trace(bool trace) {
@@ -310,8 +310,8 @@ bool pch_cus_is_traced(void) {
 }
 
 static void set_dmachan_links_bs(pch_cu_t *cu, pch_trc_bufferset_t *bs) {
-        dmachan_set_link_bs(&cu->tx_channel.link, bs);
-        dmachan_set_link_bs(&cu->rx_channel.link, bs);
+        dmachan_set_link_bs(&cu->channel.tx.link, bs);
+        dmachan_set_link_bs(&cu->channel.rx.link, bs);
 }
 
 uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags) {

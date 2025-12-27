@@ -259,15 +259,15 @@ static void __time_critical_func(css_handle_rx_data_command)(pch_chp_t *chp, pch
 			// Device has gone to the trouble of sending
 			// us data so we have to receive and discard
 			// it explicitly
-                        dmachan_start_dst_discard(&chp->rx_channel,
+                        dmachan_start_dst_discard(&chp->channel.rx,
                                 (uint32_t)ac.count);
 		}
 	} else {
 		if (zeroes) {
-                        dmachan_start_dst_data_src_zeroes(&chp->rx_channel,
+                        dmachan_start_dst_data_src_zeroes(&chp->channel.rx,
                                 ac.addr, (uint32_t)ac.count);
 		} else {
-                        dmachan_start_dst_data(&chp->rx_channel,
+                        dmachan_start_dst_data(&chp->channel.rx,
                                 ac.addr, (uint32_t)ac.count);
 		}
 	}
@@ -310,7 +310,7 @@ static inline proto_packet_t get_rx_packet(dmachan_link_t *l) {
 
 static void __time_critical_func(css_handle_rx_command_complete)(pch_chp_t *chp) {
 	// DMA has received a command packet from chp into RxBuf
-        dmachan_rx_channel_t *rx = &chp->rx_channel;
+        dmachan_rx_channel_t *rx = &chp->channel.rx;
         dmachan_link_t *rxl = &rx->link;
         proto_packet_t p = get_rx_packet(rxl);
         // Poison RxBuf to help troubleshooting
@@ -359,5 +359,5 @@ void __time_critical_func(css_handle_rx_complete)(pch_chp_t *chp) {
 
         rx_data_for_ua = chp->rx_data_for_ua;
 	if (rx_data_for_ua == -1)
-		dmachan_start_dst_cmdbuf(&chp->rx_channel);
+		dmachan_start_dst_cmdbuf(&chp->channel.rx);
 }

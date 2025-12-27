@@ -7,9 +7,9 @@
 #include "cus_trace.h"
 
 static void cus_handle_dma_irq_cu(pch_cu_t *cu) {
-        dmachan_tx_channel_t *tx = &cu->tx_channel;
+        dmachan_tx_channel_t *tx = &cu->channel.tx;
         dmachan_irq_state_t tx_irq_state = dmachan_handle_tx_irq(tx);
-        dmachan_rx_channel_t *rx = &cu->rx_channel;
+        dmachan_rx_channel_t *rx = &cu->channel.rx;
         dmachan_irq_state_t rx_irq_state = dmachan_handle_rx_irq(rx);
 
         trace_cu_irq(PCH_TRC_RT_CUS_CU_IRQ, cu, cu->dmairqix,

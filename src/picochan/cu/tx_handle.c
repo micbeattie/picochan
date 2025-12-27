@@ -90,14 +90,14 @@ void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
         assert(devib);
 
         // Poison TxBuf to help troubleshooting
-        cu->tx_channel.link.cmd.raw = 0xffffffff;
+        cu->channel.tx.link.cmd.raw = 0xffffffff;
 
         bool callback_pending = pch_devib_is_callback_pending(devib);
 	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu,
                 pch_dev_get_ua(devib),
                 callback_pending, txpend->state);
 
-        pch_txsm_run_result_t res = pch_txsm_run(txpend, &cu->tx_channel);
+        pch_txsm_run_result_t res = pch_txsm_run(txpend, &cu->channel.tx);
         if (res == PCH_TXSM_ACTED)
                 return;
 
@@ -114,9 +114,9 @@ void __no_inline_not_in_flash_func(pch_cu_send_pending_tx_command)(pch_cu_t *cu,
         pch_devib_set_tx_busy(devib, true);
         proto_packet_t p = pch_cus_make_packet(devib);
         uint32_t cmd = proto_packet_as_word(p);
-        dmachan_link_t *txl = &cu->tx_channel.link;
+        dmachan_link_t *txl = &cu->channel.tx.link;
         dmachan_link_cmd_set(txl, dmachan_make_cmd_from_word(cmd));
         trace_dev_packet(PCH_TRC_RT_CUS_SEND_TX_PACKET, devib, p,
                 dmachan_link_seqnum(txl));
-        dmachan_start_src_cmdbuf(&cu->tx_channel);
+        dmachan_start_src_cmdbuf(&cu->channel.tx);
 }

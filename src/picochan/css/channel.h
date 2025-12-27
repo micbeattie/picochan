@@ -45,8 +45,7 @@ typedef struct ua_slist {
  * dev-side CU, pch_cu_t.
  */
 typedef struct __aligned(4) pch_chp {
-        dmachan_tx_channel_t    tx_channel;
-        dmachan_rx_channel_t    rx_channel;
+        pch_channel_t           channel;
         pch_txsm_t              tx_pending;
         pch_sid_t               first_sid;
         uint16_t                num_devices; // [0, 256]
@@ -251,7 +250,7 @@ static inline proto_packet_t get_tx_packet(pch_chp_t *chp) {
         // error: cast increases required alignment of target type
         // [-Werror=cast-align]
         proto_packet_t *pp = (proto_packet_t *)
-                __builtin_assume_aligned(&chp->tx_channel.link.cmd, 4);
+                __builtin_assume_aligned(&chp->channel.tx.link.cmd, 4);
         return *pp;
 }
 

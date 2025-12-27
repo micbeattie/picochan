@@ -250,7 +250,7 @@ bool pch_css_set_trace(bool trace) {
 }
 
 void __time_critical_func(send_tx_packet)(pch_chp_t *chp, pch_schib_t *schib, proto_packet_t p) {
-        dmachan_tx_channel_t *tx = &chp->tx_channel;
+        dmachan_tx_channel_t *tx = &chp->channel.tx;
         dmachan_link_t *txl = &tx->link;
         uint32_t cmd = proto_packet_as_word(p);
         dmachan_link_cmd_set(txl, dmachan_make_cmd_from_word(cmd));

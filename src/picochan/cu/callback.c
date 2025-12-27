@@ -133,8 +133,8 @@ static inline bool try_handling_pending_callback(pch_cu_t *cu) {
 
 void __time_critical_func(pch_cus_async_worker_callback)(async_context_t *context, async_when_pending_worker_t *worker) {
         pch_cu_t *cu = worker->user_data;
-        dmachan_link_t *rxl = &cu->rx_channel.link;
-        dmachan_link_t *txl = &cu->tx_channel.link;
+        dmachan_link_t *rxl = &cu->channel.rx.link;
+        dmachan_link_t *txl = &cu->channel.tx.link;
         bool tx_progress;
         bool cb_progress;
 

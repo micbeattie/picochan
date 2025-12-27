@@ -36,9 +36,9 @@ static bool process_a_schib_waiting_for_tx(pch_chp_t *chp) {
 }
 
 static void handle_dma_irq_chp(pch_chp_t *chp) {
-        dmachan_tx_channel_t *tx = &chp->tx_channel;
+        dmachan_tx_channel_t *tx = &chp->channel.tx;
         dmachan_irq_state_t tx_irq_state = dmachan_handle_tx_irq(tx);
-        dmachan_rx_channel_t *rx = &chp->rx_channel;
+        dmachan_rx_channel_t *rx = &chp->channel.rx;
         dmachan_irq_state_t rx_irq_state = dmachan_handle_rx_irq(rx);
 
         trace_chp_irq(PCH_TRC_RT_CSS_CHP_IRQ, chp, CSS.dmairqix,
