@@ -122,8 +122,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, CSS.dmairqix);
 
-        dmachan_init_uart_tx_channel(&chp->channel.tx, &dc.tx);
-        dmachan_init_uart_rx_channel(&chp->channel.rx, &dc.rx);
+        dmachan_init_uart_channel(&chp->channel, &dc);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, &dc.tx);
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, &dc.rx);
@@ -152,8 +151,7 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
 
-        dmachan_init_mem_tx_channel(&chp->channel.tx, &dc.tx);
-        dmachan_init_mem_rx_channel(&chp->channel.rx, &dc.rx, txpeer);
+        dmachan_init_mem_channel(&chp->channel, &dc, txpeer);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, &dc.tx);
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, &dc.rx);

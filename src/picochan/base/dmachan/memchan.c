@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "picochan/dmachan.h"
 #include "dmachan_internal.h"
 
 // mem_peer_spin_lock must be initialised with pch_memchan_init
@@ -24,4 +23,21 @@ void pch_memchan_init(void) {
 
         int n = spin_lock_claim_unused(true);
         dmachan_mem_peer_spin_lock = spin_lock_init(n);
+}
+
+void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, dmachan_tx_channel_t *txpeer) {
+        dmachan_init_tx_channel(&ch->tx, &dc->tx,
+                &dmachan_mem_tx_channel_ops);
+        // Do not enable irq for tx channel link because Pico DMA
+        // does not treat the INTSn bits separately. We enable only
+        // the rx side for irqs and the rx irq handler propagates
+        // notifications to the tx side via the INTFn "forced irq"
+        // register which overrides the INTEn enabled bits.
+
+        dmachan_rx_channel_t *rx = &ch->rx;
+        dmachan_init_rx_channel(rx, &dc->rx,
+                &dmachan_mem_rx_channel_ops);
+        dmachan_set_link_irq_enabled(&rx->link, true);
+        txpeer->mem_rx_peer = rx;
+        rx->mem_tx_peer = txpeer;
 }

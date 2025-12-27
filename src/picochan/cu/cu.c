@@ -230,8 +230,7 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_c
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, cu->dmairqix);
 
-        dmachan_init_uart_tx_channel(&cu->channel.tx, &dc.tx);
-        dmachan_init_uart_rx_channel(&cu->channel.rx, &dc.rx);
+        dmachan_init_uart_channel(&cu->channel, &dc);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, &dc.tx);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, &dc.rx);
@@ -263,8 +262,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, cu->dmairqix);
 
-        dmachan_init_mem_tx_channel(&cu->channel.tx, &dc.tx);
-        dmachan_init_mem_rx_channel(&cu->channel.rx, &dc.rx, txpeer);
+        dmachan_init_mem_channel(&cu->channel, &dc, txpeer);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, &dc.tx);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, &dc.rx);

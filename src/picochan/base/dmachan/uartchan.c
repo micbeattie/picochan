@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "picochan/dmachan.h"
+#include "dmachan_internal.h"
 
 /*! \brief pch_uart_init is a convenience function to initialise
  *  either side of a CSS<->CU channel
@@ -26,4 +26,16 @@ void pch_uart_init(uart_inst_t *uart, uint baudrate) {
         uart_set_format(uart, 8, 1, UART_PARITY_EVEN);
         uart_set_fifo_enabled(uart, true);
         uart_set_translate_crlf(uart, false);
+}
+
+void dmachan_init_uart_channel(pch_channel_t *ch, dmachan_config_t *dc) {
+        dmachan_tx_channel_t *tx = &ch->tx;
+        dmachan_init_tx_channel(tx, &dc->tx,
+                &dmachan_uart_tx_channel_ops);
+        dmachan_set_link_irq_enabled(&tx->link, true);
+
+        dmachan_rx_channel_t *rx = &ch->rx;
+        dmachan_init_rx_channel(rx, &dc->rx,
+                &dmachan_uart_rx_channel_ops);
+        dmachan_set_link_irq_enabled(&rx->link, true);
 }

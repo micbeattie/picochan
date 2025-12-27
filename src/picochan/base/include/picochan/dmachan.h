@@ -333,11 +333,8 @@ static inline dma_channel_config dmachan_uart_make_rxctrl(uart_inst_t *uart, dma
         return ctrl;
 }
 
-void dmachan_init_uart_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c);
-void dmachan_init_uart_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c);
-
-void dmachan_init_mem_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c);
-void dmachan_init_mem_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c, dmachan_tx_channel_t *txpeer);
+void dmachan_init_uart_channel(pch_channel_t *ch, dmachan_config_t *dc);
+void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, dmachan_tx_channel_t *txpeer);
 
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or

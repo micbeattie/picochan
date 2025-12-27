@@ -122,12 +122,3 @@ static dmachan_irq_state_t __time_critical_func(mem_handle_tx_irq)(dmachan_tx_ch
         return dmachan_make_irq_state(tx_irq_raised, tx_irq_forced,
                 txl->complete);
 }
-
-void dmachan_init_mem_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c) {
-        dmachan_init_tx_channel(tx, d1c, &dmachan_mem_tx_channel_ops);
-        // Do not enable irq for tx channel link because Pico DMA
-        // does not treat the INTSn bits separately. We enable only
-        // the rx side for irqs and the rx irq handler propagates
-        // notifications to the tx side via the INTFn "forced irq"
-        // register which overrides the INTEn enabled bits.
-}

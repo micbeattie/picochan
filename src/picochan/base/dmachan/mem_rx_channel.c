@@ -169,10 +169,3 @@ static dmachan_irq_state_t __time_critical_func(mem_handle_rx_irq)(dmachan_rx_ch
         return dmachan_make_irq_state(rx_irq_raised, rx_irq_forced,
                 rxl->complete);
 }
-
-void dmachan_init_mem_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c, dmachan_tx_channel_t *txpeer) {
-        dmachan_init_rx_channel(rx, d1c, &dmachan_mem_rx_channel_ops);
-        dmachan_set_link_irq_enabled(&rx->link, true);
-        txpeer->mem_rx_peer = rx;
-        rx->mem_tx_peer = txpeer;
-}
