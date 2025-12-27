@@ -147,6 +147,8 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, CSS.dmairqix);
         pch_chp_dma_configure(chpid, &dc);
+        chp->tx_channel.ops = &dmachan_uart_tx_channel_ops;
+        chp->rx_channel.ops = &dmachan_uart_rx_channel_ops;
         dmachan_set_link_irq_enabled(&chp->tx_channel.link, true);
         dmachan_set_link_irq_enabled(&chp->rx_channel.link, true);
         pch_chp_mark_configure_complete(chpid, true);
@@ -174,6 +176,8 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
         pch_chp_dma_configure(chpid, &dc);
+        chp->tx_channel.ops = &dmachan_mem_tx_channel_ops;
+        chp->rx_channel.ops = &dmachan_mem_rx_channel_ops;
         // Do not enable irq for tx channel link because Pico DMA
         // does not treat the INTSn bits separately. We enable only
         // the rx side for irqs and the rx irq handler propagates

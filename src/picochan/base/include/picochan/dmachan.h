@@ -200,14 +200,32 @@ static inline void dmachan_ack_link_irq(dmachan_link_t *l) {
 typedef struct __aligned(4) dmachan_tx_channel dmachan_tx_channel_t;
 typedef struct __aligned(4) dmachan_rx_channel dmachan_rx_channel_t;
 
+typedef struct dmachan_tx_channel_ops {
+        void (*start_src_cmdbuf)(dmachan_tx_channel_t *tx);
+        void (*write_src_reset)(dmachan_tx_channel_t *tx);
+        void (*start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
+        dmachan_irq_state_t (*handle_tx_irq)(dmachan_tx_channel_t *tx);
+} dmachan_tx_channel_ops_t;
+
 typedef struct __aligned(4) dmachan_tx_channel {
         dmachan_link_t          link;
+        const dmachan_tx_channel_ops_t *ops;
         dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
         dmachan_mem_src_state_t mem_src_state;  // only for memchan
 } dmachan_tx_channel_t;
 
+typedef struct dmachan_rx_channel_ops {
+        void (*start_dst_cmdbuf)(dmachan_rx_channel_t *rx);
+        void (*start_dst_reset)(dmachan_rx_channel_t *rx);
+        void (*start_dst_data)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
+        void (*start_dst_discard)(dmachan_rx_channel_t *rx, uint32_t count);
+        void (*prep_dst_data_src_zeroes)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
+        dmachan_irq_state_t (*handle_rx_irq)(dmachan_rx_channel_t *rx);
+} dmachan_rx_channel_ops_t;
+
 typedef struct __aligned(4) dmachan_rx_channel {
         dmachan_link_t          link;
+        const dmachan_rx_channel_ops_t *ops;
         dmachan_tx_channel_t    *mem_tx_peer;   // only for memchan
         uint32_t                srcaddr;
         dma_channel_config      ctrl;
@@ -232,8 +250,6 @@ static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_m
         tx->mem_src_state = new_state;
 }
 
-dmachan_irq_state_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx);
-
 // rx channel irq and memory destination state handling
 static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {
         valid_params_if(PCH_DMACHAN,
@@ -243,21 +259,59 @@ static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_m
         rx->mem_dst_state = new_state;
 }
 
-dmachan_irq_state_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx);
-
 void dmachan_panic_unless_memchan_initialised(void);
 
+// Methods for dmachan_rx_channel_t
+
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);
-void dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx);
-void dmachan_write_src_reset(dmachan_tx_channel_t *tx);
-void dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
+
+static inline void dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx) {
+        tx->ops->start_src_cmdbuf(tx);
+}
+
+static inline void dmachan_write_src_reset(dmachan_tx_channel_t *tx) {
+        tx->ops->write_src_reset(tx);
+}
+
+static inline void dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
+        tx->ops->start_src_data(tx, srcaddr, count);
+}
+
+static inline dmachan_irq_state_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx) {
+        return tx->ops->handle_tx_irq(tx);
+}
+
+// Methods for dmachan_rx_channel_t
 
 void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *cfg);
-void dmachan_start_dst_reset(dmachan_rx_channel_t *rx);
-void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx);
-void dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
-void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);
+
+static inline void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx) {
+        rx->ops->start_dst_cmdbuf(rx);
+}
+
+static inline void dmachan_start_dst_reset(dmachan_rx_channel_t *rx) {
+        rx->ops->start_dst_reset(rx);
+}
+
+static inline void dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
+        rx->ops->start_dst_data(rx, dstaddr, count);
+}
+
+static inline void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count) {
+        rx->ops->start_dst_discard(rx, count);
+}
+
+static inline dmachan_irq_state_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx) {
+        return rx->ops->handle_rx_irq(rx);
+}
+
 void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
+
+
+extern dmachan_rx_channel_ops_t dmachan_mem_rx_channel_ops;
+extern dmachan_tx_channel_ops_t dmachan_mem_tx_channel_ops;
+extern dmachan_rx_channel_ops_t dmachan_uart_rx_channel_ops;
+extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
 
 // Convenience functions for configuring UART channels
 void pch_uart_init(uart_inst_t *uart, uint baudrate);

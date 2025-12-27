@@ -7,6 +7,7 @@
 #define _PCH_DMACHAN_DMACHAN_INTERNAL_H
 
 #include "hardware/sync.h"
+#include "picochan/dmachan.h"
 #include "dmachan_trace.h"
 
 // dmachan_mem_peer_spin_lock protects against test/update of
@@ -30,5 +31,7 @@ static inline void mem_peer_unlock(uint32_t saved_irq) {
         (void)saved_irq;
 #endif
 }
+
+void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx);
 
 #endif
