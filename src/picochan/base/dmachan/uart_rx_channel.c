@@ -74,3 +74,8 @@ static dmachan_irq_state_t __time_critical_func(uart_handle_rx_irq)(dmachan_rx_c
 
         return dmachan_make_irq_state(rx_irq_raised, false, rxl->complete);
 }
+
+void dmachan_init_uart_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
+        dmachan_init_rx_channel(rx, d1c, &dmachan_uart_rx_channel_ops);
+        dmachan_set_link_irq_enabled(&rx->link, true);
+}

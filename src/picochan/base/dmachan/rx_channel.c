@@ -7,7 +7,8 @@
 #include "picochan/dmachan.h"
 #include "dmachan_internal.h"
 
-void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
+void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c, const dmachan_rx_channel_ops_t *ops) {
+        rx->ops = ops;
         pch_dmaid_t dmaid = d1c->dmaid;
         uint32_t srcaddr = d1c->addr;
         dma_channel_config ctrl = d1c->ctrl;

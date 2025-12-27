@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.13)
 #include(pico_sdk_import.cmake)
 include ($ENV{PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-#set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Debug)
 #set(CMAKE_BUILD_TYPE Release)
 
 project(blink_memchan C CXX ASM)

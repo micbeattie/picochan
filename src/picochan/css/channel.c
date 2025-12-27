@@ -99,31 +99,6 @@ static inline void trace_chp_dma(pch_trc_record_type_t rt, pch_chpid_t chpid, dm
         }));
 }
 
-static void chp_dma_tx_init(pch_chpid_t chpid, dmachan_1way_config_t *d1c) {
-        pch_chp_t *chp = pch_get_chp(chpid);
-        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
-
-        dmachan_init_tx_channel(&chp->tx_channel, d1c);
-        trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, d1c);
-}
-
-static void chp_dma_rx_init(pch_chpid_t chpid, dmachan_1way_config_t *d1c) {
-        pch_chp_t *chp = pch_get_chp(chpid);
-        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
-
-        dmachan_init_rx_channel(&chp->rx_channel, d1c);
-        trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, d1c);
-}
-
-void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc) {
-        pch_chp_t *chp = pch_get_chp(chpid);
-        assert(pch_chp_is_allocated(chp) && !pch_chp_is_started(chp));
-        (void)chp;
-
-        chp_dma_tx_init(chpid, &dc->tx);
-        chp_dma_rx_init(chpid, &dc->rx);
-}
-
 void pch_chp_mark_configure_complete(pch_chpid_t chpid, bool configured) {
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
@@ -146,11 +121,12 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channe
         uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
         dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
                 hwaddr, rxctrl, CSS.dmairqix);
-        pch_chp_dma_configure(chpid, &dc);
-        chp->tx_channel.ops = &dmachan_uart_tx_channel_ops;
-        chp->rx_channel.ops = &dmachan_uart_rx_channel_ops;
-        dmachan_set_link_irq_enabled(&chp->tx_channel.link, true);
-        dmachan_set_link_irq_enabled(&chp->rx_channel.link, true);
+
+        dmachan_init_uart_tx_channel(&chp->tx_channel, &dc.tx);
+        dmachan_init_uart_rx_channel(&chp->rx_channel, &dc.rx);
+
+        trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, &dc.tx);
+        trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, &dc.rx);
         pch_chp_mark_configure_complete(chpid, true);
 }
 
@@ -175,18 +151,12 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, CSS.dmairqix);
-        pch_chp_dma_configure(chpid, &dc);
-        chp->tx_channel.ops = &dmachan_mem_tx_channel_ops;
-        chp->rx_channel.ops = &dmachan_mem_rx_channel_ops;
-        // Do not enable irq for tx channel link because Pico DMA
-        // does not treat the INTSn bits separately. We enable only
-        // the rx side for irqs and the rx irq handler propagates
-        // notifications to the tx side via the INTFn "forced irq"
-        // register which overrides the INTEn enabled bits.
-        dmachan_rx_channel_t *rx = &chp->rx_channel;
-        dmachan_set_link_irq_enabled(&rx->link, true);
-        txpeer->mem_rx_peer = rx;
-        rx->mem_tx_peer = txpeer;
+
+        dmachan_init_mem_tx_channel(&chp->tx_channel, &dc.tx);
+        dmachan_init_mem_rx_channel(&chp->rx_channel, &dc.rx, txpeer);
+
+        trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid, &dc.tx);
+        trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid, &dc.rx);
         pch_chp_mark_configure_complete(chpid, true);
 }
 

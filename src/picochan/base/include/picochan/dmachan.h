@@ -263,8 +263,6 @@ void dmachan_panic_unless_memchan_initialised(void);
 
 // Methods for dmachan_rx_channel_t
 
-void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);
-
 static inline void dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx) {
         tx->ops->start_src_cmdbuf(tx);
 }
@@ -282,8 +280,6 @@ static inline dmachan_irq_state_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx
 }
 
 // Methods for dmachan_rx_channel_t
-
-void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *cfg);
 
 static inline void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx) {
         rx->ops->start_dst_cmdbuf(rx);
@@ -331,6 +327,12 @@ static inline dma_channel_config dmachan_uart_make_rxctrl(uart_inst_t *uart, dma
         channel_config_set_dreq(&ctrl, rxdreq);
         return ctrl;
 }
+
+void dmachan_init_uart_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c);
+void dmachan_init_uart_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c);
+
+void dmachan_init_mem_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c);
+void dmachan_init_mem_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c, dmachan_tx_channel_t *txpeer);
 
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or

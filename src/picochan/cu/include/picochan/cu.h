@@ -457,7 +457,6 @@ uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags);
 bool pch_cus_trace_dev(pch_devib_t *devib, bool trace);
 
 // CU initialisation low-level helpers
-void pch_cu_dma_configure(pch_cuaddr_t cua, dmachan_config_t *dc);
 void pch_cu_set_configured(pch_cuaddr_t cua, bool configured);
 
 /*! \brief Fetch the internal tx side of a channel from CU to CSS
