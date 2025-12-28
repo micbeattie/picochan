@@ -37,8 +37,8 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t cardkb_cu = PCH_CU_INIT(NUM_CARDKB_DEVS);
 
-pch_dma_irq_index_t css_dmairqix = 0;
-pch_dma_irq_index_t cu_dmairqix = 1;
+pch_irq_index_t css_dmairqix = 0;
+pch_irq_index_t cu_dmairqix = 1;
 
 extern void cardkb_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices);
 extern void cardkb_i2c_init(i2c_inst_t **i2cp, uint8_t *addrp);

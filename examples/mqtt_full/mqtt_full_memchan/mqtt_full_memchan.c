@@ -53,8 +53,8 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t mqtt_cu = PCH_CU_INIT(NUM_MQTT_DEVS);
 
-pch_dma_irq_index_t css_dmairqix = -1;
-pch_dma_irq_index_t cu_dmairqix = -1;
+pch_irq_index_t css_dmairqix = -1;
+pch_irq_index_t cu_dmairqix = -1;
 
 static void light_led_ms(uint32_t ms) {
         status_led_init_with_context(cyw43_arch_async_context());

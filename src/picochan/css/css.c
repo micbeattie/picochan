@@ -78,11 +78,11 @@ int8_t pch_css_get_core_num(void) {
 
 // Configuring DMA IRQ handler
 
-pch_dma_irq_index_t pch_css_get_dma_irq_index(void) {
+pch_irq_index_t pch_css_get_dma_irq_index(void) {
         return CSS.dmairqix;
 }
 
-void pch_css_set_dma_irq_index(pch_dma_irq_index_t dmairqix) {
+void pch_css_set_dma_irq_index(pch_irq_index_t dmairqix) {
         if (dmairqix < 0 || dmairqix >= NUM_DMA_IRQS)
                 panic("invalid DMA IRQ index");
 
@@ -93,7 +93,7 @@ void pch_css_set_dma_irq_index(pch_dma_irq_index_t dmairqix) {
         CSS.dmairqix = dmairqix;
 }
 
-void pch_css_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_t order_priority)
+void pch_css_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority)
  {
         pch_css_set_dma_irq_index(dmairqix);
         irq_num_t irqnum = dma_get_irq_num(dmairqix);
@@ -102,7 +102,7 @@ void pch_css_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_
         irq_set_enabled(irqnum, true);
 }
 
-void pch_css_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix) {
+void pch_css_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix) {
         pch_css_set_dma_irq_index(dmairqix);
         irq_num_t irqnum = dma_get_irq_num(dmairqix);
         css_irq_set_exclusive_handler(PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER,
@@ -111,12 +111,12 @@ void pch_css_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix) {
 }
 
 void pch_css_configure_dma_irq_index_default_shared(uint8_t order_priority) {
-        pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)get_core_num();
+        pch_irq_index_t dmairqix = (pch_irq_index_t)get_core_num();
         pch_css_configure_dma_irq_index_shared(dmairqix, order_priority);
 }
 
 void pch_css_configure_dma_irq_index_default_exclusive() {
-        pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)get_core_num();
+        pch_irq_index_t dmairqix = (pch_irq_index_t)get_core_num();
         pch_css_configure_dma_irq_index_exclusive(dmairqix);
 }
 

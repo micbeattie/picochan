@@ -85,7 +85,7 @@ static inline void trace_call_callback(pch_trc_record_type_t rt, pch_devib_t *de
                 }));
 }
 
-static inline void trace_cu_irq(pch_trc_record_type_t rt, pch_cu_t *cu, pch_dma_irq_index_t dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {
+static inline void trace_cu_irq(pch_trc_record_type_t rt, pch_cu_t *cu, pch_irq_index_t dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {
         PCH_CUS_TRACE_COND(rt,
                 pch_cu_is_traced_irq(cu), ((struct pch_trdata_id_irq){
                         .id = cu->cuaddr,

@@ -105,7 +105,7 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 	int16_t                 rx_active;
         uint16_t                num_devibs; //!< [0, 256]
 	//! completions raise irq dma.IRQ_BASE+dmairqix, -1 before configuration
-	pch_dma_irq_index_t     dmairqix;
+	pch_irq_index_t     dmairqix;
         pch_cuaddr_t            cuaddr;
         uint8_t                 flags;
         //! Flexible Array Member (FAM) of size num_devibs
@@ -136,11 +136,11 @@ static inline bool pch_cu_is_traced_irq(pch_cu_t *cu) {
         return cu->flags & PCH_CU_TRACED_IRQ;
 }
 
-static inline pch_dma_irq_index_t pch_cu_get_dma_irq_index(pch_cu_t *cu) {
+static inline pch_irq_index_t pch_cu_get_dma_irq_index(pch_cu_t *cu) {
         return cu->dmairqix;
 }
 
-void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix);
+void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_irq_index_t dmairqix);
 
 /*! \def PCH_CU_INIT
  *  \ingroup picochan_cu
@@ -254,7 +254,7 @@ void pch_cu_configure_async_context_if_unset(pch_cu_t *cu);
  * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
  * index of the CSS.
 */
-void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix);
+void pch_cus_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix);
 
 /*
  * \brief Configure an explicit DMA IRQ for use by CUs started from
@@ -267,7 +267,7 @@ void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix);
  * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
  * index of the CSS.
 */
-void pch_cus_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_t order_priority);
+void pch_cus_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority);
 
 /*
  * \brief Configure an explicit DMA IRQ for use by CUs started from
@@ -281,7 +281,7 @@ void pch_cus_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_
  * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
  * index of the CSS.
 */
-void pch_cus_configure_dma_irq_index_shared_default(pch_dma_irq_index_t dmairqix);
+void pch_cus_configure_dma_irq_index_shared_default(pch_irq_index_t dmairqix);
 
 /*
  * \brief Automatically choose and configure a suitable DMA IRQ for
@@ -304,7 +304,7 @@ void pch_cus_configure_dma_irq_index_shared_default(pch_dma_irq_index_t dmairqix
  * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
  * index of the CSS.
 */
-pch_dma_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required);
+pch_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required);
 
 /* \brief Marks dmairqix such that any call to
  * pch_cus_auto_configure_dma_irq_index(), whether explicit or
@@ -317,7 +317,7 @@ pch_dma_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required);
  * conflict with those of a CSS in use on the same Pico or just some
  * other DMA IRQ index that needs to be reserved for application use.
  */
-void pch_cus_ignore_dma_irq_index_t(pch_dma_irq_index_t dmairqix);
+void pch_cus_ignore_dma_irq_index_t(pch_irq_index_t dmairqix);
 
 // CU initialisation and configuration
 

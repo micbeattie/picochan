@@ -110,9 +110,9 @@ int16_t pch_css_get_io_irq(void);
 // CSS IRQ numbers and handlers for DMA IRQ index, function IRQ
 // and I/O IRQ.
 
-void pch_css_set_dma_irq_index(pch_dma_irq_index_t dmairqix);
-void pch_css_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_t order_priority);
-void pch_css_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix);
+void pch_css_set_dma_irq_index(pch_irq_index_t dmairqix);
+void pch_css_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority);
+void pch_css_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix);
 void pch_css_configure_dma_irq_index_default_shared(uint8_t order_priority);
 void pch_css_configure_dma_irq_index_default_exclusive();
 void pch_css_auto_configure_dma_irq_index();

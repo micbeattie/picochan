@@ -111,7 +111,7 @@ void __isr __time_critical_func(pch_css_dma_irq_handler)() {
         uint irqnum = __get_current_exception() - VTABLE_FIRST_IRQ;
 	// TODO deal with getting the Irq information and acking
 	// them in a batch instead of individually
-        pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)(irqnum - DMA_IRQ_0);
+        pch_irq_index_t dmairqix = (pch_irq_index_t)(irqnum - DMA_IRQ_0);
         if (dmairqix != CSS.dmairqix)
                 return;
 

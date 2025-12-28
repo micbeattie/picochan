@@ -28,8 +28,8 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t blink_cu = PCH_CU_INIT(1);
 
-pch_dma_irq_index_t css_dmairqix = -1;
-pch_dma_irq_index_t cu_dmairqix = -1;
+pch_irq_index_t css_dmairqix = -1;
+pch_irq_index_t cu_dmairqix = -1;
 
 extern void blink_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua);
 

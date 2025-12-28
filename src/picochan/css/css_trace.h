@@ -61,7 +61,7 @@ static inline void trace_schib_scsw_cc(pch_trc_record_type_t rt, pch_schib_t *sc
                 }));
 }
 
-static inline void trace_chp_irq(pch_trc_record_type_t rt, pch_chp_t *chp, pch_dma_irq_index_t dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {
+static inline void trace_chp_irq(pch_trc_record_type_t rt, pch_chp_t *chp, pch_irq_index_t dmairqix, uint8_t tx_irq_state, uint8_t rx_irq_state) {
         PCH_CSS_TRACE_COND(rt,
                 pch_chp_is_traced_irq(chp), ((struct pch_trdata_id_irq){
                         .id = pch_get_chpid(chp),

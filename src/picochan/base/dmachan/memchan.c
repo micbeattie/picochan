@@ -25,7 +25,7 @@ void pch_memchan_init(void) {
         dmachan_mem_peer_spin_lock = spin_lock_init(n);
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, pch_dma_irq_index_t dmairqix) {
+static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, pch_irq_index_t dmairqix) {
         dma_channel_config ctrl = dma_channel_get_default_config(dmaid);
         channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
         channel_config_set_read_increment(&ctrl, true);
@@ -38,7 +38,7 @@ static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t
         });
 }
 
-static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_dma_irq_index_t dmairqix) {
+static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_irq_index_t dmairqix) {
         return ((dmachan_config_t){
                 .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix),
                 .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix)

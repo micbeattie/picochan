@@ -86,10 +86,10 @@ typedef struct dmachan_1way_config {
         uint32_t                addr;
         dma_channel_config      ctrl;
         pch_dmaid_t             dmaid;
-        pch_dma_irq_index_t     dmairqix;
+        pch_irq_index_t     dmairqix;
 } dmachan_1way_config_t;
 
-static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl, pch_dma_irq_index_t dmairqix) {
+static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl, pch_irq_index_t dmairqix) {
         return ((dmachan_1way_config_t){
                 .addr = addr,
                 .ctrl = ctrl,
@@ -98,7 +98,7 @@ static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, 
         });
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, pch_dma_irq_index_t dmairqix) {
+static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, pch_irq_index_t dmairqix) {
         pch_dmaid_t dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
         return dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix);
 }
@@ -110,7 +110,7 @@ typedef struct dmachan_config {
         dmachan_1way_config_t   rx;
 } dmachan_config_t;
 
-static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, pch_dma_irq_index_t dmairqix) {
+static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, pch_irq_index_t dmairqix) {
         return ((dmachan_config_t){
                 .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix),
                 .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix)
@@ -141,7 +141,7 @@ typedef struct __aligned(4) dmachan_link {
         uint16_t                seqnum;
 #endif
         pch_dmaid_t             dmaid;
-        pch_dma_irq_index_t     dmairqix;
+        pch_irq_index_t     dmairqix;
         bool                    complete;
         bool                    resetting;
 } dmachan_link_t;
@@ -177,7 +177,7 @@ static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *sr
 }
 
 static inline void dmachan_set_link_dma_irq_enabled(dmachan_link_t *l, bool enabled) {
-        pch_dma_irq_index_t dmairqix = l->dmairqix;
+        pch_irq_index_t dmairqix = l->dmairqix;
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         dma_irqn_set_channel_enabled(dmairqix, l->dmaid, enabled);
 }

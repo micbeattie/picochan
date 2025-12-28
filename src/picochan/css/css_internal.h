@@ -41,7 +41,7 @@ struct css {
         int16_t         func_irqnum; //!< raised by API to schedule schib function
         uint8_t         isc_enable_mask;
         uint8_t         isc_status_mask;
-        pch_dma_irq_index_t dmairqix; //!< completions raise irq dma.IRQ_BASE+dmairqix
+        pch_irq_index_t dmairqix; //!< completions raise irq dma.IRQ_BASE+dmairqix
         int8_t          core_num;
         pch_sid_t       next_sid; //!< starting SID for next pch_chp_claim
         pch_trc_bufferset_t trace_bs;

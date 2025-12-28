@@ -31,7 +31,7 @@ typedef struct dmairqix_config {
 
 dmairqix_config_t dmairqix_configs[NUM_DMA_IRQS];
 
-static dmairqix_config_t *get_dmairqix_config(pch_dma_irq_index_t dmairqix) {
+static dmairqix_config_t *get_dmairqix_config(pch_irq_index_t dmairqix) {
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         return &dmairqix_configs[dmairqix];
 }
@@ -51,7 +51,7 @@ void pch_cus_init() {
         pch_cus_init_done = true;
 }
 
-void pch_cus_ignore_dma_irq_index_t(pch_dma_irq_index_t dmairqix) {
+void pch_cus_ignore_dma_irq_index_t(pch_irq_index_t dmairqix) {
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         dmairqix_config_t *dc = get_dmairqix_config(dmairqix);
         assert(dc->state != DMAIRQIX_CONFIG_CONFIGURED);
@@ -67,7 +67,7 @@ static void trace_configure_dmairqix(irq_num_t irqnum, int16_t order_priority_op
                 }));
 }
 
-static irq_num_t prepare_configure_dmairqix(pch_dma_irq_index_t dmairqix) {
+static irq_num_t prepare_configure_dmairqix(pch_irq_index_t dmairqix) {
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         dmairqix_config_t *dc = get_dmairqix_config(dmairqix);
         assert(dc->state == DMAIRQIX_CONFIG_UNUSED);
@@ -78,14 +78,14 @@ static irq_num_t prepare_configure_dmairqix(pch_dma_irq_index_t dmairqix) {
         return irqnum;
 }
 
-void pch_cus_configure_dma_irq_index_exclusive(pch_dma_irq_index_t dmairqix) {
+void pch_cus_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix) {
         irq_num_t irqnum = prepare_configure_dmairqix(dmairqix);
         irq_set_exclusive_handler(irqnum, pch_cus_handle_dma_irq);
         irq_set_enabled(irqnum, true);
         trace_configure_dmairqix(irqnum, -1);
 }
 
-void pch_cus_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_t order_priority) {
+void pch_cus_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority) {
         irq_num_t irqnum = prepare_configure_dmairqix(dmairqix);
         irq_add_shared_handler(irqnum, pch_cus_handle_dma_irq,
                 order_priority);
@@ -93,16 +93,16 @@ void pch_cus_configure_dma_irq_index_shared(pch_dma_irq_index_t dmairqix, uint8_
         trace_configure_dmairqix(irqnum, (int16_t)order_priority);
 }
 
-void pch_cus_configure_dma_irq_index_shared_default(pch_dma_irq_index_t dmairqix) {
+void pch_cus_configure_dma_irq_index_shared_default(pch_irq_index_t dmairqix) {
         pch_cus_configure_dma_irq_index_shared(dmairqix,
                 PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
 }
 
-pch_dma_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required) {
+pch_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required) {
         uint core_num = get_core_num();
-        pch_dma_irq_index_t first_unused = -1;
+        pch_irq_index_t first_unused = -1;
 
-        for (pch_dma_irq_index_t dmairqix = 0; dmairqix < NUM_DMA_IRQS; dmairqix++) {
+        for (pch_irq_index_t dmairqix = 0; dmairqix < NUM_DMA_IRQS; dmairqix++) {
                 dmairqix_config_t *dc = get_dmairqix_config(dmairqix);
                 if (dc->state == DMAIRQIX_CONFIG_CONFIGURED) {
                         if (dc->core_num == core_num)
@@ -148,7 +148,7 @@ void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua) {
                 }));
 }
 
-void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix) {
+void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_irq_index_t dmairqix) {
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         cu->dmairqix = dmairqix;
 }
