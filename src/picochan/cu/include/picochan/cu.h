@@ -384,11 +384,11 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
  * DMA ids, typically allocated using dma_claim_unused_channel().
  * In order for the CU to find the CSS-side information to
  * cross-connect the sides in memory, the CSS API function
- * pch_chp_get_tx_channel() must be used to fetch the internal
- * dmachan_tx_channel_t of the peer CSS channel for passing to
+ * pch_chp_get_channel() must be used to fetch the internal
+ * pch_channel_t of the peer CSS channel path for passing to
  * pch_cus_memcu_configure.
  */
-void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
+void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_channel_t *chpeer);
 
 /*! \brief Starts the channel from CU cua to the CSS
  * \ingroup picochan_cu
@@ -440,7 +440,7 @@ bool pch_cus_trace_dev(pch_devib_t *devib, bool trace);
 // CU initialisation low-level helpers
 void pch_cu_set_configured(pch_cuaddr_t cua, bool configured);
 
-/*! \brief Fetch the internal tx side of a channel from CU to CSS
+/*! \brief Fetch the internal pch_channel_t from CU to CSS
  * \ingroup picochan_cu
  *
  * This function is only needed when configuring a memchan between
@@ -448,9 +448,10 @@ void pch_cu_set_configured(pch_cuaddr_t cua, bool configured);
  * initialisation procedure uses this function to find its peer
  * CU structure in order to cross-connect the channels.
  */
-dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_cuaddr_t cua);
-
-dmachan_rx_channel_t *pch_cu_get_rx_channel(pch_cuaddr_t cua);
+static inline pch_channel_t *pch_cu_get_channel(pch_cuaddr_t cua) {
+        pch_cu_t *cu = pch_get_cu(cua);
+        return &cu->channel;
+}
 
 void __isr pch_cus_handle_dma_irq(void);
 

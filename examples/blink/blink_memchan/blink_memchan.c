@@ -44,9 +44,9 @@ static void core1_thread(void) {
         pch_cu_register(&blink_cu, CUADDR);
         pch_cus_trace_cu(CUADDR, BLINK_ENABLE_TRACE);
 
-        dmachan_tx_channel_t *txpeer = pch_chp_get_tx_channel(CHPID);
+        pch_channel_t *chpeer = pch_chp_get_channel(CHPID);
         pch_cus_memcu_configure(CUADDR, cu_to_css_dmaid,
-                css_to_cu_dmaid, txpeer);
+                css_to_cu_dmaid, chpeer);
 
         pch_cu_start(CUADDR);
 
@@ -94,9 +94,9 @@ int main(void) {
         multicore_launch_core1(core1_thread);
         sleep_ms(2000); // XXX not sure if there's a race
 
-        dmachan_tx_channel_t *txpeer = pch_cu_get_tx_channel(CUADDR);
+        pch_channel_t *chpeer = pch_cu_get_channel(CUADDR);
         pch_chp_configure_memchan(CHPID, css_to_cu_dmaid,
-                cu_to_css_dmaid, txpeer);
+                cu_to_css_dmaid, chpeer);
 
         pch_sch_modify_enabled(0, true);
         pch_sch_modify_traced(0, BLINK_ENABLE_TRACE);

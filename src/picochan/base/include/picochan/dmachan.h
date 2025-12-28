@@ -345,7 +345,7 @@ extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
 void pch_uart_init(uart_inst_t *uart, uint baudrate);
 
 void dmachan_init_uart_channel(pch_channel_t *ch, uart_inst_t *uart, pch_uartchan_config_t *cfg);
-void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, dmachan_tx_channel_t *txpeer);
+void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, pch_channel_t *chpeer);
 
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or

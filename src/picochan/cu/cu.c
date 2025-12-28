@@ -153,16 +153,6 @@ void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_dma_irq_index_t dmairqix) {
         cu->dmairqix = dmairqix;
 }
 
-dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_cuaddr_t cua) {
-        pch_cu_t *cu = pch_get_cu(cua);
-        return &cu->channel.tx;
-}
-
-dmachan_rx_channel_t *pch_cu_get_rx_channel(pch_cuaddr_t cua) {
-        pch_cu_t *cu = pch_get_cu(cua);
-        return &cu->channel.rx;
-}
-
 static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmachan_link_t *l) {
         PCH_CUS_TRACE(rt, ((struct pch_trdata_dma_init){
                 .ctrl = dma_get_ctrl_value(l->dmaid),
@@ -234,7 +224,7 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
         pch_cu_set_configured(cua, true);
 }
 
-void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer) {
+void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_channel_t *chpeer) {
         // Check that spin_lock is initialised even when not a Debug
         // release because silently ignoring it produces such
         // nasty-to-troubleshoot race conditions
@@ -249,7 +239,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
                 rxdmaid, cu->dmairqix);
 
-        dmachan_init_mem_channel(&cu->channel, &dc, txpeer);
+        dmachan_init_mem_channel(&cu->channel, &dc, chpeer);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
                 &cu->channel.tx.link);

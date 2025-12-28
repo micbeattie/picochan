@@ -97,9 +97,9 @@ static void core1_thread(void) {
         pch_cu_register(&mqtt_cu, CUADDR);
         pch_cu_set_trace_flags(CUADDR, MQTT_CU_TRACE_FLAGS);
 
-        dmachan_tx_channel_t *txpeer = pch_chp_get_tx_channel(CHPID);
+        pch_channel_t *chpeer = pch_chp_get_channel(CHPID);
         pch_cus_memcu_configure(CUADDR, cu_to_css_dmaid,
-                css_to_cu_dmaid, txpeer);
+                css_to_cu_dmaid, chpeer);
 
         pch_cu_start(CUADDR);
 
@@ -319,9 +319,9 @@ int main(void) {
 
         printf("core0 continuing\n");
 
-        dmachan_tx_channel_t *txpeer = pch_cu_get_tx_channel(CUADDR);
+        pch_channel_t *chpeer = pch_cu_get_channel(CUADDR);
         pch_chp_configure_memchan(CHPID, css_to_cu_dmaid,
-                cu_to_css_dmaid, txpeer);
+                cu_to_css_dmaid, chpeer);
 
         for (pch_sid_t sid = 0; sid < 3; sid++) {
                 pch_sch_modify_enabled(sid, true);
