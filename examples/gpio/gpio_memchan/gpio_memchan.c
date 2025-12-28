@@ -32,12 +32,12 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t gd_cu = PCH_CU_INIT(NUM_GPIO_DEVS);
 
-pch_dmaid_t css_to_cu_dmaid;
-pch_dmaid_t cu_to_css_dmaid;
 pch_dma_irq_index_t css_dmairqix = -1;
 pch_dma_irq_index_t cu_dmairqix = -1;
 
 extern void gd_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices);
+
+bool core1_ready;
 
 static void core1_thread(void) {
         pch_cus_init();
@@ -49,10 +49,10 @@ static void core1_thread(void) {
         pch_cus_trace_cu(CUADDR, GD_ENABLE_TRACE);
 
         pch_channel_t *chpeer = pch_chp_get_channel(CHPID);
-        pch_cus_memcu_configure(CUADDR, cu_to_css_dmaid,
-                css_to_cu_dmaid, chpeer);
+        pch_cus_memcu_configure(CUADDR, chpeer);
 
         pch_cu_start(CUADDR);
+        core1_ready = true; // core0 waits for this
 
         while (1)
                 __wfe();
@@ -100,8 +100,6 @@ int main(void) {
 
         light_led_for_three_seconds();
 
-        css_to_cu_dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        cu_to_css_dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
         css_dmairqix = 0;
         cu_dmairqix = 1;
 
@@ -117,11 +115,11 @@ int main(void) {
         pch_chp_set_trace(chpid, GD_ENABLE_TRACE);
 
         multicore_launch_core1(core1_thread);
-        sleep_ms(2000); // XXX not sure if there's a race
+        while (!core1_ready)
+                sleep_ms(1);
 
         pch_channel_t *chpeer = pch_cu_get_channel(CUADDR);
-        pch_chp_configure_memchan(CHPID, css_to_cu_dmaid,
-                cu_to_css_dmaid, chpeer);
+        pch_chp_configure_memchan(CHPID, chpeer);
 
         pch_sch_modify_enabled(0, true);
         pch_sch_modify_traced(0, GD_ENABLE_TRACE);

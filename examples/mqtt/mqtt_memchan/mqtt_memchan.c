@@ -33,8 +33,6 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t mqtt_cu = PCH_CU_INIT(NUM_MQTT_DEVS);
 
-pch_dmaid_t css_to_cu_dmaid;
-pch_dmaid_t cu_to_css_dmaid;
 pch_dma_irq_index_t css_dmairqix = -1;
 pch_dma_irq_index_t cu_dmairqix = -1;
 
@@ -78,8 +76,7 @@ static void core1_thread(void) {
         pch_cus_trace_cu(CUADDR, MQTT_ENABLE_TRACE);
 
         pch_channel_t *chpeer = pch_chp_get_channel(CHPID);
-        pch_cus_memcu_configure(CUADDR, cu_to_css_dmaid,
-                css_to_cu_dmaid, chpeer);
+        pch_cus_memcu_configure(CUADDR, chpeer);
 
         pch_cu_start(CUADDR);
 
@@ -116,8 +113,6 @@ int main(void) {
         stdio_init_all();
         sleep_ms(3000);
         printf("started main on core0\n");
-        css_to_cu_dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        cu_to_css_dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
         css_dmairqix = 0;
         cu_dmairqix = 1;
 
@@ -140,8 +135,7 @@ int main(void) {
         printf("core0 continuing\n");
 
         pch_channel_t *chpeer = pch_cu_get_channel(CUADDR);
-        pch_chp_configure_memchan(CHPID, css_to_cu_dmaid,
-                cu_to_css_dmaid, chpeer);
+        pch_chp_configure_memchan(CHPID, chpeer);
 
         pch_sch_modify_enabled(0, true);
         pch_sch_modify_traced(0, MQTT_ENABLE_TRACE);

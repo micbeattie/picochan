@@ -107,19 +107,6 @@ static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma
         return dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix);
 }
 
-static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, pch_dma_irq_index_t dmairqix) {
-        dma_channel_config ctrl = dma_channel_get_default_config(dmaid);
-        channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
-        channel_config_set_read_increment(&ctrl, true);
-        channel_config_set_write_increment(&ctrl, true);
-        return ((dmachan_1way_config_t){
-                .addr = 0,
-                .ctrl = ctrl,
-                .dmaid = dmaid,
-                .dmairqix = dmairqix
-        });
-}
-
 // DMA configuration for both directions (tx and rx) of a dmachan
 // channel
 typedef struct dmachan_config {
@@ -131,13 +118,6 @@ static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel
         return ((dmachan_config_t){
                 .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix),
                 .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix)
-        });
-}
-
-static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_dma_irq_index_t dmairqix) {
-        return ((dmachan_config_t){
-                .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix),
-                .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix)
         });
 }
 
@@ -372,7 +352,7 @@ extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
 void pch_uart_init(uart_inst_t *uart, uint baudrate);
 
 void dmachan_init_uart_channel(pch_channel_t *ch, uart_inst_t *uart, pch_uartchan_config_t *cfg);
-void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, pch_channel_t *chpeer);
+void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *chpeer);
 
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or

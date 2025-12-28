@@ -307,18 +307,17 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartch
  *
  * A memchan channel allows the CSS to run on one core of a
  * Pico while a CU runs on the other core. Instead of using physical
- * pins or connections between CU and CSS, picochan uses the DMA
+ * pins or connections between CU and CSS, picochan uses two DMA
  * channels to copy memory-to-memory between CSS and CU and an
  * internal state machine and cross-core synchronisation to mediate
- * CSS to CU communications. txdmaid and rxdmaid must be two unused
- * DMA ids, typically allocated using dma_claim_unused_channel().
+ * CSS to CU communications.
  * In order for the CSS to find the CU-side information to
  * cross-connect the sides in memory, the CU API function
  * pch_cu_get_channel() must be used to fetch the internal
  * pch_channel_t of the peer CU for passing to
  * pch_chp_configure_memchan.
  */
-void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_channel_t *chpeer);
+void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer);
 
 // Channel initialisation low-level helpers
 void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc);

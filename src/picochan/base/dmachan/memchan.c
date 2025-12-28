@@ -25,10 +25,42 @@ void pch_memchan_init(void) {
         dmachan_mem_peer_spin_lock = spin_lock_init(n);
 }
 
-void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, pch_channel_t *chpeer) {
-        assert(!pch_channel_is_started(ch));
-        dmachan_init_tx_channel(&ch->tx, &dc->tx,
-                &dmachan_mem_tx_channel_ops);
+static inline dmachan_1way_config_t dmachan_1way_config_memchan_make(pch_dmaid_t dmaid, pch_dma_irq_index_t dmairqix) {
+        dma_channel_config ctrl = dma_channel_get_default_config(dmaid);
+        channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
+        channel_config_set_read_increment(&ctrl, true);
+        channel_config_set_write_increment(&ctrl, true);
+        return ((dmachan_1way_config_t){
+                .addr = 0,
+                .ctrl = ctrl,
+                .dmaid = dmaid,
+                .dmairqix = dmairqix
+        });
+}
+
+static inline dmachan_config_t dmachan_config_memchan_make(pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_dma_irq_index_t dmairqix) {
+        return ((dmachan_config_t){
+                .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix),
+                .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix)
+        });
+}
+
+static dmachan_config_t claim_dma_channels(uint dmairqix) {
+        pch_dmaid_t txdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
+        pch_dmaid_t rxdmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
+        return dmachan_config_memchan_make(txdmaid, rxdmaid, dmairqix);
+}
+
+static dmachan_config_t import_dma_channels(uint dmairqix, pch_channel_t *chpeer) {
+        assert(pch_channel_is_configured(chpeer));
+        // Import rx <-> tx dmaids
+        pch_dmaid_t txdmaid = chpeer->rx.link.dmaid;
+        pch_dmaid_t rxdmaid = chpeer->tx.link.dmaid;
+        return dmachan_config_memchan_make(txdmaid, rxdmaid, dmairqix);
+}
+
+static void do_init_memchan(pch_channel_t *ch, dmachan_config_t *dc) {
+        dmachan_init_tx_channel(&ch->tx, &dc->tx, &dmachan_mem_tx_channel_ops);
         // Do not enable irq for tx channel link because Pico DMA
         // does not treat the INTSn bits separately. We enable only
         // the rx side for irqs and the rx irq handler propagates
@@ -36,9 +68,23 @@ void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, pch_chann
         // register which overrides the INTEn enabled bits.
 
         dmachan_rx_channel_t *rx = &ch->rx;
-        dmachan_init_rx_channel(rx, &dc->rx,
-                &dmachan_mem_rx_channel_ops);
+        dmachan_init_rx_channel(rx, &dc->rx, &dmachan_mem_rx_channel_ops);
         dmachan_set_link_irq_enabled(&rx->link, true);
+}
+
+void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *chpeer) {
+        assert(!pch_channel_is_started(ch));
+        assert(!pch_channel_is_configured(ch));
+
+        dmachan_config_t dc;
+        if (pch_channel_is_configured(chpeer))
+                dc = import_dma_channels(dmairqix, chpeer);
+        else
+                dc = claim_dma_channels(dmairqix);
+
+        do_init_memchan(ch, &dc);
+
+        dmachan_rx_channel_t *rx = &ch->rx;
         dmachan_tx_channel_t *txpeer = &chpeer->tx;
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;

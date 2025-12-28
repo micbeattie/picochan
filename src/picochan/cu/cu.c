@@ -211,7 +211,7 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
                 &cu->channel.rx.link);
 }
 
-void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_channel_t *chpeer) {
+void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_channel_t *chpeer) {
         // Check that spin_lock is initialised even when not a Debug
         // release because silently ignoring it produces such
         // nasty-to-troubleshoot race conditions
@@ -223,10 +223,8 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         pch_cu_configure_async_context_if_unset(cu);
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
-        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
-                rxdmaid, cu->dmairqix);
 
-        dmachan_init_mem_channel(&cu->channel, &dc, chpeer);
+        dmachan_init_mem_channel(&cu->channel, cu->dmairqix, chpeer);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
                 &cu->channel.tx.link);

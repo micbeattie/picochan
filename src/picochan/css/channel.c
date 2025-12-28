@@ -103,7 +103,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartch
                 &chp->channel.rx.link);
 }
 
-void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_channel_t *chpeer) {
+void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer) {
         // Check that spin_lock is initialised even when not a Debug
         // release because silently ignoring it produces such
         // nasty-to-troubleshoot race conditions
@@ -112,10 +112,7 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
 
-        dmachan_config_t dc = dmachan_config_memchan_make(txdmaid,
-                rxdmaid, CSS.dmairqix);
-
-        dmachan_init_mem_channel(&chp->channel, &dc, chpeer);
+        dmachan_init_mem_channel(&chp->channel, CSS.dmairqix, chpeer);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid,
                 &chp->channel.tx.link);
