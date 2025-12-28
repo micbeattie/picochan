@@ -63,10 +63,10 @@ static void __time_critical_func(uart_start_dst_discard)(dmachan_rx_channel_t *r
 
 static dmachan_irq_state_t __time_critical_func(uart_handle_rx_irq)(dmachan_rx_channel_t *rx) {
         dmachan_link_t *rxl = &rx->link;
-        bool rx_irq_raised = dmachan_link_irq_raised(rxl);
+        bool rx_irq_raised = dmachan_link_dma_irq_raised(rxl);
         if (rx_irq_raised) {
                 rxl->complete = true;
-                dmachan_ack_link_irq(rxl);
+                dmachan_ack_link_dma_irq(rxl);
         }
 
         if (rxl->resetting)
@@ -77,5 +77,5 @@ static dmachan_irq_state_t __time_critical_func(uart_handle_rx_irq)(dmachan_rx_c
 
 void dmachan_init_uart_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
         dmachan_init_rx_channel(rx, d1c, &dmachan_uart_rx_channel_ops);
-        dmachan_set_link_irq_enabled(&rx->link, true);
+        dmachan_set_link_dma_irq_enabled(&rx->link, true);
 }

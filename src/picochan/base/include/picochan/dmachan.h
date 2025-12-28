@@ -176,25 +176,25 @@ static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *sr
 #endif
 }
 
-static inline void dmachan_set_link_irq_enabled(dmachan_link_t *l, bool enabled) {
+static inline void dmachan_set_link_dma_irq_enabled(dmachan_link_t *l, bool enabled) {
         pch_dma_irq_index_t dmairqix = l->dmairqix;
         assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
         dma_irqn_set_channel_enabled(dmairqix, l->dmaid, enabled);
 }
 
-static inline bool dmachan_link_irq_raised(dmachan_link_t *l) {
+static inline bool dmachan_link_dma_irq_raised(dmachan_link_t *l) {
         return dma_irqn_get_channel_status(l->dmairqix, l->dmaid);
 };
 
-static inline bool dmachan_get_link_irq_forced(dmachan_link_t *l) {
+static inline bool dmachan_get_link_dma_irq_forced(dmachan_link_t *l) {
         return dma_irqn_get_channel_forced(l->dmairqix, l->dmaid);
 }
 
-static inline void dmachan_set_link_irq_forced(dmachan_link_t *l, bool forced) {
+static inline void dmachan_set_link_dma_irq_forced(dmachan_link_t *l, bool forced) {
         dma_irqn_set_channel_forced(l->dmairqix, l->dmaid, forced);
 }
 
-static inline void dmachan_ack_link_irq(dmachan_link_t *l) {
+static inline void dmachan_ack_link_dma_irq(dmachan_link_t *l) {
         dma_irqn_acknowledge_channel(l->dmairqix, l->dmaid);
 }
 

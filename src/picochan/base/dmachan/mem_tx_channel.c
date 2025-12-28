@@ -40,7 +40,7 @@ static void __time_critical_func(mem_start_src_cmdbuf)(dmachan_tx_channel_t *tx)
                 trace_dmachan_cmd(PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD, txl);
                 txl->complete = true;
                 dmachan_set_mem_dst_state(rxpeer, DMACHAN_MEM_DST_IDLE);
-                dmachan_set_link_irq_forced(rxl, true);
+                dmachan_set_link_dma_irq_forced(rxl, true);
                 break;
 
         default:
@@ -92,7 +92,7 @@ static void __time_critical_func(mem_start_src_data)(dmachan_tx_channel_t *tx, u
         case DMACHAN_MEM_DST_DISCARD:
                 txl->complete = true;
                 dmachan_set_mem_dst_state(rxpeer, DMACHAN_MEM_DST_IDLE);
-                dmachan_set_link_irq_forced(&rxpeer->link, true);
+                dmachan_set_link_dma_irq_forced(&rxpeer->link, true);
                 break;
 
         default:
@@ -107,12 +107,12 @@ static void __time_critical_func(mem_start_src_data)(dmachan_tx_channel_t *tx, u
 static dmachan_irq_state_t __time_critical_func(mem_handle_tx_irq)(dmachan_tx_channel_t *tx) {
         dmachan_link_t *txl = &tx->link;
         uint32_t saved_irq = mem_peer_lock();
-        bool tx_irq_raised = dmachan_link_irq_raised(txl);
-        bool tx_irq_forced = dmachan_get_link_irq_forced(txl);
+        bool tx_irq_raised = dmachan_link_dma_irq_raised(txl);
+        bool tx_irq_forced = dmachan_get_link_dma_irq_forced(txl);
         if (tx_irq_raised || tx_irq_forced) {
                 txl->complete = true;
-                dmachan_set_link_irq_forced(txl, false);
-                dmachan_ack_link_irq(txl);
+                dmachan_set_link_dma_irq_forced(txl, false);
+                dmachan_ack_link_dma_irq(txl);
         }
 
         if (txl->complete)

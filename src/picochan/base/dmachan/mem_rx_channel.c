@@ -44,7 +44,7 @@ static void __time_critical_func(mem_start_dst_cmdbuf)(dmachan_rx_channel_t *rx)
                 trace_dmachan_cmd(PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD, rxl);
                 rxl->complete = true;
                 dmachan_set_mem_src_state(txpeer, DMACHAN_MEM_SRC_IDLE);
-                dmachan_set_link_irq_forced(txl, true);
+                dmachan_set_link_dma_irq_forced(txl, true);
                 break;
         default:
                 panic("mem_start_dst_cmdbuf unexpected txpeer->mem_src_state");
@@ -119,7 +119,7 @@ static void __time_critical_func(mem_start_dst_discard)(dmachan_rx_channel_t *rx
                 dmachan_link_t *txl = &txpeer->link;
                 rxl->complete = true;
                 dmachan_set_mem_src_state(txpeer, DMACHAN_MEM_SRC_IDLE);
-                dmachan_set_link_irq_forced(txl, true);
+                dmachan_set_link_dma_irq_forced(txl, true);
                 break;
         default:
                 panic("mem_start_dst_discard unexpected txpeer->mem_src_state");
@@ -138,11 +138,11 @@ static void __time_critical_func(mem_prep_dst_data_src_zeroes)(dmachan_rx_channe
 static dmachan_irq_state_t __time_critical_func(mem_handle_rx_irq)(dmachan_rx_channel_t *rx) {
         dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
-        bool rx_irq_raised = dmachan_link_irq_raised(rxl);
-        bool rx_irq_forced = dmachan_get_link_irq_forced(rxl);
+        bool rx_irq_raised = dmachan_link_dma_irq_raised(rxl);
+        bool rx_irq_forced = dmachan_get_link_dma_irq_forced(rxl);
         if (rx_irq_raised) {
                 if (rx_irq_forced)
-                        dmachan_set_link_irq_forced(rxl, false);
+                        dmachan_set_link_dma_irq_forced(rxl, false);
                 else {
                         // propagate to peer tx channel
                         // (asymmetric: no corresponding tx -> rx trigger)
@@ -150,13 +150,13 @@ static dmachan_irq_state_t __time_critical_func(mem_handle_rx_irq)(dmachan_rx_ch
                         if (txpeer) {
                                 trace_dmachan(PCH_TRC_RT_DMACHAN_FORCE_IRQ,
                                         rxl);
-                                dmachan_set_link_irq_forced(&txpeer->link,
+                                dmachan_set_link_dma_irq_forced(&txpeer->link,
                                         true);
                         }
                 }
 
                 rxl->complete = true;
-                dmachan_ack_link_irq(rxl);
+                dmachan_ack_link_dma_irq(rxl);
         }
 
         if (rxl->complete)

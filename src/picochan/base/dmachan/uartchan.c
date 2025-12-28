@@ -27,7 +27,7 @@ static void init_tx(dmachan_tx_channel_t *tx, uart_inst_t *uart, pch_uartchan_co
         dmachan_1way_config_t c = dmachan_1way_config_claim(hwaddr,
                 ctrl, cfg->irq_index);
         dmachan_init_tx_channel(tx, &c, &dmachan_uart_tx_channel_ops);
-        dmachan_set_link_irq_enabled(&tx->link, true);
+        dmachan_set_link_dma_irq_enabled(&tx->link, true);
 }
 
 static void init_rx(dmachan_rx_channel_t *rx, uart_inst_t *uart, pch_uartchan_config_t *cfg) {
@@ -36,7 +36,7 @@ static void init_rx(dmachan_rx_channel_t *rx, uart_inst_t *uart, pch_uartchan_co
         dmachan_1way_config_t c = dmachan_1way_config_claim(hwaddr,
                 ctrl, cfg->irq_index);
         dmachan_init_rx_channel(rx, &c, &dmachan_uart_rx_channel_ops);
-        dmachan_set_link_irq_enabled(&rx->link, true);
+        dmachan_set_link_dma_irq_enabled(&rx->link, true);
 }
 
 /*

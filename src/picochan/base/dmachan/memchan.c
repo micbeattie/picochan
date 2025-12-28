@@ -69,7 +69,7 @@ static void do_init_memchan(pch_channel_t *ch, dmachan_config_t *dc) {
 
         dmachan_rx_channel_t *rx = &ch->rx;
         dmachan_init_rx_channel(rx, &dc->rx, &dmachan_mem_rx_channel_ops);
-        dmachan_set_link_irq_enabled(&rx->link, true);
+        dmachan_set_link_dma_irq_enabled(&rx->link, true);
 }
 
 void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *chpeer) {
