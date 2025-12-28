@@ -86,7 +86,7 @@ void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *c
 
         dmachan_rx_channel_t *rx = &ch->rx;
         dmachan_tx_channel_t *txpeer = &chpeer->tx;
-        txpeer->mem_rx_peer = rx;
-        rx->mem_tx_peer = txpeer;
+        txpeer->u.mem.rx_peer = rx;
+        rx->u.mem.tx_peer = txpeer;
         pch_channel_set_configured(ch, true);
 }

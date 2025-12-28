@@ -19,13 +19,13 @@ dmachan_tx_channel_ops_t dmachan_mem_tx_channel_ops = {
 
 static void __time_critical_func(mem_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
         valid_params_if(PCH_DMACHAN,
-                tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
+                tx->u.mem.src_state == DMACHAN_MEM_SRC_IDLE);
 
-        dmachan_rx_channel_t *rxpeer = tx->mem_rx_peer;
+        dmachan_rx_channel_t *rxpeer = tx->u.mem.rx_peer;
         dmachan_link_t *txl = &tx->link;
         uint32_t saved_irq = mem_peer_lock();
 
-        dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->mem_dst_state;
+        dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->u.mem.dst_state;
         trace_dmachan_memstate(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM,
                 txl, rxpeer_mem_dst_state);
 
@@ -64,13 +64,13 @@ static void __time_critical_func(mem_write_src_reset)(dmachan_tx_channel_t *tx) 
 
 static void __time_critical_func(mem_start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
         valid_params_if(PCH_DMACHAN,
-                tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
+                tx->u.mem.src_state == DMACHAN_MEM_SRC_IDLE);
 
-        dmachan_rx_channel_t *rxpeer = tx->mem_rx_peer;
+        dmachan_rx_channel_t *rxpeer = tx->u.mem.rx_peer;
         dmachan_link_t *txl = &tx->link;
         uint32_t saved_irq = mem_peer_lock();
 
-        dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->mem_dst_state;
+        dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->u.mem.dst_state;
         trace_dmachan_segment_memstate(PCH_TRC_RT_DMACHAN_SRC_DATA_MEM,
                 txl, srcaddr, count, rxpeer_mem_dst_state);
 

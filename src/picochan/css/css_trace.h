@@ -67,9 +67,9 @@ static inline void trace_chp_irq(pch_trc_record_type_t rt, pch_chp_t *chp, pch_d
                         .id = pch_get_chpid(chp),
                         .dmairqix = dmairqix,
                         .tx_state = tx_irq_state << 4
-                                | chp->channel.tx.mem_src_state,
+                                | chp->channel.tx.u.mem.src_state,
                         .rx_state = rx_irq_state << 4
-                                | chp->channel.rx.mem_dst_state
+                                | chp->channel.rx.u.mem.dst_state
                 }));
 }
 

@@ -210,11 +210,19 @@ typedef struct dmachan_tx_channel_ops {
         dmachan_irq_state_t (*handle_tx_irq)(dmachan_tx_channel_t *tx);
 } dmachan_tx_channel_ops_t;
 
+typedef struct dmachan_mem_tx_channel_data {
+        dmachan_rx_channel_t    *rx_peer;
+        dmachan_mem_src_state_t src_state;
+} dmachan_mem_tx_channel_data_t;
+
+typedef union {
+        dmachan_mem_tx_channel_data_t   mem;
+} dmachan_tx_channel_data_t;
+
 typedef struct __aligned(4) dmachan_tx_channel {
-        dmachan_link_t          link;
-        const dmachan_tx_channel_ops_t *ops;
-        dmachan_rx_channel_t    *mem_rx_peer;   // only for memchan
-        dmachan_mem_src_state_t mem_src_state;  // only for memchan
+        dmachan_link_t                  link;
+        const dmachan_tx_channel_ops_t  *ops;
+        dmachan_tx_channel_data_t       u;
 } dmachan_tx_channel_t;
 
 typedef struct dmachan_rx_channel_ops {
@@ -226,16 +234,24 @@ typedef struct dmachan_rx_channel_ops {
         dmachan_irq_state_t (*handle_rx_irq)(dmachan_rx_channel_t *rx);
 } dmachan_rx_channel_ops_t;
 
+typedef struct dmachan_mem_rx_channel_data {
+        dmachan_tx_channel_t    *tx_peer;
+        dmachan_mem_dst_state_t dst_state;
+} dmachan_mem_rx_channel_data_t;
+
+typedef union {
+        dmachan_mem_rx_channel_data_t   mem;
+} dmachan_rx_channel_data_t;
+
 typedef struct __aligned(4) dmachan_rx_channel {
-        dmachan_link_t          link;
-        const dmachan_rx_channel_ops_t *ops;
-        dmachan_tx_channel_t    *mem_tx_peer;   // only for memchan
-        uint32_t                srcaddr;
-        dma_channel_config      ctrl;
-        dmachan_mem_dst_state_t mem_dst_state;  // only for memchan
+        dmachan_link_t                  link;
+        const dmachan_rx_channel_ops_t  *ops;
+        uint32_t                        srcaddr;
+        dma_channel_config              ctrl;
 #ifdef PCH_CONFIG_DEBUG_MEMCHAN
-        uint16_t                seen_seqnum;
+        uint16_t                        seen_seqnum;
 #endif
+        dmachan_rx_channel_data_t       u;
 } dmachan_rx_channel_t;
 
 typedef struct pch_channel {
@@ -280,18 +296,18 @@ static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool force
 static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {
         valid_params_if(PCH_DMACHAN,
                 new_state == DMACHAN_MEM_SRC_IDLE
-                || tx->mem_src_state == DMACHAN_MEM_SRC_IDLE);
+                || tx->u.mem.src_state == DMACHAN_MEM_SRC_IDLE);
 
-        tx->mem_src_state = new_state;
+        tx->u.mem.src_state = new_state;
 }
 
 // rx channel irq and memory destination state handling
 static inline void dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {
         valid_params_if(PCH_DMACHAN,
                 new_state == DMACHAN_MEM_DST_IDLE
-                || rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
+                || rx->u.mem.dst_state == DMACHAN_MEM_DST_IDLE);
 
-        rx->mem_dst_state = new_state;
+        rx->u.mem.dst_state = new_state;
 }
 
 void dmachan_panic_unless_memchan_initialised(void);

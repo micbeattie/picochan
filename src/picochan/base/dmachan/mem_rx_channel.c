@@ -23,13 +23,13 @@ dmachan_rx_channel_ops_t dmachan_mem_rx_channel_ops = {
 
 static void __time_critical_func(mem_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {
         valid_params_if(PCH_DMACHAN,
-                rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
+                rx->u.mem.dst_state == DMACHAN_MEM_DST_IDLE);
 
-        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+        dmachan_tx_channel_t *txpeer = rx->u.mem.tx_peer;
         dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
 
-        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
+        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->u.mem.src_state;
         trace_dmachan_memstate(PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM,
                 rxl, txpeer_mem_src_state);
 
@@ -63,13 +63,13 @@ static void __time_critical_func(mem_start_dst_reset)(dmachan_rx_channel_t *rx) 
 
 static void __time_critical_func(mem_start_dst_data)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {
         valid_params_if(PCH_DMACHAN,
-                rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
+                rx->u.mem.dst_state == DMACHAN_MEM_DST_IDLE);
 
-        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+        dmachan_tx_channel_t *txpeer = rx->u.mem.tx_peer;
         dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
 
-        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
+        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->u.mem.src_state;
         trace_dmachan_segment_memstate(PCH_TRC_RT_DMACHAN_DST_DATA_MEM,
                 &rx->link, dstaddr, count, txpeer_mem_src_state);
 
@@ -100,14 +100,14 @@ static void __time_critical_func(mem_start_dst_data)(dmachan_rx_channel_t *rx, u
 
 static void __time_critical_func(mem_start_dst_discard)(dmachan_rx_channel_t *rx, uint32_t count) {
         valid_params_if(PCH_DMACHAN,
-                rx->mem_dst_state == DMACHAN_MEM_DST_IDLE);
+                rx->u.mem.dst_state == DMACHAN_MEM_DST_IDLE);
 
         (void)count; // ignore count - we bypass doing any DMA transfer
-        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+        dmachan_tx_channel_t *txpeer = rx->u.mem.tx_peer;
         dmachan_link_t *rxl = &rx->link;
         uint32_t status = mem_peer_lock();
 
-        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->mem_src_state;
+        dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->u.mem.src_state;
         trace_dmachan_segment_memstate(PCH_TRC_RT_DMACHAN_DST_DISCARD_MEM,
                 rxl, 0, count, txpeer_mem_src_state);
 
@@ -146,7 +146,7 @@ static dmachan_irq_state_t __time_critical_func(mem_handle_rx_irq)(dmachan_rx_ch
                 else {
                         // propagate to peer tx channel
                         // (asymmetric: no corresponding tx -> rx trigger)
-                        dmachan_tx_channel_t *txpeer = rx->mem_tx_peer;
+                        dmachan_tx_channel_t *txpeer = rx->u.mem.tx_peer;
                         if (txpeer) {
                                 trace_dmachan(PCH_TRC_RT_DMACHAN_FORCE_IRQ,
                                         rxl);
