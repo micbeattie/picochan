@@ -320,7 +320,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartch
 void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer);
 
 // Channel initialisation low-level helpers
-void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc);
+
 /*! \brief Get the underlying channel from a channel path from CSS to CU
  * \ingroup picochan_css
  *
