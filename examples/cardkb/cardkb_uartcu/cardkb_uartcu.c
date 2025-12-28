@@ -76,7 +76,9 @@ int main(void) {
         cardkb_dev_init(FIRST_UA, i2c, i2c_addr);
 
         uart_inst_t *uart = prepare_uart_gpios();
-        pch_cus_auto_configure_uartcu(CUADDR, uart, CARDKB_BAUDRATE);
+        pch_uartchan_config_t cfg = pch_uartchan_get_default_config(uart);
+        cfg.baudrate = CARDKB_BAUDRATE;
+        pch_cus_uartcu_configure(CUADDR, uart, &cfg);
         pch_cu_start(CUADDR);
 
         while (1)

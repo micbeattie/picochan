@@ -94,7 +94,10 @@ int main(void) {
         pch_chp_alloc(chpid, 1); // Allocates SID 0
 
         uart_inst_t *uart = prepare_uart_gpios();
-        pch_chp_auto_configure_uartchan(chpid, uart, CARDKB_BAUDRATE);
+        pch_uartchan_config_t cfg = pch_uartchan_get_default_config(uart);
+        cfg.baudrate = CARDKB_BAUDRATE;
+        pch_chp_configure_uartchan(chpid, uart, &cfg);
+
         pch_chp_set_trace(chpid, CARDKB_ENABLE_TRACE);
 
         pch_sch_modify_enabled(0, true);

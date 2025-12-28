@@ -122,7 +122,6 @@ struct pch_trdata_scsw_sid_cc {
 };
 
 struct pch_trdata_dma_init {
-        uint32_t                addr;
         uint32_t                ctrl;
         uint8_t                 id;
         pch_dmaid_t             dmaid;

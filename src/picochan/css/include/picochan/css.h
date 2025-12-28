@@ -290,38 +290,17 @@ pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices);
  * \ingroup picochan_css
  *
  * Configure the hardware UART instance uart as a channel to the
- * remote CU to which it is connected. The UART must have been
- * initialised already, be connected to a CU using the same baud
- * rate as this channel has configured and the hardware flow control
- * pins, CTS and RTS *MUST* be enabled and connected between channel
- * and CU.
- * ctrl should typically be a default dma_channel_config as returned
- * from dma_channel_get_default_config(dmaid) invoked on any DMA id.
- * Most bits in that dma_channel_config are overridden by the CSS
- * (including the CHAIN_TO which is why the dmaid above does not
- * matter) but some applications may wish to set bits SNIFF_EN and
- * HIGH_PRIORITY for their own purposes.
- *
- * If you want to initialise and configure the UART channel using a
- * given baud rate, suggested UART settings (8E1) and default DMA
- * control register settings (no SNIFF_EN and no HIGH_PRIORITY), you
- * can use pch_chp_auto_configure_uartchan() instead.
+ * remote CU to which it is connected. This will initialise the  UART.
+ * It must connected to a CU using the same baud rate as this channel
+ * configures with cfg. The hardware flow control pins, CTS and RTS
+ * *MUST* be enabled and connected between channel and CU.
+ * Use pch_uartchan_get_default_config() to obtain a default
+ * value for cfg and only make changes you need. You may well want
+ * to change baudrate. For ctrl, the only bits you may want to change
+ * are SNIFF_EN and HIGH_PRIORITY.
  */
 
-void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
-
-/*! \brief Initialise and configure a hardware UART instance as a
- * channel to the remote CU to which it is connected. Uses a
- * default dma_channel_config control register.
- * \ingroup picochan_css
- *
- * Calls pch_uart_init() with baud rate \param baudrate and
- * pch_chp_configure_uartchan with ctrl argument bits taken from
- * an appropriate dma_channel_get_default_config() value.
- * The CU on the other side of the channel *MUST* use the same baud
- * rate and uart settings.
- */
-void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, uint baudrate);
+void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartchan_config_t *cfg);
 
 /*! \brief Configure a memchan channel
  * \ingroup picochan_css

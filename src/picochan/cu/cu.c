@@ -163,13 +163,12 @@ dmachan_rx_channel_t *pch_cu_get_rx_channel(pch_cuaddr_t cua) {
         return &cu->channel.rx;
 }
 
-static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmachan_1way_config_t *d1c) {
+static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmachan_link_t *l) {
         PCH_CUS_TRACE(rt, ((struct pch_trdata_dma_init){
-                .addr = d1c->addr,
-                .ctrl = channel_config_get_ctrl_value(&d1c->ctrl),
+                .ctrl = dma_get_ctrl_value(l->dmaid),
                 .id = cua,
-                .dmaid = d1c->dmaid,
-                .dmairqix = d1c->dmairqix,
+                .dmaid = l->dmaid,
+                .dmairqix = l->dmairqix,
                 .core_num = (uint8_t)get_core_num()
         }));
 }
@@ -218,33 +217,21 @@ void pch_cu_configure_async_context_if_unset(pch_cu_t *cu) {
         cu->async_context = pch_cus_async_context;
 }
 
-void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl) {
-        dma_channel_config txctrl = dmachan_uart_make_txctrl(uart, ctrl);
-        dma_channel_config rxctrl = dmachan_uart_make_rxctrl(uart, ctrl);
-        uint32_t hwaddr = (uint32_t)&uart_get_hw(uart)->dr; // read/write fifo
+void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!pch_cu_is_started(cu));
         pch_cu_configure_async_context_if_unset(cu);
+
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
-        dmachan_config_t dc = dmachan_config_claim(hwaddr, txctrl,
-                hwaddr, rxctrl, cu->dmairqix);
 
-        dmachan_init_uart_channel(&cu->channel, &dc);
+        dmachan_init_uart_channel(&cu->channel, uart, cfg);
 
-        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, &dc.tx);
-        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, &dc.rx);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
+                &cu->channel.tx.link);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua,
+                &cu->channel.rx.link);
         pch_cu_set_configured(cua, true);
-}
-
-void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate) {
-        pch_uart_init(uart, baudrate);
-
-        // Argument 0 is ok here (as would be any DMA id) because it
-        // only affects the "chain-to" value and that is overridden in
-        // pch_css_uartcu_configure anyway.
-        dma_channel_config ctrl = dma_channel_get_default_config(0);
-        pch_cus_uartcu_configure(cua, uart, ctrl);
 }
 
 void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer) {
@@ -264,8 +251,10 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
 
         dmachan_init_mem_channel(&cu->channel, &dc, txpeer);
 
-        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua, &dc.tx);
-        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua, &dc.rx);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
+                &cu->channel.tx.link);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua,
+                &cu->channel.rx.link);
         pch_cu_set_configured(cua, true);
 }
 

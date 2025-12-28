@@ -15,6 +15,10 @@
 #define PCH_CONFIG_ENABLE_MEMCHAN 1
 #endif
 
+#ifndef PCH_UARTCHAN_DEFAULT_BAUDRATE
+#define PCH_UARTCHAN_DEFAULT_BAUDRATE 115200
+#endif
+
 #include "hardware/dma.h"
 #include "hardware/structs/dma_debug.h"
 #include "hardware/uart.h"
@@ -56,6 +60,29 @@ static inline void dma_irqn_set_channel_forced(uint irq_index, uint channel, boo
                 hw_set_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
         else
                 hw_clear_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
+}
+
+static inline uint32_t dma_get_ctrl_value(uint channel) {
+        dma_channel_config_t config = dma_get_channel_config(channel);
+        return channel_config_get_ctrl_value(&config);
+}
+
+typedef struct pch_uartchan_config {
+        dma_channel_config      ctrl;
+        uint                    baudrate;
+        uint                    irq_index;
+} pch_uartchan_config_t;
+
+static inline pch_uartchan_config_t pch_uartchan_get_default_config(uart_inst_t *uart) {
+        // Argument 0 to dma_channel_get_default_config is ok here
+        // (as would be any DMA id) because it only affects the
+        // "chain-to" value and that is overridden when the ctrl
+        // value is used.
+        return ((pch_uartchan_config_t){
+                .ctrl = dma_channel_get_default_config(0),
+                .baudrate = PCH_UARTCHAN_DEFAULT_BAUDRATE,
+                .irq_index = get_core_num()
+        });
 }
 
 // DMA configuration for one direction (tx or rx) of a dmachan channel
@@ -317,23 +344,7 @@ extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
 // Convenience functions for configuring UART channels
 void pch_uart_init(uart_inst_t *uart, uint baudrate);
 
-static inline dma_channel_config dmachan_uart_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl) {
-        channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
-        channel_config_set_write_increment(&ctrl, false);
-        uint txdreq = uart_get_dreq_num(uart, true);
-        channel_config_set_dreq(&ctrl, txdreq);
-        return ctrl;
-}
-
-static inline dma_channel_config dmachan_uart_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl) {
-        channel_config_set_transfer_data_size(&ctrl, DMA_SIZE_8);
-        channel_config_set_read_increment(&ctrl, false);
-        uint rxdreq = uart_get_dreq_num(uart, false);
-        channel_config_set_dreq(&ctrl, rxdreq);
-        return ctrl;
-}
-
-void dmachan_init_uart_channel(pch_channel_t *ch, dmachan_config_t *dc);
+void dmachan_init_uart_channel(pch_channel_t *ch, uart_inst_t *uart, pch_uartchan_config_t *cfg);
 void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, dmachan_tx_channel_t *txpeer);
 
 // pch_memchan_init must be called before configuring either side of

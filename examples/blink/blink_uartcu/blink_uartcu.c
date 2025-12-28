@@ -84,7 +84,9 @@ int main(void) {
         pch_cus_trace_cu(CUADDR, BLINK_ENABLE_TRACE);
 
         uart_inst_t *uart = prepare_uart_gpios();
-        pch_cus_auto_configure_uartcu(CUADDR, uart, BLINK_BAUDRATE);
+        pch_uartchan_config_t cfg = pch_uartchan_get_default_config(uart);
+        cfg.baudrate = BLINK_BAUDRATE;
+        pch_cus_uartcu_configure(CUADDR, uart, &cfg);
         pch_cu_start(CUADDR);
 
         while (1)

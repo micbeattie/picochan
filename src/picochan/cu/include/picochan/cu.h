@@ -361,35 +361,16 @@ void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua);
  * \ingroup picochan_cu
  *
  * Configure the hardware UART instance uart as a channel from
- * CU cua to the CSS. The UART must have been initialised already,
- * be connected to the CSS using the same baud rate as the CSS has
- * configured and the hardware flow control pins, CTS and RTS MUST be
- * enabled and connected between CU and CSS.
- * ctrl should typically be a default dma_channel_config as returned
- * from dma_channel_get_default_config(dmaid) invoked on any DMA id.
- * Most bits in that dma_channel_config are overridden by the CU
- * (including the CHAIN_TO which is why the dmaid above does not
- * matter) but some applications may wish to set bits SNIFF_EN and
- * HIGH_PRIORITY for their own purposes.
- *
- * If you want to initialise and configure the UART channel using a
- * given baud rate, suggested UART settings (8E1) and default DMA
- * control register settings (no SNIFF_EN and no HIGH_PRIORITY), you
- * can use pch_cus_auto_configure_uartcu() instead.
+ * CU cua to the CSS. This will initialise the UART.
+ * It must connected to the CSS using the same baud rate as this
+ * CU configures with cfg. The hardware flow control pins, CTS and RTS
+ * *MUST* be enabled and connected between CU and CSS.
+ * Use pch_uartchan_get_default_config() to obtain a default
+ * value for cfg and only make changes you need. You may well want
+ * to change baudrate. For ctrl, the only bits you may want to change
+ * are SNIFF_EN and HIGH_PRIORITY.
  */
-void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, dma_channel_config ctrl);
-
-/*! \brief Initialise and configure a UART control unit with default
- * dma_channel_config control register.
- * \ingroup picochan_css
- *
- * Calls pch_uart_init() with baud rate \param baudrate and
- * pch_cus_uartcu_configure with ctrl argument bits taken from
- * an appropriate dma_channel_get_default_config() value.
- * The CSS on the other side of the channel MUST use the same baud
- * rate and uart settings set pch_uart_init().
- */
-void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate);
+void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg);
 
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_cu
