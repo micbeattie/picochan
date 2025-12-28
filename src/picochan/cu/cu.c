@@ -158,7 +158,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmac
                 .ctrl = dma_get_ctrl_value(l->dmaid),
                 .id = cua,
                 .dmaid = l->dmaid,
-                .dmairqix = l->dmairqix,
+                .dmairqix = l->irq_index,
                 .core_num = (uint8_t)get_core_num()
         }));
 }

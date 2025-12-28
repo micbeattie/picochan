@@ -86,7 +86,7 @@ static inline void trace_chp_dma(pch_trc_record_type_t rt, pch_chpid_t chpid, dm
                 .ctrl = dma_get_ctrl_value(l->dmaid),
                 .id = chpid,
                 .dmaid = l->dmaid,
-                .dmairqix = l->dmairqix,
+                .dmairqix = l->irq_index,
                 .core_num = (uint8_t)get_core_num()
         }));
 }

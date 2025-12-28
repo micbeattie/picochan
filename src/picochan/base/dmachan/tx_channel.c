@@ -20,7 +20,7 @@ void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1
         dmachan_link_t *txl = &tx->link;
         dmachan_link_cmd_set_zero(txl);
         txl->dmaid = dmaid;
-        txl->dmairqix = d1c->dmairqix;
+        txl->irq_index = d1c->dmairqix;
         channel_config_set_read_increment(&ctrl, true);
         channel_config_set_chain_to(&ctrl, dmaid);
         dma_channel_set_write_addr(dmaid, (void*)dstaddr, false);

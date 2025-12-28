@@ -22,7 +22,7 @@ void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1
         channel_config_set_chain_to(&ctrl, dmaid);
         rx->ctrl = ctrl;
         rxl->dmaid = dmaid;
-        rxl->dmairqix = d1c->dmairqix;
+        rxl->irq_index = d1c->dmairqix;
         dma_channel_set_config(dmaid, &ctrl, false);
 }
 
