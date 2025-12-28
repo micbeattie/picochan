@@ -265,7 +265,34 @@ typedef struct __aligned(4) dmachan_rx_channel {
 typedef struct pch_channel {
         dmachan_tx_channel_t    tx;
         dmachan_rx_channel_t    rx;
+        uint8_t                 flags;
 } pch_channel_t;
+
+// Values of pch_channel_t flags field
+#define PCH_CHANNEL_CONFIGURED  0x01
+#define PCH_CHANNEL_STARTED     0x02
+
+static inline bool pch_channel_is_configured(pch_channel_t *ch) {
+        return ch->flags & PCH_CHANNEL_CONFIGURED;
+}
+
+static inline bool pch_channel_is_started(pch_channel_t *ch) {
+        return ch->flags & PCH_CHANNEL_STARTED;
+}
+
+static inline void pch_channel_set_configured(pch_channel_t *ch, bool b) {
+        if (b)
+                ch->flags |= PCH_CHANNEL_CONFIGURED;
+        else
+                ch->flags &= ~PCH_CHANNEL_CONFIGURED;
+}
+
+static inline void pch_channel_set_started(pch_channel_t *ch, bool b) {
+        if (b)
+                ch->flags |= PCH_CHANNEL_STARTED;
+        else
+                ch->flags &= ~PCH_CHANNEL_STARTED;
+}
 
 static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool forced, bool complete) {
         return ((dmachan_irq_state_t)raised)

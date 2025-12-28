@@ -52,6 +52,7 @@ static void init_rx(dmachan_rx_channel_t *rx, uart_inst_t *uart, pch_uartchan_co
  *     uart flow control to handle blocking automatically
  */
 void dmachan_init_uart_channel(pch_channel_t *ch, uart_inst_t *uart, pch_uartchan_config_t *cfg) {
+        assert(!pch_channel_is_started(ch));
         assert(cfg->baudrate);
         uart_init(uart, cfg->baudrate);
         uart_set_hw_flow(uart, true, true);
@@ -61,4 +62,5 @@ void dmachan_init_uart_channel(pch_channel_t *ch, uart_inst_t *uart, pch_uartcha
 
         init_tx(&ch->tx, uart, cfg);
         init_rx(&ch->rx, uart, cfg);
+        pch_channel_set_configured(ch, true);
 }

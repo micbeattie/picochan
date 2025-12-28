@@ -97,7 +97,7 @@ void __isr __time_critical_func(pch_css_func_irq_handler)(void) {
 
         for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
 		pch_chp_t *chp = &CSS.chps[i];
-		if (!pch_chp_is_started(chp))
+		if (!pch_channel_is_started(&chp->channel))
 			continue;
 
 		if (pch_chp_is_tx_active(chp))
@@ -117,7 +117,7 @@ void __isr __time_critical_func(pch_css_dma_irq_handler)() {
 
         for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
 		pch_chp_t *chp = &CSS.chps[i];
-                if (!pch_chp_is_started(chp))
+                if (!pch_channel_is_started(&chp->channel))
 			continue;
 
 		handle_dma_irq_chp(chp);

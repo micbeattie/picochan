@@ -67,8 +67,6 @@ typedef struct __aligned(4) pch_chp {
 #define PCH_CHP_RX_RESPONSE_REQUIRED    0x01
 #define PCH_CHP_CLAIMED                 0x02
 #define PCH_CHP_ALLOCATED               0x04
-#define PCH_CHP_CONFIGURED              0x08
-#define PCH_CHP_STARTED                 0x10
 // tx_active: tx dma is active
 #define PCH_CHP_TX_ACTIVE               0x20
 
@@ -82,14 +80,6 @@ static inline bool pch_chp_is_claimed(pch_chp_t *chp) {
 
 static inline bool pch_chp_is_allocated(pch_chp_t *chp) {
         return chp->flags & PCH_CHP_ALLOCATED;
-}
-
-static inline bool pch_chp_is_configured(pch_chp_t *chp) {
-        return chp->flags & PCH_CHP_CONFIGURED;
-}
-
-static inline bool pch_chp_is_started(pch_chp_t *chp) {
-        return chp->flags & PCH_CHP_STARTED;
 }
 
 static inline bool pch_chp_is_tx_active(pch_chp_t *chp) {
@@ -115,20 +105,6 @@ static inline void pch_chp_set_allocated(pch_chp_t *chp, bool b) {
                 chp->flags |= PCH_CHP_ALLOCATED;
         else
                 chp->flags &= ~PCH_CHP_ALLOCATED;
-}
-
-static inline void pch_chp_set_configured(pch_chp_t *chp, bool b) {
-        if (b)
-                chp->flags |= PCH_CHP_CONFIGURED;
-        else
-                chp->flags &= ~PCH_CHP_CONFIGURED;
-}
-
-static inline void pch_chp_set_started(pch_chp_t *chp, bool b) {
-        if (b)
-                chp->flags |= PCH_CHP_STARTED;
-        else
-                chp->flags &= ~PCH_CHP_STARTED;
 }
 
 static inline void pch_chp_set_tx_active(pch_chp_t *chp, bool b) {

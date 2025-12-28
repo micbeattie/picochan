@@ -187,18 +187,6 @@ void pch_cus_configure_async_context_if_unset(void) {
                 pch_cus_configure_async_context(NULL);
 }
 
-void pch_cu_set_configured(pch_cuaddr_t cua, bool configured) {
-        pch_cu_t *cu = pch_get_cu(cua);
-
-        pch_cu_set_flag_configured(cu, true);
-
-        PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_CONFIGURED,
-                ((struct pch_trdata_id_byte){
-                        .id = cua,
-                        .byte = (uint8_t)configured
-                }));
-}
-
 void pch_cu_configure_async_context_if_unset(pch_cu_t *cu) {
         if (cu->async_context)
                 return;
@@ -209,7 +197,7 @@ void pch_cu_configure_async_context_if_unset(pch_cu_t *cu) {
 
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg) {
         pch_cu_t *cu = pch_get_cu(cua);
-        assert(!pch_cu_is_started(cu));
+        assert(!pch_channel_is_started(&cu->channel));
         pch_cu_configure_async_context_if_unset(cu);
 
         if (cu->dmairqix == -1)
@@ -221,7 +209,6 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
                 &cu->channel.tx.link);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua,
                 &cu->channel.rx.link);
-        pch_cu_set_configured(cua, true);
 }
 
 void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, pch_channel_t *chpeer) {
@@ -231,7 +218,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
         dmachan_panic_unless_memchan_initialised();
 
         pch_cu_t *cu = pch_get_cu(cua);
-        assert(!pch_cu_is_started(cu));
+        assert(!pch_channel_is_started(&cu->channel));
 
         pch_cu_configure_async_context_if_unset(cu);
         if (cu->dmairqix == -1)
@@ -245,15 +232,14 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t 
                 &cu->channel.tx.link);
         trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua,
                 &cu->channel.rx.link);
-        pch_cu_set_configured(cua, true);
 }
 
 void pch_cu_start(pch_cuaddr_t cua) {
         pch_cu_t *cu = pch_get_cu(cua);
-        assert(pch_cu_is_configured(cu));
+        assert(pch_channel_is_configured(&cu->channel));
         assert(cu->num_devibs > 0);
 
-        if (pch_cu_is_started(cu))
+        if (pch_channel_is_started(&cu->channel))
                 return;
 
         for (int i = 0; i < cu->num_devibs; i++) {
@@ -268,7 +254,7 @@ void pch_cu_start(pch_cuaddr_t cua) {
         async_context_add_when_pending_worker(cu->async_context,
                 &cu->worker);
 
-        pch_cu_set_flag_started(cu, true);
+        pch_channel_set_started(&cu->channel, true);
         PCH_CUS_TRACE(PCH_TRC_RT_CUS_CU_STARTED,
                 ((struct pch_trdata_id_byte){
                         .id = cua,

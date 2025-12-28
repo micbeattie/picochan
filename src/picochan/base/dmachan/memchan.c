@@ -26,6 +26,7 @@ void pch_memchan_init(void) {
 }
 
 void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, pch_channel_t *chpeer) {
+        assert(!pch_channel_is_started(ch));
         dmachan_init_tx_channel(&ch->tx, &dc->tx,
                 &dmachan_mem_tx_channel_ops);
         // Do not enable irq for tx channel link because Pico DMA
@@ -41,4 +42,5 @@ void dmachan_init_mem_channel(pch_channel_t *ch, dmachan_config_t *dc, pch_chann
         dmachan_tx_channel_t *txpeer = &chpeer->tx;
         txpeer->mem_rx_peer = rx;
         rx->mem_tx_peer = txpeer;
+        pch_channel_set_configured(ch, true);
 }

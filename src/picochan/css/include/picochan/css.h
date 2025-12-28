@@ -322,7 +322,6 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid
 
 // Channel initialisation low-level helpers
 void pch_chp_dma_configure(pch_chpid_t chpid, dmachan_config_t *dc);
-void pch_chp_mark_configure_complete(pch_chpid_t chpid, bool configured);
 /*! \brief Get the underlying channel from a channel path from CSS to CU
  * \ingroup picochan_css
  *

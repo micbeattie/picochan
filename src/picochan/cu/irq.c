@@ -29,7 +29,8 @@ void __isr __time_critical_func(pch_cus_handle_dma_irq)() {
         pch_dma_irq_index_t dmairqix = (pch_dma_irq_index_t)(irqnum - DMA_IRQ_0);
         for (int i = 0; i < PCH_NUM_CUS; i++) {
                 pch_cu_t *cu = pch_cus[i];
-                if (cu == NULL || !pch_cu_is_started(cu)
+                if (cu == NULL
+                        || !pch_channel_is_started(&cu->channel)
                         || cu->dmairqix != dmairqix) {
                         continue;
                 }

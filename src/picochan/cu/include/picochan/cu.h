@@ -113,22 +113,12 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 } pch_cu_t;
 
 // values of pch_cu_t flags
-#define PCH_CU_CONFIGURED       0x80
-#define PCH_CU_STARTED          0x40
 #define PCH_CU_TRACED_IRQ       0x04
 #define PCH_CU_TRACED_LINK      0x02
 #define PCH_CU_TRACED_GENERAL   0x01
 
 // trace flags values start at the low bit
 #define PCH_CU_TRACED_MASK      0x07
-
-static inline bool pch_cu_is_configured(pch_cu_t *cu) {
-        return cu->flags & PCH_CU_CONFIGURED;
-}
-
-static inline bool pch_cu_is_started(pch_cu_t *cu) {
-        return cu->flags & PCH_CU_STARTED;
-}
 
 static inline uint8_t pch_cu_trace_flags(pch_cu_t *cu) {
         return cu->flags & PCH_CU_TRACED_MASK;
@@ -438,7 +428,6 @@ uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags);
 bool pch_cus_trace_dev(pch_devib_t *devib, bool trace);
 
 // CU initialisation low-level helpers
-void pch_cu_set_configured(pch_cuaddr_t cua, bool configured);
 
 /*! \brief Fetch the internal pch_channel_t from CU to CSS
  * \ingroup picochan_cu

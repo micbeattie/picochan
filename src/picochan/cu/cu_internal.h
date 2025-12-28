@@ -13,20 +13,6 @@
 
 extern async_context_t *pch_cus_async_context;
 
-static inline void pch_cu_set_flag_configured(pch_cu_t *cu, bool b) {
-        if (b)
-                cu->flags |= PCH_CU_CONFIGURED;
-        else
-                cu->flags &= ~PCH_CU_CONFIGURED;
-}
-
-static inline void pch_cu_set_flag_started(pch_cu_t *cu, bool b) {
-        if (b)
-                cu->flags |= PCH_CU_STARTED;
-        else
-                cu->flags &= ~PCH_CU_STARTED;
-}
-
 static inline void pch_dev_update_status_proto_error(pch_devib_t *devib) {
         pch_dev_update_status_error(devib, ((pch_dev_sense_t){
                 .flags = PCH_DEV_SENSE_PROTO_ERROR,
