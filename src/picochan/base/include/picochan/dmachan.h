@@ -24,14 +24,6 @@
 #include "picochan/trc.h"
 
 // General Pico SDK-like DMA-related functions that aren't in the SDK
-static inline enum dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {
-        uint size = (config.ctrl & DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS) >> DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;
-        return (enum dma_channel_transfer_size)size;
-}
-
-static inline uint32_t dma_channel_get_transfer_count(uint channel) {
-        return dma_channel_hw_addr(channel)->transfer_count;
-}
 
 static inline dma_debug_channel_hw_t *dma_debug_channel_hw_addr(uint channel) {
         check_dma_channel_param(channel);
@@ -40,22 +32,6 @@ static inline dma_debug_channel_hw_t *dma_debug_channel_hw_addr(uint channel) {
 
 static inline uint32_t dma_channel_get_reload_count(uint channel) {
         return dma_debug_channel_hw_addr(channel)->dbg_tcr;
-}
-
-static inline bool dma_irqn_get_channel_forced(uint irq_index, uint channel) {
-        invalid_params_if(HARDWARE_DMA, irq_index >= NUM_DMA_IRQS);
-        check_dma_channel_param(channel);
-
-        return dma_hw->irq_ctrl[irq_index].intf & (1u << channel);
-}
-
-static inline void dma_irqn_set_channel_forced(uint irq_index, uint channel, bool forced) {
-        invalid_params_if(HARDWARE_DMA, irq_index >= NUM_DMA_IRQS);
-
-        if (forced)
-                hw_set_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
-        else
-                hw_clear_bits(&dma_hw->irq_ctrl[irq_index].intf, 1u << channel);
 }
 
 static inline uint32_t dma_get_ctrl_value(uint channel) {
@@ -78,42 +54,6 @@ static inline pch_uartchan_config_t pch_uartchan_get_default_config(uart_inst_t 
                 .ctrl = dma_channel_get_default_config(0),
                 .baudrate = PCH_UARTCHAN_DEFAULT_BAUDRATE,
                 .irq_index = get_core_num()
-        });
-}
-
-// DMA configuration for one direction (tx or rx) of a dmachan channel
-typedef struct dmachan_1way_config {
-        uint32_t                addr;
-        dma_channel_config      ctrl;
-        pch_dmaid_t             dmaid;
-        pch_irq_index_t     dmairqix;
-} dmachan_1way_config_t;
-
-static inline dmachan_1way_config_t dmachan_1way_config_make(pch_dmaid_t dmaid, uint32_t addr, dma_channel_config ctrl, pch_irq_index_t dmairqix) {
-        return ((dmachan_1way_config_t){
-                .addr = addr,
-                .ctrl = ctrl,
-                .dmaid = dmaid,
-                .dmairqix = dmairqix
-        });
-}
-
-static inline dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, pch_irq_index_t dmairqix) {
-        pch_dmaid_t dmaid = (pch_dmaid_t)dma_claim_unused_channel(true);
-        return dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix);
-}
-
-// DMA configuration for both directions (tx and rx) of a dmachan
-// channel
-typedef struct dmachan_config {
-        dmachan_1way_config_t   tx;
-        dmachan_1way_config_t   rx;
-} dmachan_config_t;
-
-static inline dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, pch_irq_index_t dmairqix) {
-        return ((dmachan_config_t){
-                .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix),
-                .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix)
         });
 }
 
@@ -170,28 +110,6 @@ static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *sr
 #ifdef PCH_CONFIG_DEBUG_MEMCHAN
         dst->seqnum = src->seqnum;
 #endif
-}
-
-static inline void dmachan_set_link_dma_irq_enabled(dmachan_link_t *l, bool enabled) {
-        pch_irq_index_t dmairqix = l->irq_index;
-        assert(dmairqix >= 0 && dmairqix < NUM_DMA_IRQS);
-        dma_irqn_set_channel_enabled(dmairqix, l->dmaid, enabled);
-}
-
-static inline bool dmachan_link_dma_irq_raised(dmachan_link_t *l) {
-        return dma_irqn_get_channel_status(l->irq_index, l->dmaid);
-};
-
-static inline bool dmachan_get_link_dma_irq_forced(dmachan_link_t *l) {
-        return dma_irqn_get_channel_forced(l->irq_index, l->dmaid);
-}
-
-static inline void dmachan_set_link_dma_irq_forced(dmachan_link_t *l, bool forced) {
-        dma_irqn_set_channel_forced(l->irq_index, l->dmaid, forced);
-}
-
-static inline void dmachan_ack_link_dma_irq(dmachan_link_t *l) {
-        dma_irqn_acknowledge_channel(l->irq_index, l->dmaid);
 }
 
 // tx and rx channels, starting with forward declarations because
@@ -302,12 +220,6 @@ static inline void pch_channel_trace(pch_channel_t *ch, pch_trc_bufferset_t *bs)
                 ch->rx.link.bs = NULL;
                 ch->flags &= ~PCH_CHANNEL_TRACED;
         }
-}
-
-static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool forced, bool complete) {
-        return ((dmachan_irq_state_t)raised)
-                | ((dmachan_irq_state_t)forced) << 1
-                | ((dmachan_irq_state_t)complete) << 2;
 }
 
 // tx channel irq and memory source state handling
