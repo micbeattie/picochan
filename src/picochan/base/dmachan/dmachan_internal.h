@@ -89,6 +89,7 @@ static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool force
                 | ((dmachan_irq_state_t)complete) << 2;
 }
 
+dmachan_irq_state_t remote_handle_rx_irq(dmachan_rx_channel_t *rx);
 void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx);
 
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c, const dmachan_tx_channel_ops_t *ops);

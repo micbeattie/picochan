@@ -60,3 +60,17 @@ void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx) {
         rxl->resetting = false;
         dmachan_start_dst_cmdbuf(rx);
 }
+
+dmachan_irq_state_t __time_critical_func(remote_handle_rx_irq)(dmachan_rx_channel_t *rx) {
+        dmachan_link_t *rxl = &rx->link;
+        bool rx_irq_raised = dmachan_link_dma_irq_raised(rxl);
+        if (rx_irq_raised) {
+                rxl->complete = true;
+                dmachan_ack_link_dma_irq(rxl);
+        }
+
+        if (rxl->resetting)
+                dmachan_handle_rx_resetting(rx);
+
+        return dmachan_make_irq_state(rx_irq_raised, false, rxl->complete);
+}

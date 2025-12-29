@@ -9,14 +9,13 @@ static void uart_start_dst_cmdbuf(dmachan_rx_channel_t *rx);
 static void uart_start_dst_reset(dmachan_rx_channel_t *rx);
 static void uart_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
 static void uart_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);
-static dmachan_irq_state_t uart_handle_rx_irq(dmachan_rx_channel_t *rx);
 
 dmachan_rx_channel_ops_t dmachan_uart_rx_channel_ops = {
         .start_dst_cmdbuf = uart_start_dst_cmdbuf,
         .start_dst_reset = uart_start_dst_reset,
         .start_dst_data = uart_start_dst_data,
         .start_dst_discard = uart_start_dst_discard,
-        .handle_rx_irq = uart_handle_rx_irq
+        .handle_rx_irq = remote_handle_rx_irq
 };
 
 static void __time_critical_func(uart_start_dst_cmdbuf)(dmachan_rx_channel_t *rx) {
@@ -59,20 +58,6 @@ static void __time_critical_func(uart_start_dst_discard)(dmachan_rx_channel_t *r
         channel_config_set_write_increment(&ctrl, false);
         dma_channel_configure(rxl->dmaid, &ctrl, &rxl->cmd,
                 (void*)rx->srcaddr, count, true);
-}
-
-static dmachan_irq_state_t __time_critical_func(uart_handle_rx_irq)(dmachan_rx_channel_t *rx) {
-        dmachan_link_t *rxl = &rx->link;
-        bool rx_irq_raised = dmachan_link_dma_irq_raised(rxl);
-        if (rx_irq_raised) {
-                rxl->complete = true;
-                dmachan_ack_link_dma_irq(rxl);
-        }
-
-        if (rxl->resetting)
-                dmachan_handle_rx_resetting(rx);
-
-        return dmachan_make_irq_state(rx_irq_raised, false, rxl->complete);
 }
 
 void dmachan_init_uart_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
