@@ -203,7 +203,7 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
 
-        dmachan_init_uart_channel(&cu->channel, uart, cfg);
+        pch_channel_init_uartchan(&cu->channel, cua, uart, cfg);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
                 &cu->channel.tx.link);
@@ -224,7 +224,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_channel_t *chpeer) {
         if (cu->dmairqix == -1)
                 cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
 
-        dmachan_init_mem_channel(&cu->channel, cu->dmairqix, chpeer);
+        pch_channel_init_memchan(&cu->channel, cua, cu->dmairqix, chpeer);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
                 &cu->channel.tx.link);

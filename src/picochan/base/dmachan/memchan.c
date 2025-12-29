@@ -72,7 +72,7 @@ static void do_init_memchan(pch_channel_t *ch, dmachan_config_t *dc) {
         dmachan_set_link_dma_irq_enabled(&rx->link, true);
 }
 
-void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *chpeer) {
+void pch_channel_init_memchan(pch_channel_t *ch, uint8_t id, uint dmairqix, pch_channel_t *chpeer) {
         assert(!pch_channel_is_started(ch));
         assert(!pch_channel_is_configured(ch));
 
@@ -88,5 +88,5 @@ void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *c
         dmachan_tx_channel_t *txpeer = &chpeer->tx;
         txpeer->u.mem.rx_peer = rx;
         rx->u.mem.tx_peer = txpeer;
-        pch_channel_set_configured(ch, true);
+        pch_channel_configure_id(ch, id);
 }

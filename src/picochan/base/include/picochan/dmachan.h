@@ -258,6 +258,7 @@ typedef struct pch_channel {
         dmachan_tx_channel_t    tx;
         dmachan_rx_channel_t    rx;
         uint8_t                 flags;
+        uint8_t                 id;
 } pch_channel_t;
 
 // Values of pch_channel_t flags field
@@ -272,11 +273,15 @@ static inline bool pch_channel_is_started(pch_channel_t *ch) {
         return ch->flags & PCH_CHANNEL_STARTED;
 }
 
-static inline void pch_channel_set_configured(pch_channel_t *ch, bool b) {
-        if (b)
-                ch->flags |= PCH_CHANNEL_CONFIGURED;
-        else
-                ch->flags &= ~PCH_CHANNEL_CONFIGURED;
+static inline void pch_channel_configure_id(pch_channel_t *ch, uint8_t id) {
+        assert(!pch_channel_is_configured(ch));
+        ch->id = id;
+        ch->flags |= PCH_CHANNEL_CONFIGURED;
+}
+
+static inline void pch_channel_set_unconfigured(pch_channel_t *ch) {
+        ch->flags &= ~PCH_CHANNEL_CONFIGURED;
+        ch->id = 0;
 }
 
 static inline void pch_channel_set_started(pch_channel_t *ch, bool b) {
@@ -363,8 +368,8 @@ extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
 // Convenience functions for configuring UART channels
 void pch_uart_init(uart_inst_t *uart, uint baudrate);
 
-void dmachan_init_uart_channel(pch_channel_t *ch, uart_inst_t *uart, pch_uartchan_config_t *cfg);
-void dmachan_init_mem_channel(pch_channel_t *ch, uint dmairqix, pch_channel_t *chpeer);
+void pch_channel_init_uartchan(pch_channel_t *ch, uint8_t id, uart_inst_t *uart, pch_uartchan_config_t *cfg);
+void pch_channel_init_memchan(pch_channel_t *ch, uint8_t id, uint dmairqix, pch_channel_t *chpeer);
 
 // pch_memchan_init must be called before configuring either side of
 // any memchan CU with pch_cus_memcu_configure or

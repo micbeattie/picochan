@@ -95,7 +95,7 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartch
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
 
-        dmachan_init_uart_channel(&chp->channel, uart, cfg);
+        pch_channel_init_uartchan(&chp->channel, chpid, uart, cfg);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid,
                 &chp->channel.tx.link);
@@ -112,7 +112,7 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer) {
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
 
-        dmachan_init_mem_channel(&chp->channel, CSS.dmairqix, chpeer);
+        pch_channel_init_memchan(&chp->channel, chpid, CSS.dmairqix, chpeer);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid,
                 &chp->channel.tx.link);
