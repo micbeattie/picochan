@@ -17,8 +17,8 @@ static inline void trace_dma_irq(pch_channel_t *ch, pch_irq_index_t irq_index, u
                 }));
 }
 
-static inline dmachan_irq_state_t handle_tx_irq(dmachan_tx_channel_t *tx) {     
-        return tx->ops->handle_tx_irq(tx);
+static inline dmachan_irq_state_t handle_tx_dma_irq(dmachan_tx_channel_t *tx) {
+        return tx->ops->handle_tx_dma_irq(tx);
 }
 
 static inline dmachan_irq_state_t handle_rx_irq(dmachan_rx_channel_t *rx) {
@@ -26,7 +26,7 @@ static inline dmachan_irq_state_t handle_rx_irq(dmachan_rx_channel_t *rx) {
 }
 
 void __time_critical_func(pch_channel_handle_dma_irq)(pch_channel_t *ch) {
-        dmachan_irq_state_t tx_state = handle_tx_irq(&ch->tx);
+        dmachan_irq_state_t tx_state = handle_tx_dma_irq(&ch->tx);
         dmachan_irq_state_t rx_state = handle_rx_irq(&ch->rx);
 
         trace_dma_irq(ch, ch->tx.link.irq_index, tx_state, rx_state);

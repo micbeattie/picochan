@@ -8,13 +8,13 @@
 static void uart_start_src_cmdbuf(dmachan_tx_channel_t *tx);
 static void uart_write_src_reset(dmachan_tx_channel_t *tx);
 static void uart_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
-static dmachan_irq_state_t uart_handle_tx_irq(dmachan_tx_channel_t *tx);
+static dmachan_irq_state_t uart_handle_tx_dma_irq(dmachan_tx_channel_t *tx);
 
 dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops = {
         .start_src_cmdbuf = uart_start_src_cmdbuf,
         .write_src_reset = uart_write_src_reset,
         .start_src_data = uart_start_src_data,
-        .handle_tx_irq = uart_handle_tx_irq
+        .handle_tx_dma_irq = uart_handle_tx_dma_irq
 };
 
 static void __time_critical_func(uart_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
@@ -40,7 +40,7 @@ static void __time_critical_func(uart_start_src_data)(dmachan_tx_channel_t *tx, 
                 (void*)srcaddr, count);
 }
 
-static dmachan_irq_state_t __time_critical_func(uart_handle_tx_irq)(dmachan_tx_channel_t *tx) {
+static dmachan_irq_state_t __time_critical_func(uart_handle_tx_dma_irq)(dmachan_tx_channel_t *tx) {
         dmachan_link_t *txl = &tx->link;
         bool tx_irq_raised = dmachan_link_dma_irq_raised(txl);
         if (tx_irq_raised) {

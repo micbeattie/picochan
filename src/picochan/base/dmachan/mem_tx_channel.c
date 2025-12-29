@@ -8,13 +8,13 @@
 static void mem_start_src_cmdbuf(dmachan_tx_channel_t *tx);
 static void mem_write_src_reset(dmachan_tx_channel_t *tx);
 static void mem_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
-static dmachan_irq_state_t mem_handle_tx_irq(dmachan_tx_channel_t *tx);
+static dmachan_irq_state_t mem_handle_tx_dma_irq(dmachan_tx_channel_t *tx);
 
 dmachan_tx_channel_ops_t dmachan_mem_tx_channel_ops = {
         .start_src_cmdbuf = mem_start_src_cmdbuf,
         .write_src_reset = mem_write_src_reset,
         .start_src_data = mem_start_src_data,
-        .handle_tx_irq = mem_handle_tx_irq
+        .handle_tx_dma_irq = mem_handle_tx_dma_irq
 };
 
 static void __time_critical_func(mem_start_src_cmdbuf)(dmachan_tx_channel_t *tx) {
@@ -104,7 +104,7 @@ static void __time_critical_func(mem_start_src_data)(dmachan_tx_channel_t *tx, u
         mem_peer_unlock(saved_irq);
 }
 
-static dmachan_irq_state_t __time_critical_func(mem_handle_tx_irq)(dmachan_tx_channel_t *tx) {
+static dmachan_irq_state_t __time_critical_func(mem_handle_tx_dma_irq)(dmachan_tx_channel_t *tx) {
         dmachan_link_t *txl = &tx->link;
         uint32_t saved_irq = mem_peer_lock();
         bool tx_irq_raised = dmachan_link_dma_irq_raised(txl);

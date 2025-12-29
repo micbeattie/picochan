@@ -121,7 +121,7 @@ typedef struct dmachan_tx_channel_ops {
         void (*start_src_cmdbuf)(dmachan_tx_channel_t *tx);
         void (*write_src_reset)(dmachan_tx_channel_t *tx);
         void (*start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
-        dmachan_irq_state_t (*handle_tx_irq)(dmachan_tx_channel_t *tx);
+        dmachan_irq_state_t (*handle_tx_dma_irq)(dmachan_tx_channel_t *tx);
 } dmachan_tx_channel_ops_t;
 
 typedef struct dmachan_mem_tx_channel_data {

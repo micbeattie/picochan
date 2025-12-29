@@ -34,7 +34,7 @@ typedef enum __attribute__((packed)) dmachan_mem_dst_state {
 // cause the corresponding INTSn bit to be seen as 1 too so
 // REASON_RAISED will (always?) be set if REASON_FORCED is.
 // COMPLETE is the value of the link's complete field at the end of
-// the dmachan_handle_tx_irq and dmachan_handle_rx_irq functions:
+// the dmachan_handle_tx_dma_irq and dmachan_handle_rx_irq functions:
 // it will be 1 if either the RAISED or FORCED conditions hold or if
 // the field was set explicitly beforehand as a way of causing
 // completion handling locally without an irq being triggered.
