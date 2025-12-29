@@ -189,9 +189,8 @@ static void print_started(uint rt, void *vd) {
 
 static void print_irq(uint rt, void *vd) {
         struct pch_trdata_id_irq *td = vd;
-        const char *idtype = pick_idtype(rt, PCH_TRC_RT_CSS_CHP_IRQ);
-        printf("IRQ for %s=%d with DMA_IRQ_%d tx:irq_state=",
-               idtype, td->id, td->dmairqix);
+        printf("IRQ for channel %d with DMA_IRQ_%d tx:irq_state=",
+               td->id, td->dmairqix);
         print_dma_irq_state(td->tx_state >> 4);
         printf(",mem_src_state=");
         print_mem_src_state(td->tx_state & 0xf);
@@ -591,8 +590,6 @@ trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
 	[PCH_TRC_RT_CUS_CU_TRACED] = print_traced,
 	[PCH_TRC_RT_CSS_CHP_STARTED] = print_started,
 	[PCH_TRC_RT_CUS_CU_STARTED] = print_started,
-	[PCH_TRC_RT_CSS_CHP_IRQ] = print_irq,
-	[PCH_TRC_RT_CUS_CU_IRQ] = print_irq,
 	[PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER] = print_css_init_irq_handler,
 	[PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER] = print_css_init_irq_handler,
 	[PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER] = print_css_init_irq_handler,
@@ -635,6 +632,7 @@ trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
 	[PCH_TRC_RT_DMACHAN_FORCE_IRQ] = print_dmachan_force_irq,
 	[PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD] = print_dmachan_memchan_rx_cmd,
 	[PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD] = print_dmachan_memchan_tx_cmd,
+	[PCH_TRC_RT_DMACHAN_DMA_IRQ] = print_irq,
 	[PCH_TRC_RT_TRC_ENABLE] = print_enable,
 	[PCH_TRC_RT_HLDEV_CONFIG_INIT] = print_hldev_config_init,
 	[PCH_TRC_RT_HLDEV_START] = print_hldev_start,

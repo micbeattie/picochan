@@ -94,4 +94,9 @@ void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx);
 void dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *d1c, const dmachan_tx_channel_ops_t *ops);
 void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c, const dmachan_rx_channel_ops_t *ops);
 
+extern dmachan_rx_channel_ops_t dmachan_mem_rx_channel_ops;
+extern dmachan_tx_channel_ops_t dmachan_mem_tx_channel_ops;
+extern dmachan_rx_channel_ops_t dmachan_uart_rx_channel_ops;
+extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
+
 #endif

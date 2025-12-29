@@ -256,10 +256,6 @@ static inline void dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t src
         tx->ops->start_src_data(tx, srcaddr, count);
 }
 
-static inline dmachan_irq_state_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx) {
-        return tx->ops->handle_tx_irq(tx);
-}
-
 // Methods for dmachan_rx_channel_t
 
 static inline void dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx) {
@@ -278,17 +274,7 @@ static inline void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t 
         rx->ops->start_dst_discard(rx, count);
 }
 
-static inline dmachan_irq_state_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx) {
-        return rx->ops->handle_rx_irq(rx);
-}
-
 void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
-
-
-extern dmachan_rx_channel_ops_t dmachan_mem_rx_channel_ops;
-extern dmachan_tx_channel_ops_t dmachan_mem_tx_channel_ops;
-extern dmachan_rx_channel_ops_t dmachan_uart_rx_channel_ops;
-extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
 
 // Convenience functions for configuring UART channels
 void pch_uart_init(uart_inst_t *uart, uint baudrate);
@@ -300,5 +286,9 @@ void pch_channel_init_memchan(pch_channel_t *ch, uint8_t id, uint dmairqix, pch_
 // any memchan CU with pch_cus_memcu_configure or
 // pch_chp_configure_memchan
 void pch_memchan_init(void);
+
+// pch_channel_handle_dma_irq() must be called for each channel
+// whenever there is a DMA interrupt that may be relevant to it.
+void pch_channel_handle_dma_irq(pch_channel_t *ch);
 
 #endif
