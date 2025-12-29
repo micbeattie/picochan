@@ -120,11 +120,6 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer) {
                 &chp->channel.rx.link);
 }
 
-static void set_dmachan_links_bs(pch_chp_t *chp, pch_trc_bufferset_t *bs) {
-        dmachan_set_link_bs(&chp->channel.tx.link, bs);
-        dmachan_set_link_bs(&chp->channel.rx.link, bs);
-}
-
 uint8_t pch_chp_set_trace_flags(pch_chpid_t chpid, uint8_t trace_flags) {
 	pch_chp_t *chp = pch_get_chp(chpid);
         trace_flags &= PCH_CHP_TRACED_MASK;
@@ -132,9 +127,9 @@ uint8_t pch_chp_set_trace_flags(pch_chpid_t chpid, uint8_t trace_flags) {
         chp->trace_flags = trace_flags;
 
         if (trace_flags & PCH_CHP_TRACED_LINK)
-                set_dmachan_links_bs(chp, &CSS.trace_bs);
+                pch_channel_trace(&chp->channel, &CSS.trace_bs);
         else
-                set_dmachan_links_bs(chp, NULL);
+                pch_channel_trace(&chp->channel, NULL);
 
 	PCH_CSS_TRACE_COND(PCH_TRC_RT_CSS_CHP_TRACED,
                 trace_flags != old_trace_flags,

@@ -270,11 +270,6 @@ bool pch_cus_is_traced(void) {
         return pch_cus_trace_bs.enable;
 }
 
-static void set_dmachan_links_bs(pch_cu_t *cu, pch_trc_bufferset_t *bs) {
-        dmachan_set_link_bs(&cu->channel.tx.link, bs);
-        dmachan_set_link_bs(&cu->channel.rx.link, bs);
-}
-
 uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags) {
         pch_cu_t *cu = pch_get_cu(cua);
         trace_flags &= PCH_CU_TRACED_MASK;
@@ -282,9 +277,9 @@ uint8_t pch_cu_set_trace_flags(pch_cuaddr_t cua, uint8_t trace_flags) {
         cu->flags = (cu->flags & ~PCH_CU_TRACED_MASK) | trace_flags;
 
         if (trace_flags & PCH_CU_TRACED_LINK)
-                set_dmachan_links_bs(cu, &pch_cus_trace_bs);
+                pch_channel_trace(&cu->channel, &pch_cus_trace_bs);
         else
-                set_dmachan_links_bs(cu, NULL);
+                pch_channel_trace(&cu->channel, NULL);
 
         PCH_CUS_TRACE_COND(PCH_TRC_RT_CUS_CU_TRACED,
                 trace_flags != old_trace_flags,

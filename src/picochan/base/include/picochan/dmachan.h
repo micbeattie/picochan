@@ -136,7 +136,7 @@ static inline void dmachan_cmd_set_zero(dmachan_cmd_t *cmd) {
 // dmachan_link_t collects the common fields in tx and rx channels
 typedef struct __aligned(4) dmachan_link {
         dmachan_cmd_t           cmd;
-        pch_trc_bufferset_t     *bs;            // only when tracing
+        pch_trc_bufferset_t     *bs;    // set/unset by owning channel
 #ifdef PCH_CONFIG_DEBUG_MEMCHAN
         uint16_t                seqnum;
 #endif
@@ -152,10 +152,6 @@ static inline uint16_t dmachan_link_seqnum(dmachan_link_t *l) {
 #else
         return 0;
 #endif
-}
-
-static inline void dmachan_set_link_bs(dmachan_link_t *l, pch_trc_bufferset_t *bs) {
-        l->bs = bs;
 }
 
 static inline void dmachan_link_cmd_set_zero(dmachan_link_t *l) {
@@ -264,6 +260,7 @@ typedef struct pch_channel {
 // Values of pch_channel_t flags field
 #define PCH_CHANNEL_CONFIGURED  0x01
 #define PCH_CHANNEL_STARTED     0x02
+#define PCH_CHANNEL_TRACED      0x04
 
 static inline bool pch_channel_is_configured(pch_channel_t *ch) {
         return ch->flags & PCH_CHANNEL_CONFIGURED;
@@ -271,6 +268,10 @@ static inline bool pch_channel_is_configured(pch_channel_t *ch) {
 
 static inline bool pch_channel_is_started(pch_channel_t *ch) {
         return ch->flags & PCH_CHANNEL_STARTED;
+}
+
+static inline bool pch_channel_is_traced(pch_channel_t *ch) {
+        return ch->flags & PCH_CHANNEL_TRACED;
 }
 
 static inline void pch_channel_configure_id(pch_channel_t *ch, uint8_t id) {
@@ -289,6 +290,18 @@ static inline void pch_channel_set_started(pch_channel_t *ch, bool b) {
                 ch->flags |= PCH_CHANNEL_STARTED;
         else
                 ch->flags &= ~PCH_CHANNEL_STARTED;
+}
+
+static inline void pch_channel_trace(pch_channel_t *ch, pch_trc_bufferset_t *bs) {
+        if (bs) {
+                ch->tx.link.bs = bs;
+                ch->rx.link.bs = bs;
+                ch->flags |= PCH_CHANNEL_TRACED;
+        } else {
+                ch->tx.link.bs = NULL;
+                ch->rx.link.bs = NULL;
+                ch->flags &= ~PCH_CHANNEL_TRACED;
+        }
 }
 
 static inline dmachan_irq_state_t dmachan_make_irq_state(bool raised, bool forced, bool complete) {
