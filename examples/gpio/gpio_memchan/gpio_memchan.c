@@ -32,9 +32,6 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t gd_cu = PCH_CU_INIT(NUM_GPIO_DEVS);
 
-pch_irq_index_t css_dmairqix = -1;
-pch_irq_index_t cu_dmairqix = -1;
-
 extern void gd_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua, uint16_t num_devices);
 
 bool core1_ready;
@@ -42,7 +39,6 @@ bool core1_ready;
 static void core1_thread(void) {
         pch_cus_init();
         pch_cus_set_trace(GD_ENABLE_TRACE);
-        pch_cus_configure_irq_index_shared_default(cu_dmairqix);
 
         gd_cu_init(&gd_cu, FIRST_UA, NUM_GPIO_DEVS); // must call from core 1
         pch_cu_register(&gd_cu, CUADDR);
@@ -100,15 +96,10 @@ int main(void) {
 
         light_led_for_three_seconds();
 
-        css_dmairqix = 0;
-        cu_dmairqix = 1;
-
         pch_memchan_init();
 
         pch_css_init();
         pch_css_set_trace(GD_ENABLE_TRACE);
-        pch_css_configure_irq_index_shared(css_dmairqix,
-                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         pch_css_start(NULL, 0); // must set CSS dmairqix before this
         pch_chpid_t chpid = pch_chp_claim_unused(true);
         pch_chp_alloc(chpid, 1); // allocates SID 0

@@ -53,9 +53,6 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t mqtt_cu = PCH_CU_INIT(NUM_MQTT_DEVS);
 
-pch_irq_index_t css_dmairqix = -1;
-pch_irq_index_t cu_dmairqix = -1;
-
 static void light_led_ms(uint32_t ms) {
         status_led_init_with_context(cyw43_arch_async_context());
         status_led_set_state(true);
@@ -89,7 +86,6 @@ static void core1_thread(void) {
         wifi_connect();
         pch_cus_init(); // could do from core 0
         pch_cus_set_trace(MQTT_ENABLE_TRACE); // could do from core 0
-        pch_cus_configure_irq_index_shared_default(cu_dmairqix);
         
         mqtt_cu_init(&mqtt_cu, FIRST_UA, NUM_MQTT_DEVS);
         pch_cu_register(&mqtt_cu, CUADDR);
@@ -293,15 +289,11 @@ int main(void) {
         stdio_init_all();
         sleep_ms(2000);
         printf("started main on core0\n");
-        css_dmairqix = 0;
-        cu_dmairqix = 1;
 
         pch_memchan_init();
 
         pch_css_init();
         pch_css_set_trace(MQTT_ENABLE_TRACE);
-        pch_css_configure_irq_index_shared(css_dmairqix,
-                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         pch_css_start(io_cb, 0); // start with callbacks disabled for all ISCs
         pch_chpid_t chpid = pch_chp_claim_unused(true);
         pch_chp_alloc(chpid, 3); // allocates SIDs 0-2

@@ -26,8 +26,8 @@ static void __time_critical_func(mem_start_src_cmdbuf)(dmachan_tx_channel_t *tx)
         uint32_t saved_irq = mem_peer_lock();
 
         dmachan_mem_dst_state_t rxpeer_mem_dst_state = rxpeer->u.mem.dst_state;
-        trace_dmachan_memstate(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM,
-                txl, rxpeer_mem_dst_state);
+        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_SRC_CMDBUF_MEM, txl,
+                rxpeer_mem_dst_state);
 
         switch (rxpeer_mem_dst_state) {
         case DMACHAN_MEM_DST_IDLE:

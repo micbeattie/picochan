@@ -35,9 +35,8 @@ static bool process_a_schib_waiting_for_tx(pch_chp_t *chp) {
         return false;
 }
 
-static void handle_dma_irq_chp(pch_chp_t *chp) {
+static void handle_irq_completions(pch_chp_t *chp) {
         pch_channel_t *ch = &chp->channel;
-        pch_channel_handle_dma_irq(ch);
 
         dmachan_link_t *txl = &ch->tx.link;
         dmachan_link_t *rxl = &ch->rx.link;
@@ -115,6 +114,7 @@ void __isr __time_critical_func(pch_css_dma_irq_handler)() {
                 if (!pch_channel_is_started(&chp->channel))
 			continue;
 
-		handle_dma_irq_chp(chp);
+                pch_channel_handle_dma_irq(&chp->channel);
+                handle_irq_completions(chp);
 	}
 }

@@ -28,9 +28,6 @@ const pch_chpid_t CHPID = 0;
 
 static pch_cu_t blink_cu = PCH_CU_INIT(1);
 
-pch_irq_index_t css_dmairqix = -1;
-pch_irq_index_t cu_dmairqix = -1;
-
 extern void blink_cu_init(pch_cu_t *cu, pch_unit_addr_t first_ua);
 
 bool core1_ready;
@@ -38,7 +35,6 @@ bool core1_ready;
 static void core1_thread(void) {
         pch_cus_init(); // could do from core 0
         pch_cus_set_trace(BLINK_ENABLE_TRACE); // could do from core 0
-        pch_cus_configure_irq_index_shared_default(cu_dmairqix);
         
         blink_cu_init(&blink_cu, FIRST_UA);
         pch_cu_register(&blink_cu, CUADDR);
@@ -76,15 +72,11 @@ int main(void) {
         light_led_for_three_seconds();
 
         sleep_ms(2000);
-        css_dmairqix = 0;
-        cu_dmairqix = 1;
 
         pch_memchan_init();
 
         pch_css_init();
         pch_css_set_trace(BLINK_ENABLE_TRACE);
-        pch_css_configure_irq_index_shared(css_dmairqix,
-                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         pch_css_start(NULL, 0); // must set CSS dmairqix before this
         pch_chpid_t chpid = pch_chp_claim_unused(true);
         pch_chp_alloc(chpid, 1); // allocates SID 0

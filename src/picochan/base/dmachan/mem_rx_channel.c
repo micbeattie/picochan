@@ -30,8 +30,8 @@ static void __time_critical_func(mem_start_dst_cmdbuf)(dmachan_rx_channel_t *rx)
         uint32_t status = mem_peer_lock();
 
         dmachan_mem_src_state_t txpeer_mem_src_state = txpeer->u.mem.src_state;
-        trace_dmachan_memstate(PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM,
-                rxl, txpeer_mem_src_state);
+        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM, rxl,
+                txpeer_mem_src_state);
 
         switch (txpeer_mem_src_state) {
         case DMACHAN_MEM_SRC_IDLE:
@@ -56,7 +56,8 @@ static void __time_critical_func(mem_start_dst_cmdbuf)(dmachan_rx_channel_t *rx)
 }
 
 static void __time_critical_func(mem_start_dst_reset)(dmachan_rx_channel_t *rx) {
-        trace_dmachan(PCH_TRC_RT_DMACHAN_DST_RESET_MEM, &rx->link);
+        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_RESET, &rx->link,
+                DMACHAN_RESET_BYPASSED);
         // No reset action for now, go straight to receiving to cmdbuf
         mem_start_dst_cmdbuf(rx);
 }

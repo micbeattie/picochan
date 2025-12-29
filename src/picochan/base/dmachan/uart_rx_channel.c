@@ -28,7 +28,8 @@ static void __time_critical_func(uart_start_dst_cmdbuf)(dmachan_rx_channel_t *rx
 
 static void __time_critical_func(uart_start_dst_reset)(dmachan_rx_channel_t *rx) {
         dmachan_link_t *rxl = &rx->link;
-        trace_dmachan(PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE, rxl);
+        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_RESET, rxl,
+                DMACHAN_RESET_PROGRESSING);
         rxl->resetting = true;
         dma_channel_config ctrl = rx->ctrl;
         channel_config_set_write_increment(&ctrl, true);

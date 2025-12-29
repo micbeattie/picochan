@@ -107,17 +107,17 @@ int16_t pch_css_get_func_irq(void);
 int16_t pch_css_get_io_irq(void);
 
 // A variety of different initialisation functions for configuring
-// CSS IRQ numbers and handlers for DMA IRQ index, function IRQ
-// and I/O IRQ.
+// CSS IRQ index and IRQs and handler attributes for DMA,
+// function and I/O IRQs.
 
 void pch_css_set_irq_index(pch_irq_index_t irq_index);
-void pch_css_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority);
-void pch_css_configure_irq_index_exclusive(pch_irq_index_t irq_index);
-void pch_css_configure_irq_index_default_shared(uint8_t order_priority);
-void pch_css_configure_irq_index_default_exclusive();
-void pch_css_auto_configure_irq_index();
 
-/*! \brief Low-level function to set the IRQ number that the CSS uses
+void pch_css_configure_dma_irq_exclusive(void);
+void pch_css_configure_dma_irq_shared(uint8_t order_priority);
+void pch_css_configure_dma_irq_shared_default(void);
+void pch_css_configure_dma_irq_if_needed(void);
+
+/*! \brief Low-level functions to set the IRQ number that the CSS uses
  * for application API notification to CSS
  * \ingroup picochan_css
  *
@@ -130,11 +130,14 @@ void pch_css_auto_configure_irq_index();
  * pch_css_configure_func_irq...
  */
 void pch_css_set_func_irq(irq_num_t irqnum);
-void pch_css_configure_func_irq_shared(irq_num_t irqnum, uint8_t order_priority);
 void pch_css_configure_func_irq_exclusive(irq_num_t irqnum);
-void pch_css_configure_func_irq_unused_shared(bool required, uint8_t order_priority);
-void pch_css_configure_func_irq_unused_exclusive(bool required);
-void pch_css_auto_configure_func_irq(bool required);
+void pch_css_configure_func_irq_shared(irq_num_t irqnum, uint8_t order_priority);
+void pch_css_configure_func_irq_shared_default(irq_num_t irqnum);
+
+bool pch_css_configure_func_irq_unused_exclusive(bool required);
+bool pch_css_configure_func_irq_unused_shared(bool required, uint8_t order_priority);
+bool pch_css_configure_func_irq_unused_shared_default(bool required);
+void pch_css_auto_configure_func_irq(void);
 
 /*! \brief Low-level function to set the IRQ number that the CSS uses
  * for I/O interrupt notification.
@@ -149,11 +152,14 @@ void pch_css_auto_configure_func_irq(bool required);
  * pch_css_configure_io_irq...
  */
 void pch_css_set_io_irq(irq_num_t irqnum);
-void pch_css_configure_io_irq_shared(irq_num_t irqnum, uint8_t order_priority);
 void pch_css_configure_io_irq_exclusive(irq_num_t irqnum);
-void pch_css_configure_io_irq_unused_shared(bool required, uint8_t order_priority);
-void pch_css_configure_io_irq_unused_exclusive(bool required);
-void pch_css_auto_configure_io_irq(bool required);
+void pch_css_configure_io_irq_shared(irq_num_t irqnum, uint8_t order_priority);
+void pch_css_configure_io_irq_shared_default(irq_num_t irqnum);
+
+bool pch_css_configure_io_irq_unused_exclusive(bool required);
+bool pch_css_configure_io_irq_unused_shared(bool required, uint8_t order_priority);
+bool pch_css_configure_io_irq_unused_shared_default(bool required);
+void pch_css_auto_configure_io_irq(void);
 
 /*! \brief Low-level function to set the I/O callback function that
  * the CSS invokes if its I/O interrupt handler has been set to

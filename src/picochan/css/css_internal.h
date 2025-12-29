@@ -23,6 +23,8 @@
 #include "picochan/dmachan.h"
 #include "trc/trace.h"
 
+#define NUM_IRQ_INDEXES NUM_DMA_IRQS
+
 /*! \file css/css_internal.h
  *  \defgroup internal_css internal_css
  *
@@ -37,6 +39,7 @@
 struct css {
         schib_dlist_t   isc_dlists[PCH_NUM_ISCS]; // indexed by ISC
         io_callback_t   io_callback;
+        bool            dma_irq_configured;
         int16_t         io_irqnum;   //!< -1 or Irq raised for schib notify
         int16_t         func_irqnum; //!< raised by API to schedule schib function
         uint8_t         isc_enable_mask;

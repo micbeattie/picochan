@@ -4,7 +4,6 @@
  */
 
 #include <string.h>
-#include "picochan/dmachan.h"
 #include "dmachan_internal.h"
 
 void dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c, const dmachan_rx_channel_ops_t *ops) {
@@ -50,6 +49,8 @@ void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx) {
         rxl->complete = false; // don't pass on to channel handler
 
         if (rxl->cmd.buf[0] != DMACHAN_RESET_BYTE) {
+                trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_RESET, rxl,
+                        DMACHAN_RESET_INVALID);
                 dmachan_dropped_reset_byte_count++;
                 dmachan_start_dst_reset(rx);
                 return;
@@ -58,6 +59,8 @@ void dmachan_handle_rx_resetting(dmachan_rx_channel_t *rx) {
         // Found the synchronising "reset" byte - ready to
         // receive commands
         rxl->resetting = false;
+        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_RESET, rxl,
+                DMACHAN_RESET_COMPLETE);
         dmachan_start_dst_cmdbuf(rx);
 }
 

@@ -39,24 +39,6 @@ static inline uint32_t dma_get_ctrl_value(uint channel) {
         return channel_config_get_ctrl_value(&config);
 }
 
-typedef struct pch_uartchan_config {
-        dma_channel_config      ctrl;
-        uint                    baudrate;
-        uint                    irq_index;
-} pch_uartchan_config_t;
-
-static inline pch_uartchan_config_t pch_uartchan_get_default_config(uart_inst_t *uart) {
-        // Argument 0 to dma_channel_get_default_config is ok here
-        // (as would be any DMA id) because it only affects the
-        // "chain-to" value and that is overridden when the ctrl
-        // value is used.
-        return ((pch_uartchan_config_t){
-                .ctrl = dma_channel_get_default_config(0),
-                .baudrate = PCH_UARTCHAN_DEFAULT_BAUDRATE,
-                .irq_index = get_core_num()
-        });
-}
-
 typedef union __aligned(4) dmachan_cmd {
         unsigned char   buf[4];
         uint32_t        raw;        
@@ -111,6 +93,33 @@ static inline void dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *sr
         dst->seqnum = src->seqnum;
 #endif
 }
+
+// UART channel (uartchan) configuration
+
+typedef struct pch_uartchan_config {
+        dma_channel_config      ctrl;
+        uint                    baudrate;
+        uint                    irq_index;
+} pch_uartchan_config_t;
+
+static inline pch_uartchan_config_t pch_uartchan_get_default_config(uart_inst_t *uart) {
+        // Argument 0 to dma_channel_get_default_config is ok here
+        // (as would be any DMA id) because it only affects the
+        // "chain-to" value and that is overridden when the ctrl
+        // value is used.
+        return ((pch_uartchan_config_t){
+                .ctrl = dma_channel_get_default_config(0),
+                .baudrate = PCH_UARTCHAN_DEFAULT_BAUDRATE,
+                .irq_index = get_core_num()
+        });
+}
+
+// Memory channel (memchan) configuration
+
+// pch_memchan_init must be called before configuring either side of
+// any memchan CU with pch_cus_memcu_configure or
+// pch_chp_configure_memchan
+void pch_memchan_init(void);
 
 // tx and rx channels, starting with forward declarations because
 // for memchans there is a field pointing at the peer channel
@@ -222,6 +231,11 @@ static inline void pch_channel_trace(pch_channel_t *ch, pch_trc_bufferset_t *bs)
         }
 }
 
+// Initialisation of channels
+
+void pch_channel_init_uartchan(pch_channel_t *ch, uint8_t id, uart_inst_t *uart, pch_uartchan_config_t *cfg);
+void pch_channel_init_memchan(pch_channel_t *ch, uint8_t id, uint dmairqix, pch_channel_t *chpeer);
+
 // tx channel irq and memory source state handling
 static inline void dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {
         valid_params_if(PCH_DMACHAN,
@@ -275,17 +289,6 @@ static inline void dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t 
 }
 
 void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);
-
-// Convenience functions for configuring UART channels
-void pch_uart_init(uart_inst_t *uart, uint baudrate);
-
-void pch_channel_init_uartchan(pch_channel_t *ch, uint8_t id, uart_inst_t *uart, pch_uartchan_config_t *cfg);
-void pch_channel_init_memchan(pch_channel_t *ch, uint8_t id, uint dmairqix, pch_channel_t *chpeer);
-
-// pch_memchan_init must be called before configuring either side of
-// any memchan CU with pch_cus_memcu_configure or
-// pch_chp_configure_memchan
-void pch_memchan_init(void);
 
 // pch_channel_handle_dma_irq() must be called for each channel
 // whenever there is a DMA interrupt that may be relevant to it.

@@ -18,7 +18,10 @@ static inline void trace_dma_irq(pch_channel_t *ch, pch_irq_index_t irq_index, u
 }
 
 static inline dmachan_irq_state_t handle_tx_dma_irq(dmachan_tx_channel_t *tx) {
-        return tx->ops->handle_tx_dma_irq(tx);
+        if (tx->ops->handle_tx_dma_irq)
+                return tx->ops->handle_tx_dma_irq(tx);
+
+        return 0;
 }
 
 static inline dmachan_irq_state_t handle_rx_irq(dmachan_rx_channel_t *rx) {

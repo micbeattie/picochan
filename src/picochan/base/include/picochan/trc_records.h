@@ -29,8 +29,8 @@ struct pch_trdata_irq_handler {
 };
 
 struct pch_trdata_cu_register {
-        uint16_t                num_devices;
-        pch_cuaddr_t            cuaddr;
+        uint16_t        num_devices;
+        pch_cuaddr_t    cuaddr;
 };
 
 struct pch_trdata_id_irq {
@@ -222,9 +222,9 @@ struct pch_trdata_dmachan {
         pch_dmaid_t     dmaid;
 };
 
-struct pch_trdata_dmachan_memstate {
+struct pch_trdata_dmachan_byte {
         pch_dmaid_t     dmaid;
-        uint8_t         state;
+        uint8_t         byte;
 };
 
 struct pch_trdata_dmachan_segment {

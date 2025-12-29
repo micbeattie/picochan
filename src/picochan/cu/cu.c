@@ -101,13 +101,23 @@ void pch_cu_configure_async_context_if_unset(pch_cu_t *cu) {
         cu->async_context = pch_cus_async_context;
 }
 
+void pch_cu_configure_irq_index_if_unset(pch_cu_t *cu) {
+        if (cu->irq_index == -1) {
+                pch_irq_index_t irq_index = pch_cus_find_or_claim_irq_index();
+                pch_cu_set_irq_index(cu, irq_index);
+        }
+}
+
+void pch_cu_configure_dma_irq_if_unset(pch_cu_t *cu) {
+        pch_cu_configure_irq_index_if_unset(cu);
+        pch_cus_configure_dma_irq_if_unset(cu->irq_index);
+}
+
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!pch_channel_is_started(&cu->channel));
         pch_cu_configure_async_context_if_unset(cu);
-
-        if (cu->irq_index == -1)
-                cu->irq_index = pch_cus_auto_configure_irq_index(true);
+        pch_cu_configure_dma_irq_if_unset(cu);
 
         pch_channel_init_uartchan(&cu->channel, cua, uart, cfg);
 
@@ -127,8 +137,7 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_channel_t *chpeer) {
         assert(!pch_channel_is_started(&cu->channel));
 
         pch_cu_configure_async_context_if_unset(cu);
-        if (cu->irq_index == -1)
-                cu->irq_index = pch_cus_auto_configure_irq_index(true);
+        pch_cu_configure_dma_irq_if_unset(cu);
 
         pch_channel_init_memchan(&cu->channel, cua, cu->irq_index, chpeer);
 

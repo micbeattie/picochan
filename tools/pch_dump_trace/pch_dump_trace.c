@@ -41,21 +41,19 @@ const char *rtnames[] = {
 
 bool raw = false;
 
+static const char *pick_side(uint rt, uint cssrt) {
+        return (rt == cssrt) ? "CSS" : "CU-side";
+}
+
 static const char *pick_idtype(uint rt, uint cssrt) {
         return (rt == cssrt) ? "CHPID" : "CU";
 }
 
 static const char *pick_irqtype(uint rt) {
         switch (rt) {
-        case PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER:
-        case PCH_TRC_RT_CSS_SET_DMA_IRQ:
-                return "DMA";
-
-        case PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER:
         case PCH_TRC_RT_CSS_SET_FUNC_IRQ:
                 return "function";
 
-        case PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER:
         case PCH_TRC_RT_CSS_SET_IO_IRQ:
                 return "I/O";
         }
@@ -187,9 +185,9 @@ static void print_started(uint rt, void *vd) {
                 idtype, td->id, td->byte ? "started" : "stopped");
 }
 
-static void print_irq(uint rt, void *vd) {
+static void print_dma_irq(uint rt, void *vd) {
         struct pch_trdata_id_irq *td = vd;
-        printf("IRQ for channel %d with irq_index=%d tx:irq_state=",
+        printf("DMA IRQ for channel %d with irq_index=%d tx:irq_state=",
                td->id, td->irq_index);
         print_dma_irq_state(td->tx_state >> 4);
         printf(",mem_src_state=");
@@ -202,11 +200,16 @@ static void print_irq(uint rt, void *vd) {
                 printf(",sets rxcomplete");
 }
 
-static void print_css_init_irq_handler(uint rt, void *vd) {
+static void print_init_irq_handler(uint rt, void *vd) {
         struct pch_trdata_irq_handler *td = vd;
-        const char *irqtype = pick_irqtype(rt);
-        printf("CSS ");
-        print_dma_handler_init(td, irqtype);
+        const char *side = pick_side(rt, PCH_TRC_RT_CSS_INIT_IRQ_HANDLER);
+        printf("%s initialises IRQ %u ", side, td->irqnum);
+        if (td->order_priority == -1)
+                printf("exclusive");
+        else
+                printf("shared (priority %d)", td->order_priority);
+
+        printf(" handler to ISR addr:%08x", td->handler);
 }
 
 static void print_cus_queue_command(uint rt, void *vd) {
@@ -221,16 +224,21 @@ static void print_cus_init_async_context(uint rt, void *vd) {
                 td->id, td->byte);
 }
 
-static void print_cus_init_dma_irq_handler(uint rt, void *vd) {
-        struct pch_trdata_irq_handler *td = vd;
-        printf("CU-side ");
-        print_dma_handler_init(td, "DMA");
-}
-
 static void print_cus_cu_register(uint rt, void *vd) {
         struct pch_trdata_cu_register *td = vd;
         printf("CU=%d registers with %d devices",
                 td->cuaddr, td->num_devices);
+}
+
+static void print_cus_claim_irq_index(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        printf("CU-side claims irq_index %u for core %u",
+                td->id, td->byte);
+}
+
+static void print_cus_cu_set_irq_index(uint rt, void *vd) {
+        struct pch_trdata_id_byte *td = vd;
+        printf("CU=%d sets irq_index to %u", td->id, td->byte);
 }
 
 static void print_cus_cu_tx_dma_init(uint rt, void *vd) {
@@ -270,6 +278,11 @@ static void print_css_tx_complete(uint rt, void *vd) {
 static void print_css_core_num(uint rt, void *vd) {
         struct pch_trdata_byte *td = vd;
         printf("CSS is running on core number %d", td->byte);
+}
+
+static void print_css_set_irq_index(uint rt, void *vd) {
+        struct pch_trdata_byte *td = vd;
+        printf("CSS sets irq_index to %u", td->byte);
 }
 
 static void print_css_set_irq(uint rt, void *vd) {
@@ -356,9 +369,36 @@ static void print_cus_rx_data_complete(uint rt, void *vd) {
         printf(" rx data complete");
 }
 
-static void print_dmachan_dst_reset_remote(uint rt, void *vd) {
-        struct pch_trdata_dmachan *td = vd;
-        printf("rx channel DMAid=%d reset in progress", td->dmaid);
+// Values for pch_trdata_dmachan_byte for PCH_TRC_RT_DMACHAN_DST_RESET
+#define DMACHAN_RESET_PROGRESSING       0
+#define DMACHAN_RESET_COMPLETE          1
+#define DMACHAN_RESET_BYPASSED          2
+#define DMACHAN_RESET_INVALID           3
+
+static void print_dmachan_dst_reset(uint rt, void *vd) {
+        struct pch_trdata_dmachan_byte *td = vd;
+        printf("rx channel DMAid=%d reset ", td->dmaid);
+        switch (td->byte) {
+        case DMACHAN_RESET_PROGRESSING:
+                printf("progressing");
+                break;
+
+        case DMACHAN_RESET_COMPLETE:
+                printf("complete");
+                break;
+
+        case DMACHAN_RESET_BYPASSED:
+                printf("bypassed");
+                break;
+
+        case DMACHAN_RESET_INVALID:
+                printf("invalid byte received");
+                break;
+
+        default:
+                printf("unknown_trace_byte(%u)", td->byte);
+                break;
+        }
 }
 
 static void print_dmachan_dst_cmdbuf_remote(uint rt, void *vd) {
@@ -368,11 +408,11 @@ static void print_dmachan_dst_cmdbuf_remote(uint rt, void *vd) {
 }
 
 static void print_dmachan_dst_cmdbuf_mem(uint rt, void *vd) {
-        struct pch_trdata_dmachan_memstate *td = vd;
+        struct pch_trdata_dmachan_byte *td = vd;
         printf("rx memchan DMAid=%d sets destination to cmdbuf while txpeer mem_src_state=",
                 td->dmaid);
-        print_mem_src_state(td->state);
-        if (td->state == DMACHAN_MEM_SRC_CMDBUF)
+        print_mem_src_state(td->byte);
+        if (td->byte == DMACHAN_MEM_SRC_CMDBUF)
                 printf(", sets rxcomplete and forces IRQ for tx peer");
 }
 
@@ -416,11 +456,11 @@ static void print_dmachan_src_cmdbuf_remote(uint rt, void *vd) {
 }
 
 static void print_dmachan_src_cmdbuf_mem(uint rt, void *vd) {
-        struct pch_trdata_dmachan_memstate *td = vd;
+        struct pch_trdata_dmachan_byte *td = vd;
         printf("tx memchan DMAid=%d sets source to cmdbuf while rxpeer mem_dst_state=",
                 td->dmaid);
-        print_mem_dst_state(td->state);
-        if (td->state == DMACHAN_MEM_DST_CMDBUF)
+        print_mem_dst_state(td->byte);
+        if (td->byte == DMACHAN_MEM_DST_CMDBUF)
                 printf(", forces IRQ for rx peer");
 }
 
@@ -590,34 +630,34 @@ trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
 	[PCH_TRC_RT_CUS_CU_TRACED] = print_traced,
 	[PCH_TRC_RT_CSS_CHP_STARTED] = print_started,
 	[PCH_TRC_RT_CUS_CU_STARTED] = print_started,
-	[PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER] = print_css_init_irq_handler,
-	[PCH_TRC_RT_CSS_INIT_FUNC_IRQ_HANDLER] = print_css_init_irq_handler,
-	[PCH_TRC_RT_CSS_INIT_IO_IRQ_HANDLER] = print_css_init_irq_handler,
 	[PCH_TRC_RT_CUS_QUEUE_COMMAND] = print_cus_queue_command,
 	[PCH_TRC_RT_CUS_INIT_ASYNC_CONTEXT] = print_cus_init_async_context,
-	[PCH_TRC_RT_CUS_INIT_DMA_IRQ_HANDLER] = print_cus_init_dma_irq_handler,
 	[PCH_TRC_RT_CUS_CU_REGISTER] = print_cus_cu_register,
+	[PCH_TRC_RT_CUS_CLAIM_IRQ_INDEX] = print_cus_claim_irq_index,
+	[PCH_TRC_RT_CUS_CU_SET_IRQ_INDEX] = print_cus_cu_set_irq_index,
 	[PCH_TRC_RT_CUS_CU_TX_DMA_INIT] = print_cus_cu_tx_dma_init,
 	[PCH_TRC_RT_CUS_CU_RX_DMA_INIT] = print_cus_cu_rx_dma_init,
 	[PCH_TRC_RT_CSS_CHP_IRQ_PROGRESS] = print_css_chp_irq_progress,
 	[PCH_TRC_RT_CSS_SEND_TX_PACKET] = print_css_send_tx_packet,
 	[PCH_TRC_RT_CSS_TX_COMPLETE] = print_css_tx_complete,
-	[PCH_TRC_RT_CSS_CORE_NUM] = print_css_core_num,
-	[PCH_TRC_RT_CSS_SET_DMA_IRQ] = print_css_set_irq,
+	[PCH_TRC_RT_CSS_SET_CORE_NUM] = print_css_core_num,
+	[PCH_TRC_RT_CSS_SET_IRQ_INDEX] = print_css_set_irq_index,
 	[PCH_TRC_RT_CSS_SET_FUNC_IRQ] = print_css_set_irq,
 	[PCH_TRC_RT_CSS_SET_IO_IRQ] = print_css_set_irq,
 	[PCH_TRC_RT_CSS_SET_IO_CALLBACK] = print_css_set_io_callback,
+	[PCH_TRC_RT_CSS_INIT_IRQ_HANDLER] = print_init_irq_handler,
 	[PCH_TRC_RT_CSS_IO_CALLBACK] = print_css_io_callback,
 	[PCH_TRC_RT_CSS_RX_COMMAND_COMPLETE] = print_css_rx_command_complete,
 	[PCH_TRC_RT_CSS_RX_DATA_COMPLETE] = print_css_rx_data_complete,
 	[PCH_TRC_RT_CSS_NOTIFY] = print_css_notify,
+	[PCH_TRC_RT_CUS_INIT_IRQ_HANDLER] = print_init_irq_handler,
 	[PCH_TRC_RT_CUS_REGISTER_CALLBACK] = print_cus_register_callback,
 	[PCH_TRC_RT_CUS_CALL_CALLBACK] = print_cus_call_callback,
 	[PCH_TRC_RT_CUS_SEND_TX_PACKET] = print_cus_send_tx_packet,
 	[PCH_TRC_RT_CUS_TX_COMPLETE] = print_cus_tx_complete,
 	[PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE] = print_cus_rx_command_complete,
 	[PCH_TRC_RT_CUS_RX_DATA_COMPLETE] = print_cus_rx_data_complete,
-	[PCH_TRC_RT_DMACHAN_DST_RESET_REMOTE] = print_dmachan_dst_reset_remote,
+	[PCH_TRC_RT_DMACHAN_DST_RESET] = print_dmachan_dst_reset,
 	[PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE] = print_dmachan_dst_cmdbuf_remote,
 	[PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM] = print_dmachan_dst_cmdbuf_mem,
 	[PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE] = print_dmachan_dst_data_remote,
@@ -632,7 +672,7 @@ trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
 	[PCH_TRC_RT_DMACHAN_FORCE_IRQ] = print_dmachan_force_irq,
 	[PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD] = print_dmachan_memchan_rx_cmd,
 	[PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD] = print_dmachan_memchan_tx_cmd,
-	[PCH_TRC_RT_DMACHAN_DMA_IRQ] = print_irq,
+	[PCH_TRC_RT_DMACHAN_DMA_IRQ] = print_dma_irq,
 	[PCH_TRC_RT_TRC_ENABLE] = print_enable,
 	[PCH_TRC_RT_HLDEV_CONFIG_INIT] = print_hldev_config_init,
 	[PCH_TRC_RT_HLDEV_START] = print_hldev_start,
