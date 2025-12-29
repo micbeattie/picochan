@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "dmachan_internal.h"
+#include "memchan_internal.h"
 
 static void mem_start_src_cmdbuf(dmachan_tx_channel_t *tx);
 static void mem_write_src_reset(dmachan_tx_channel_t *tx);

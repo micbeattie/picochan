@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-#include "dmachan_internal.h"
+#include "memchan_internal.h"
 
 // mem_peer_spin_lock must be initialised with pch_memchan_init
 spin_lock_t *dmachan_mem_peer_spin_lock;
