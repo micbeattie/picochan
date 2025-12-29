@@ -26,7 +26,7 @@ void pch_css_init(void) {
 
         CSS.func_irqnum = -1;
         CSS.io_irqnum = -1;
-        CSS.dmairqix = -1; // CSS not yet started
+        CSS.irq_index = -1; // CSS not yet started
         CSS.core_num = -1; // No core_num-dependent IRQs set yet
 
         for (int i = 0; i < PCH_NUM_SCHIBS; i++) {
@@ -78,50 +78,50 @@ int8_t pch_css_get_core_num(void) {
 
 // Configuring DMA IRQ handler
 
-pch_irq_index_t pch_css_get_dma_irq_index(void) {
-        return CSS.dmairqix;
+pch_irq_index_t pch_css_get_irq_index(void) {
+        return CSS.irq_index;
 }
 
-void pch_css_set_dma_irq_index(pch_irq_index_t dmairqix) {
-        if (dmairqix < 0 || dmairqix >= NUM_DMA_IRQS)
+void pch_css_set_irq_index(pch_irq_index_t irq_index) {
+        if (irq_index < 0 || irq_index >= NUM_DMA_IRQS)
                 panic("invalid DMA IRQ index");
 
-        irq_num_t irqnum = dma_get_irq_num((uint)dmairqix);
+        irq_num_t irqnum = dma_get_irq_num((uint)irq_index);
 	PCH_CSS_TRACE(PCH_TRC_RT_CSS_SET_DMA_IRQ,
                 ((struct pch_trdata_irqnum_opt){irqnum}));
 
-        CSS.dmairqix = dmairqix;
+        CSS.irq_index = irq_index;
 }
 
-void pch_css_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority)
+void pch_css_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority)
  {
-        pch_css_set_dma_irq_index(dmairqix);
-        irq_num_t irqnum = dma_get_irq_num(dmairqix);
+        pch_css_set_irq_index(irq_index);
+        irq_num_t irqnum = dma_get_irq_num(irq_index);
         css_irq_add_shared_handler(PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER,
                 irqnum, pch_css_dma_irq_handler, order_priority);
         irq_set_enabled(irqnum, true);
 }
 
-void pch_css_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix) {
-        pch_css_set_dma_irq_index(dmairqix);
-        irq_num_t irqnum = dma_get_irq_num(dmairqix);
+void pch_css_configure_irq_index_exclusive(pch_irq_index_t irq_index) {
+        pch_css_set_irq_index(irq_index);
+        irq_num_t irqnum = dma_get_irq_num(irq_index);
         css_irq_set_exclusive_handler(PCH_TRC_RT_CSS_INIT_DMA_IRQ_HANDLER,
                 irqnum, pch_css_dma_irq_handler);
         irq_set_enabled(irqnum, true);
 }
 
-void pch_css_configure_dma_irq_index_default_shared(uint8_t order_priority) {
-        pch_irq_index_t dmairqix = (pch_irq_index_t)get_core_num();
-        pch_css_configure_dma_irq_index_shared(dmairqix, order_priority);
+void pch_css_configure_irq_index_default_shared(uint8_t order_priority) {
+        pch_irq_index_t irq_index = (pch_irq_index_t)get_core_num();
+        pch_css_configure_irq_index_shared(irq_index, order_priority);
 }
 
-void pch_css_configure_dma_irq_index_default_exclusive() {
-        pch_irq_index_t dmairqix = (pch_irq_index_t)get_core_num();
-        pch_css_configure_dma_irq_index_exclusive(dmairqix);
+void pch_css_configure_irq_index_default_exclusive() {
+        pch_irq_index_t irq_index = (pch_irq_index_t)get_core_num();
+        pch_css_configure_irq_index_exclusive(irq_index);
 }
 
-void pch_css_auto_configure_dma_irq_index() {
-        pch_css_configure_dma_irq_index_default_shared(PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+void pch_css_auto_configure_irq_index() {
+        pch_css_configure_irq_index_default_shared(PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
 }
 
 // Configuring function IRQ handler
@@ -232,8 +232,8 @@ io_callback_t pch_css_set_io_callback(io_callback_t io_callback) {
 void pch_css_start(io_callback_t io_callback, uint8_t isc_mask) {
         CSS.isc_enable_mask = isc_mask;
 
-        if (CSS.dmairqix == -1)
-                pch_css_auto_configure_dma_irq_index();
+        if (CSS.irq_index == -1)
+                pch_css_auto_configure_irq_index();
 
         if (CSS.func_irqnum == -1)
                 pch_css_auto_configure_func_irq(true);

@@ -104,8 +104,8 @@ typedef struct __aligned(PCH_CU_ALIGN) pch_cu {
 	//! active ua for rx data to dev or -1 if none
 	int16_t                 rx_active;
         uint16_t                num_devibs; //!< [0, 256]
-	//! completions raise irq dma.IRQ_BASE+dmairqix, -1 before configuration
-	pch_irq_index_t     dmairqix;
+	//! completions raise irqs with irq_index, -1 before configuration
+	pch_irq_index_t         irq_index;
         pch_cuaddr_t            cuaddr;
         uint8_t                 flags;
         //! Flexible Array Member (FAM) of size num_devibs
@@ -136,11 +136,11 @@ static inline bool pch_cu_is_traced_irq(pch_cu_t *cu) {
         return cu->flags & PCH_CU_TRACED_IRQ;
 }
 
-static inline pch_irq_index_t pch_cu_get_dma_irq_index(pch_cu_t *cu) {
-        return cu->dmairqix;
+static inline pch_irq_index_t pch_cu_get_irq_index(pch_cu_t *cu) {
+        return cu->irq_index;
 }
 
-void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_irq_index_t dmairqix);
+void pch_cu_set_irq_index(pch_cu_t *cu, pch_irq_index_t irq_index);
 
 /*! \def PCH_CU_INIT
  *  \ingroup picochan_cu
@@ -158,7 +158,7 @@ void pch_cu_set_dma_irq_index(pch_cu_t *cu, pch_irq_index_t dmairqix);
                 .cb_list = { -1, -1 }, \
                 .rx_active = -1, \
                 .num_devibs = (num_devices), \
-                .dmairqix = -1, \
+                .irq_index = -1, \
                 .devibs = { [(num_devices)-1] = {0} } \
         }
 
@@ -244,80 +244,84 @@ void pch_cus_configure_default_async_context_if_unset(void);
 void pch_cu_configure_async_context_if_unset(pch_cu_t *cu);
 
 /*
- * \brief Configure an explicit DMA IRQ for use by CUs started from the
- * calling core and set an exclusive IRQ handler for it.
+ * \brief Configure an explicit IRQ index for use by CUs started from
+ * the calling core and set an exclusive IRQ handler for it.
  * \ingroup picochan_cu
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different DMA IRQ index. A convenient way
- * to still allow the CU subsystem to auto-configure its DMA IRQ
- * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
- * index of the CSS.
+ * a different core, using a different IRQ index. The IRQ index is
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
+ * subsystem to auto-configure its IRQ index choice is to call
+ * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
-void pch_cus_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix);
+void pch_cus_configure_irq_index_exclusive(pch_irq_index_t irq_index);
 
 /*
- * \brief Configure an explicit DMA IRQ for use by CUs started from
+ * \brief Configure an explicit IRQ index for use by CUs started from
  * the calling core and add a shared IRQ handler for it.
  * \ingroup picochan_cu
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different DMA IRQ index. A convenient way
- * to still allow the CU subsystem to auto-configure its DMA IRQ
- * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
- * index of the CSS.
+ * a different core, using a different IRQ index. The IRQ index is
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
+ * subsystem to auto-configure its IRQ index choice is to call
+ * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
-void pch_cus_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority);
+void pch_cus_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority);
 
 /*
- * \brief Configure an explicit DMA IRQ for use by CUs started from
+ * \brief Configure an explicit IRQ index for use by CUs started from
  * the calling core and add a shared IRQ handler for it using an
  * order_priority of PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY.
  * \ingroup picochan_cu
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different DMA IRQ index. A convenient way
- * to still allow the CU subsystem to auto-configure its DMA IRQ
- * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
- * index of the CSS.
+ * a different core, using a different IRQ index. The IRQ index is
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
+ * subsystem to auto-configure its IRQ index choice is to call
+ * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
-void pch_cus_configure_dma_irq_index_shared_default(pch_irq_index_t dmairqix);
+void pch_cus_configure_irq_index_shared_default(pch_irq_index_t irq_index);
 
 /*
- * \brief Automatically choose and configure a suitable DMA IRQ for
+ * \brief Automatically choose and configure a suitable IRQ index for
  * use by CUs started from the calling core.
  * \ingroup picochan_cu
  *
- * If one of the explicit pch_cus_configure_dma_irq_index_...()
+ * If one of the explicit pch_cus_configure_irq_index_...()
  * family of functions has already been called from the calling core
- * then the lowest such DMA IRQ index is returned. Otherwise, the
- * lowest DMA IRQ index is chosen that has not already been either
+ * then the lowest such IRQ index is returned. Otherwise, the
+ * lowest IRQ index is chosen that has not already been either
  * configured to any core or explicitly marked as not-to-use by
- * pch_cus_ignore_dma_irq_index_t(). It is then configured with
- * pch_cus_configure_dma_irq_index_shared_default() and returned.
+ * pch_cus_ignore_irq_index_t(). It is then configured with
+ * pch_cus_configure_irq_index_shared_default() and returned.
  * In the case that no such unused index is available, the function
  * panics if required is true, otherwise -1 is returned.
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different DMA IRQ index. A convenient way
- * to still allow the CU subsystem to auto-configure its DMA IRQ
- * choice is to call pch_cus_ignore_dma_irq_index_t() on the DMA IRQ
- * index of the CSS.
+ * a different core, using a different IRQ index. The IRQ index is
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
+ * subsystem to auto-configure its IRQ index choice is to call
+ * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
-pch_irq_index_t pch_cus_auto_configure_dma_irq_index(bool required);
+pch_irq_index_t pch_cus_auto_configure_irq_index(bool required);
 
-/* \brief Marks dmairqix such that any call to
- * pch_cus_auto_configure_dma_irq_index(), whether explicit or
- * implicitly from pch_cu_start(), will not choose that DMA IRQ index.
+/* \brief Marks irq_index such that any call to
+ * pch_cus_auto_configure_irq_index(), whether explicit or
+ * implicitly from pch_cu_start(), will not choose that IRQ index.
  * \ingroup picochan_cu
  * 
  * This function is convenient for avoiding the need to configure
- * explicit DMA IRQ index numbers for the CU subsystem while ensuring
- * that its auto-configuration of DMA IRQ index numbers does not
+ * explicit IRQ index numbers for the CU subsystem while ensuring
+ * that its auto-configuration of IRQ index numbers does not
  * conflict with those of a CSS in use on the same Pico or just some
- * other DMA IRQ index that needs to be reserved for application use.
+ * other IRQ index that needs to be reserved for application use.
  */
-void pch_cus_ignore_dma_irq_index_t(pch_irq_index_t dmairqix);
+void pch_cus_ignore_irq_index_t(pch_irq_index_t irq_index);
 
 // CU initialisation and configuration
 
@@ -386,8 +390,8 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_channel_t *chpeer);
  * pch_cu_register(). If the CU has already been started, this
  * function returns without doing anything. If no DMA IRQ index
  * has yet been explicitly configured for this CU then
- * pch_cus_auto_configure_dma_irq_index(true) is called and
- * pch_cu_set_dma_irq_index() is called to set the CU to use the
+ * pch_cus_auto_configure_irq_index(true) is called and
+ * pch_cu_set_irq_index() is called to set the CU to use the
  * returned index. Then it marks the CU as started and starts the
  * channel to the CSS, allowing it to receive commands from the CSS.
  */

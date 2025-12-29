@@ -102,7 +102,7 @@ void pch_css_init(void);
 
 // Accessor functions for basic CSS settings
 int8_t pch_css_get_core_num(void);
-int8_t pch_css_get_dma_irq_index(void);
+int8_t pch_css_get_irq_index(void);
 int16_t pch_css_get_func_irq(void);
 int16_t pch_css_get_io_irq(void);
 
@@ -110,12 +110,12 @@ int16_t pch_css_get_io_irq(void);
 // CSS IRQ numbers and handlers for DMA IRQ index, function IRQ
 // and I/O IRQ.
 
-void pch_css_set_dma_irq_index(pch_irq_index_t dmairqix);
-void pch_css_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority);
-void pch_css_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix);
-void pch_css_configure_dma_irq_index_default_shared(uint8_t order_priority);
-void pch_css_configure_dma_irq_index_default_exclusive();
-void pch_css_auto_configure_dma_irq_index();
+void pch_css_set_irq_index(pch_irq_index_t irq_index);
+void pch_css_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority);
+void pch_css_configure_irq_index_exclusive(pch_irq_index_t irq_index);
+void pch_css_configure_irq_index_default_shared(uint8_t order_priority);
+void pch_css_configure_irq_index_default_exclusive();
+void pch_css_auto_configure_irq_index();
 
 /*! \brief Low-level function to set the IRQ number that the CSS uses
  * for application API notification to CSS

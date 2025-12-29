@@ -86,7 +86,7 @@ static inline void trace_chp_dma(pch_trc_record_type_t rt, pch_chpid_t chpid, dm
                 .ctrl = dma_get_ctrl_value(l->dmaid),
                 .id = chpid,
                 .dmaid = l->dmaid,
-                .dmairqix = l->irq_index,
+                .irq_index = l->irq_index,
                 .core_num = (uint8_t)get_core_num()
         }));
 }
@@ -112,7 +112,7 @@ void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer) {
         pch_chp_t *chp = pch_get_chp(chpid);
         assert(pch_chp_is_allocated(chp));
 
-        pch_channel_init_memchan(&chp->channel, chpid, CSS.dmairqix, chpeer);
+        pch_channel_init_memchan(&chp->channel, chpid, CSS.irq_index, chpeer);
 
         trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid,
                 &chp->channel.tx.link);

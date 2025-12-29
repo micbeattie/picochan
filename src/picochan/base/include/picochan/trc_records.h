@@ -34,10 +34,10 @@ struct pch_trdata_cu_register {
 };
 
 struct pch_trdata_id_irq {
-        uint8_t                 id;
-        pch_irq_index_t     dmairqix;
-        uint8_t                 tx_state;
-        uint8_t                 rx_state;
+        uint8_t         id;
+        pch_irq_index_t irq_index;
+        uint8_t         tx_state;
+        uint8_t         rx_state;
 };
 
 struct pch_trdata_dev {
@@ -122,11 +122,11 @@ struct pch_trdata_scsw_sid_cc {
 };
 
 struct pch_trdata_dma_init {
-        uint32_t                ctrl;
-        uint8_t                 id;
-        pch_dmaid_t             dmaid;
-        pch_irq_index_t     dmairqix;
-        uint8_t                 core_num;
+        uint32_t        ctrl;
+        uint8_t         id;
+        pch_dmaid_t     dmaid;
+        pch_irq_index_t irq_index;
+        uint8_t         core_num;
 };
 
 struct pch_trdata_chp_alloc {

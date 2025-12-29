@@ -42,7 +42,7 @@ bool core1_ready;
 static void core1_thread(void) {
         pch_cus_init();
         pch_cus_set_trace(GD_ENABLE_TRACE);
-        pch_cus_configure_dma_irq_index_shared_default(cu_dmairqix);
+        pch_cus_configure_irq_index_shared_default(cu_dmairqix);
 
         gd_cu_init(&gd_cu, FIRST_UA, NUM_GPIO_DEVS); // must call from core 1
         pch_cu_register(&gd_cu, CUADDR);
@@ -107,7 +107,7 @@ int main(void) {
 
         pch_css_init();
         pch_css_set_trace(GD_ENABLE_TRACE);
-        pch_css_configure_dma_irq_index_shared(css_dmairqix,
+        pch_css_configure_irq_index_shared(css_dmairqix,
                 PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         pch_css_start(NULL, 0); // must set CSS dmairqix before this
         pch_chpid_t chpid = pch_chp_claim_unused(true);

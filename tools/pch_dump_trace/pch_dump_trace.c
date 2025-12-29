@@ -189,8 +189,8 @@ static void print_started(uint rt, void *vd) {
 
 static void print_irq(uint rt, void *vd) {
         struct pch_trdata_id_irq *td = vd;
-        printf("IRQ for channel %d with DMA_IRQ_%d tx:irq_state=",
-               td->id, td->dmairqix);
+        printf("IRQ for channel %d with irq_index=%d tx:irq_state=",
+               td->id, td->irq_index);
         print_dma_irq_state(td->tx_state >> 4);
         printf(",mem_src_state=");
         print_mem_src_state(td->tx_state & 0xf);

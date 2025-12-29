@@ -107,11 +107,12 @@ bool pch_cus_set_trace(bool trace);
 
 pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_func_t cbfunc, void *cbctx);
 
-// Optionally configure explicit DMA IRQ index(es) (or leave to auto-configure)
-void pch_cus_configure_dma_irq_index_exclusive(pch_irq_index_t dmairqix);
-void pch_cus_configure_dma_irq_index_shared(pch_irq_index_t dmairqix, uint8_t order_priority);
-void pch_cus_configure_dma_irq_index_shared_default(pch_irq_index_t dmairqix);
-void pch_cus_ignore_dma_irq_index_t(pch_irq_index_t dmairqix);
+// Optionally configure explicit IRQ index(es) for DMA IRQs
+// (and PIO irqs where relevant) or leave to auto-configure
+void pch_cus_configure_irq_index_exclusive(pch_irq_index_t irq_index);
+void pch_cus_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority);
+void pch_cus_configure_irq_index_shared_default(pch_irq_index_t irq_index);
+void pch_cus_ignore_irq_index_t(pch_irq_index_t irq_index);
 
 ```
 

@@ -41,7 +41,7 @@ void pch_cu_init(pch_cu_t *cu, uint16_t num_devibs) {
         pch_devib_list_init(&cu->cb_list);
         cu->rx_active = -1;
         cu->num_devibs = num_devibs;
-        cu->dmairqix = -1;
+        cu->irq_index = -1;
 }
 
 void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua) {
@@ -64,7 +64,7 @@ static inline void trace_cu_dma(pch_trc_record_type_t rt, pch_cuaddr_t cua, dmac
                 .ctrl = dma_get_ctrl_value(l->dmaid),
                 .id = cua,
                 .dmaid = l->dmaid,
-                .dmairqix = l->irq_index,
+                .irq_index = l->irq_index,
                 .core_num = (uint8_t)get_core_num()
         }));
 }
@@ -106,8 +106,8 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
         assert(!pch_channel_is_started(&cu->channel));
         pch_cu_configure_async_context_if_unset(cu);
 
-        if (cu->dmairqix == -1)
-                cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
+        if (cu->irq_index == -1)
+                cu->irq_index = pch_cus_auto_configure_irq_index(true);
 
         pch_channel_init_uartchan(&cu->channel, cua, uart, cfg);
 
@@ -127,10 +127,10 @@ void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_channel_t *chpeer) {
         assert(!pch_channel_is_started(&cu->channel));
 
         pch_cu_configure_async_context_if_unset(cu);
-        if (cu->dmairqix == -1)
-                cu->dmairqix = pch_cus_auto_configure_dma_irq_index(true);
+        if (cu->irq_index == -1)
+                cu->irq_index = pch_cus_auto_configure_irq_index(true);
 
-        pch_channel_init_memchan(&cu->channel, cua, cu->dmairqix, chpeer);
+        pch_channel_init_memchan(&cu->channel, cua, cu->irq_index, chpeer);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
                 &cu->channel.tx.link);

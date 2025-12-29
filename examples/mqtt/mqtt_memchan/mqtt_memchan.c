@@ -69,7 +69,7 @@ static void core1_thread(void) {
         wifi_connect();
         pch_cus_init(); // could do from core 0
         pch_cus_set_trace(MQTT_ENABLE_TRACE); // could do from core 0
-        pch_cus_configure_dma_irq_index_shared_default(cu_dmairqix);
+        pch_cus_configure_irq_index_shared_default(cu_dmairqix);
         
         mqtt_cu_init(&mqtt_cu, FIRST_UA, NUM_MQTT_DEVS);
         pch_cu_register(&mqtt_cu, CUADDR);
@@ -120,7 +120,7 @@ int main(void) {
 
         pch_css_init();
         pch_css_set_trace(MQTT_ENABLE_TRACE);
-        pch_css_configure_dma_irq_index_shared(css_dmairqix,
+        pch_css_configure_irq_index_shared(css_dmairqix,
                 PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
         pch_css_start(NULL, 0); // must set CSS dmairqix before this
         pch_chpid_t chpid = pch_chp_claim_unused(true);
