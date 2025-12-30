@@ -59,8 +59,3 @@ static void __time_critical_func(uart_start_dst_discard)(dmachan_rx_channel_t *r
         dma_channel_configure(rxl->dmaid, &ctrl, &rxl->cmd,
                 (void*)rx->srcaddr, count, true);
 }
-
-void dmachan_init_uart_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *d1c) {
-        dmachan_init_rx_channel(rx, d1c, &dmachan_uart_rx_channel_ops);
-        dmachan_set_link_dma_irq_enabled(&rx->link, true);
-}
