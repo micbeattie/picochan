@@ -23,7 +23,11 @@
 #include "picochan/dmachan.h"
 #include "trc/trace.h"
 
+#if NUM_DMA_IRQS < NUM_PIO_IRQS
 #define NUM_IRQ_INDEXES NUM_DMA_IRQS
+#else
+#define NUM_IRQ_INDEXES NUM_PIO_IRQS
+#endif
 
 /*! \file css/css_internal.h
  *  \defgroup internal_css internal_css
@@ -40,6 +44,7 @@ struct css {
         schib_dlist_t   isc_dlists[PCH_NUM_ISCS]; // indexed by ISC
         io_callback_t   io_callback;
         bool            dma_irq_configured;
+        bool            pio_irq_configured[NUM_IRQ_INDEXES];
         int16_t         io_irqnum;   //!< -1 or Irq raised for schib notify
         int16_t         func_irqnum; //!< raised by API to schedule schib function
         uint8_t         isc_enable_mask;
@@ -114,6 +119,7 @@ static inline void css_clear_pending_subchannel(pch_schib_t *schib) {
 }
 
 void __isr pch_css_dma_irq_handler(void);
+void __isr pch_css_pio_irq_handler(void);
 
 void suspend_or_send_start_packet(pch_chp_t *chp, pch_schib_t *schib, uint8_t ccwcmd);
 void do_command_chain_and_send_start(pch_chp_t *chp, pch_schib_t *schib);

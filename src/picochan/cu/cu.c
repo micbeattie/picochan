@@ -113,6 +113,11 @@ void pch_cu_configure_dma_irq_if_unset(pch_cu_t *cu) {
         pch_cus_configure_dma_irq_if_unset(cu->irq_index);
 }
 
+void pch_cu_configure_pio_irq_if_unset(pch_cu_t *cu, PIO pio) {
+        pch_cu_configure_irq_index_if_unset(cu);
+        pch_cus_configure_pio_irq_if_unset(pio, cu->irq_index);
+}
+
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg) {
         pch_cu_t *cu = pch_get_cu(cua);
         assert(!pch_channel_is_started(&cu->channel));
@@ -120,6 +125,21 @@ void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_
         pch_cu_configure_dma_irq_if_unset(cu);
 
         pch_channel_init_uartchan(&cu->channel, cua, uart, cfg);
+
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
+                &cu->channel.tx.link);
+        trace_cu_dma(PCH_TRC_RT_CUS_CU_RX_DMA_INIT, cua,
+                &cu->channel.rx.link);
+}
+
+void pch_cus_piocu_configure(pch_cuaddr_t cua, pch_pio_config_t *cfg, pch_piochan_config_t *pc) {
+        pch_cu_t *cu = pch_get_cu(cua);
+        assert(!pch_channel_is_started(&cu->channel));
+        pch_cu_configure_async_context_if_unset(cu);
+        pch_cu_configure_dma_irq_if_unset(cu);
+        pch_cu_configure_pio_irq_if_unset(cu, cfg->pio);
+
+        pch_channel_init_piochan(&cu->channel, cua, cfg, pc);
 
         trace_cu_dma(PCH_TRC_RT_CUS_CU_TX_DMA_INIT, cua,
                 &cu->channel.tx.link);

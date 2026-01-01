@@ -18,6 +18,7 @@
 #include "hardware/dma.h"
 #include "hardware/structs/dma_debug.h"
 #include "hardware/uart.h"
+#include "hardware/pio.h"
 #include "pico/platform/compiler.h"
 #include "picochan/dmachan_defs.h"
 #include "picochan/ids.h"
@@ -114,6 +115,65 @@ static inline pch_uartchan_config_t pch_uartchan_get_default_config(uart_inst_t 
         });
 }
 
+// PIO channel (piochan) configuration
+
+typedef struct pch_pio_config {
+        PIO                     pio;
+        dma_channel_config      ctrl;
+        int16_t                 tx_offset;
+        int16_t                 rx_offset;
+        int16_t                 order_priority;
+        pch_irq_index_t         irq_index;
+} pch_pio_config_t;
+
+static inline pch_pio_config_t pch_pio_get_default_config(PIO pio) {
+        // Argument 0 to dma_channel_get_default_config is ok here (as
+        // would be any DMA id) because it only affects the "chain-to"
+        // value and that is overridden when the ctrl value is used.
+        return ((pch_pio_config_t){
+                .pio = pio,
+                .ctrl = dma_channel_get_default_config(0),
+                .tx_offset = -1, // auto-load if -1
+                .rx_offset = -1, // auto-load if -1
+                .order_priority = PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY,
+                .irq_index = (pch_irq_index_t)get_core_num()
+        });
+}
+
+typedef struct pch_piochan_pins {
+	uint8_t tx_clock_in;
+	uint8_t	tx_data_out;
+	uint8_t	rx_clock_out;
+	uint8_t	rx_data_in;
+} pch_piochan_pins_t;
+
+static inline pch_piochan_pins_t pch_piochan_pins_make(uint8_t tx_clock_in, uint8_t tx_data_out, uint8_t rx_clock_out, uint8_t rx_data_in) {
+        return ((pch_piochan_pins_t){
+                .tx_clock_in = tx_clock_in,
+                .tx_data_out = tx_data_out,
+                .rx_clock_out = rx_clock_out,
+                .rx_data_in = rx_data_in
+        });
+}
+
+typedef struct pch_piochan_config {
+        pch_piochan_pins_t      pins;
+        int                     tx_sm;
+        int                     rx_sm;
+} pch_piochan_config_t;
+
+static inline pch_piochan_config_t pch_piochan_get_default_config(pch_piochan_pins_t pins) {
+        return ((pch_piochan_config_t){
+                .pins = pins,
+                .tx_sm = -1,
+                .rx_sm = -1
+        });
+}
+
+// pch_piochan_init() must be called before calling
+// pch_channel_init_piochan() to configure any pio channels.
+void pch_piochan_init(pch_pio_config_t *cfg);
+
 // Memory channel (memchan) configuration
 
 // pch_memchan_init must be called before configuring either side of
@@ -131,6 +191,7 @@ typedef struct dmachan_tx_channel_ops {
         void (*write_src_reset)(dmachan_tx_channel_t *tx);
         void (*start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);
         dmachan_irq_state_t (*handle_tx_dma_irq)(dmachan_tx_channel_t *tx);
+        bool (*handle_tx_pio_irq)(dmachan_tx_channel_t *tx, uint irqnum);
 } dmachan_tx_channel_ops_t;
 
 typedef struct dmachan_mem_tx_channel_data {
@@ -138,8 +199,14 @@ typedef struct dmachan_mem_tx_channel_data {
         dmachan_mem_src_state_t src_state;
 } dmachan_mem_tx_channel_data_t;
 
+typedef struct dmachan_pio_tx_channel_data {
+        PIO     pio;
+        uint    sm;
+} dmachan_pio_tx_channel_data_t;
+
 typedef union {
         dmachan_mem_tx_channel_data_t   mem;
+        dmachan_pio_tx_channel_data_t   pio;
 } dmachan_tx_channel_data_t;
 
 typedef struct __aligned(4) dmachan_tx_channel {
@@ -162,8 +229,14 @@ typedef struct dmachan_mem_rx_channel_data {
         dmachan_mem_dst_state_t dst_state;
 } dmachan_mem_rx_channel_data_t;
 
+typedef struct dmachan_pio_rx_channel_data {
+        PIO     pio;
+        uint    sm;
+} dmachan_pio_rx_channel_data_t;
+
 typedef union {
         dmachan_mem_rx_channel_data_t   mem;
+        dmachan_pio_rx_channel_data_t   pio;
 } dmachan_rx_channel_data_t;
 
 typedef struct __aligned(4) dmachan_rx_channel {
@@ -234,6 +307,7 @@ static inline void pch_channel_trace(pch_channel_t *ch, pch_trc_bufferset_t *bs)
 // Initialisation of channels
 
 void pch_channel_init_uartchan(pch_channel_t *ch, uint8_t id, uart_inst_t *uart, pch_uartchan_config_t *cfg);
+void pch_channel_init_piochan(pch_channel_t *ch, uint8_t id, pch_pio_config_t *cfg, pch_piochan_config_t *pc);
 void pch_channel_init_memchan(pch_channel_t *ch, uint8_t id, uint dmairqix, pch_channel_t *chpeer);
 
 // tx channel irq and memory source state handling
@@ -293,5 +367,9 @@ void dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstadd
 // pch_channel_handle_dma_irq() must be called for each channel
 // whenever there is a DMA interrupt that may be relevant to it.
 void pch_channel_handle_dma_irq(pch_channel_t *ch);
+
+// pch_channel_handle_pio_irq() must be called for each channel
+// whenever there is a PIO interrupt that may be relevant to it.
+void pch_channel_handle_pio_irq(pch_channel_t *ch, uint irqnum);
 
 #endif

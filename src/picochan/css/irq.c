@@ -118,3 +118,15 @@ void __isr __time_critical_func(pch_css_dma_irq_handler)() {
                 handle_irq_completions(chp);
 	}
 }
+
+void __isr __time_critical_func(pch_css_pio_irq_handler)() {
+        uint irqnum = __get_current_exception() - VTABLE_FIRST_IRQ;
+        for (int i = 0; i < PCH_NUM_CHANNELS; i++) {
+		pch_chp_t *chp = &CSS.chps[i];
+                if (!pch_channel_is_started(&chp->channel))
+			continue;
+
+                pch_channel_handle_pio_irq(&chp->channel, irqnum);
+                handle_irq_completions(chp);
+	}
+}

@@ -250,8 +250,8 @@ void pch_cu_configure_async_context_if_unset(pch_cu_t *cu);
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
  * a different core, using a different IRQ index. The IRQ index is
- * used to distinguish between the available IRQs for DMA.
- * A convenient way to still allow the CU
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
  * subsystem to auto-configure its IRQ index choice is to call
  * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
@@ -264,8 +264,8 @@ void pch_cus_configure_irq_index_exclusive(pch_irq_index_t irq_index);
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
  * a different core, using a different IRQ index. The IRQ index is
- * used to distinguish between the available IRQs for DMA.
- * A convenient way to still allow the CU
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
  * subsystem to auto-configure its IRQ index choice is to call
  * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
@@ -279,8 +279,8 @@ void pch_cus_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order
  *
  * If a CSS is to be used on the same Pico, it must be initialised on
  * a different core, using a different IRQ index. The IRQ index is
- * used to distinguish between the available IRQs for DMA.
- * A convenient way to still allow the CU
+ * used to distinguish between the available IRQs for each used irq
+ * type (DMA and possibly PIO). A convenient way to still allow the CU
  * subsystem to auto-configure its IRQ index choice is to call
  * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
 */
@@ -291,6 +291,12 @@ void pch_cus_configure_dma_irq_exclusive(pch_irq_index_t irq_index);
 void pch_cus_configure_dma_irq_shared(pch_irq_index_t irq_index, uint8_t order_priority);
 void pch_cus_configure_dma_irq_shared_default(pch_irq_index_t irq_index);
 void pch_cus_configure_dma_irq_if_unset(pch_irq_index_t irq_index);
+
+void pch_cus_configure_pio_irq(PIO pio, pch_irq_index_t irq_index, int order_priority);
+void pch_cus_configure_pio_irq_exclusive(PIO pio, pch_irq_index_t irq_index);
+void pch_cus_configure_pio_irq_shared(PIO pio, pch_irq_index_t irq_index, uint8_t order_priority);
+void pch_cus_configure_pio_irq_shared_default(PIO pio, pch_irq_index_t irq_index);
+void pch_cus_configure_pio_irq_if_unset(PIO pio, pch_irq_index_t irq_index);
 
 /* \brief Marks irq_index such that any call to
  * pch_cus_auto_configure_irq_index(), whether explicit or
@@ -347,6 +353,21 @@ void pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua);
  * are SNIFF_EN and HIGH_PRIORITY.
  */
 void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg);
+
+/*! \brief Configure a PIO channel control unit
+ * \ingroup picochan_cu
+ *
+ * Configure PIO state machines as a channel from CU cua to the CSS.
+ * cfg must reference a PIO which has already been initialised with
+ * pch_piochan_init() in order to load the two piochan PIO programs.
+ * This function claims two state machines in the PIO (either via
+ * explicit numbers in pc or claiming unused ones when tx_sm or tx_sm
+ * are -1) and initialises the GPIO pins in pc.pins. Those pins must
+ * be connected to the CSS with a corresponding piochan channel path
+ * with pins connected as TX_CLOCK_IN<->RX_CLOCK_OUT,
+ * TX_DATA_OUT<->RX_DATA_IN.
+ */
+void pch_cus_piocu_configure(pch_cuaddr_t cua, pch_pio_config_t *cfg, pch_piochan_config_t *pc);
 
 /*! \brief Configure a memchan control unit
  * \ingroup picochan_cu
@@ -428,6 +449,7 @@ static inline pch_channel_t *pch_cu_get_channel(pch_cuaddr_t cua) {
 }
 
 void __isr pch_cus_handle_dma_irq(void);
+void __isr pch_cus_handle_pio_irq(void);
 
 typedef struct pch_dev_range {
         pch_cu_t        *cu;

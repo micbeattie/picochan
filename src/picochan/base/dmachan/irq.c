@@ -17,6 +17,16 @@ static inline void trace_dma_irq(pch_channel_t *ch, pch_irq_index_t irq_index, u
                 }));
 }
 
+static inline void trace_pio_irq(pch_channel_t *ch, dmachan_pio_tx_channel_data_t *d, bool complete) {
+        PCH_TRC_WRITE(ch->tx.link.bs, pch_channel_is_traced(ch),
+                PCH_TRC_RT_DMACHAN_PIO_IRQ, ((struct pch_trdata_pio_irq){
+                        .id = ch->id,
+                        .pio_num = (uint8_t)(PIO_NUM(d->pio)),
+                        .sm = (uint8_t)(d->sm),
+                        .complete = (uint8_t)complete
+                }));
+}
+
 static inline dmachan_irq_state_t handle_tx_dma_irq(dmachan_tx_channel_t *tx) {
         if (tx->ops->handle_tx_dma_irq)
                 return tx->ops->handle_tx_dma_irq(tx);
@@ -33,4 +43,13 @@ void __time_critical_func(pch_channel_handle_dma_irq)(pch_channel_t *ch) {
         dmachan_irq_state_t rx_state = handle_rx_irq(&ch->rx);
 
         trace_dma_irq(ch, ch->tx.link.irq_index, tx_state, rx_state);
+}
+
+void __time_critical_func(pch_channel_handle_pio_irq)(pch_channel_t *ch, uint irqnum) {
+        dmachan_tx_channel_t *tx = &ch->tx;
+        if (tx->ops->handle_tx_pio_irq) {
+                bool complete = tx->ops->handle_tx_pio_irq(tx, irqnum);
+                trace_pio_irq(ch, &ch->tx.u.pio, complete);
+                tx->link.complete = complete;
+        }
 }

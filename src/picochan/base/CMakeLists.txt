@@ -11,6 +11,9 @@ target_sources(picochan_base INTERFACE
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/memchan.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/mem_rx_channel.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/mem_tx_channel.c
+        ${CMAKE_CURRENT_LIST_DIR}/dmachan/piochan.c
+        ${CMAKE_CURRENT_LIST_DIR}/dmachan/pio_rx_channel.c
+        ${CMAKE_CURRENT_LIST_DIR}/dmachan/pio_tx_channel.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/rx_channel.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/tx_channel.c
         ${CMAKE_CURRENT_LIST_DIR}/dmachan/uartchan.c
@@ -53,8 +56,13 @@ target_link_libraries(picochan_base INTERFACE
         hardware_base
         hardware_dma
         hardware_irq
+        hardware_pio
         hardware_regs
         hardware_structs
         pico_runtime
         pico_runtime_init
+)
+
+pico_generate_pio_header(picochan_base
+        ${CMAKE_CURRENT_LIST_DIR}/dmachan/piochan.pio
 )

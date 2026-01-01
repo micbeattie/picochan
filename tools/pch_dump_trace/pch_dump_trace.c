@@ -200,6 +200,12 @@ static void print_dma_irq(uint rt, void *vd) {
                 printf(",sets rxcomplete");
 }
 
+static void print_pio_irq(uint rt, void *vd) {
+        struct pch_trdata_pio_irq *td = vd;
+        printf("PIO IRQ for channel %d PIO%u SM%u complete=%d",
+               td->id, td->pio_num, td->sm, td->complete);
+}
+
 static void print_init_irq_handler(uint rt, void *vd) {
         struct pch_trdata_irq_handler *td = vd;
         const char *side = pick_side(rt, PCH_TRC_RT_CSS_INIT_IRQ_HANDLER);
@@ -399,6 +405,15 @@ static void print_dmachan_dst_reset(uint rt, void *vd) {
                 printf("unknown_trace_byte(%u)", td->byte);
                 break;
         }
+}
+
+static void print_dmachan_piochan_init(uint rt, void *vd) {
+        struct pch_trdata_dmachan_piochan_init *td = vd;
+        printf("piochan init channel %u with PIO%u irq_index=%u tx_sm=%u rx_sm=%u tx_offset=%u rx_offset=%u tx_clock_in=%u tx_data_out=%u rx_clock_out=%u rx_data_in=%u",
+                td->id, td->pio_num, td->irq_index, td->tx_sm,
+                td->rx_sm, td->tx_offset, td->rx_offset,
+                td->tx_clock_in, td->tx_data_out, td->rx_clock_out,
+                td->rx_data_in);
 }
 
 static void print_dmachan_dst_cmdbuf_remote(uint rt, void *vd) {
@@ -658,6 +673,7 @@ trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
 	[PCH_TRC_RT_CUS_RX_COMMAND_COMPLETE] = print_cus_rx_command_complete,
 	[PCH_TRC_RT_CUS_RX_DATA_COMPLETE] = print_cus_rx_data_complete,
 	[PCH_TRC_RT_DMACHAN_DST_RESET] = print_dmachan_dst_reset,
+        [PCH_TRC_RT_DMACHAN_PIOCHAN_INIT] = print_dmachan_piochan_init,
 	[PCH_TRC_RT_DMACHAN_DST_CMDBUF_REMOTE] = print_dmachan_dst_cmdbuf_remote,
 	[PCH_TRC_RT_DMACHAN_DST_CMDBUF_MEM] = print_dmachan_dst_cmdbuf_mem,
 	[PCH_TRC_RT_DMACHAN_DST_DATA_REMOTE] = print_dmachan_dst_data_remote,
@@ -673,6 +689,7 @@ trace_record_print_func_t trace_record_printer_table[NUM_RECORD_TYPES] = {
 	[PCH_TRC_RT_DMACHAN_MEMCHAN_RX_CMD] = print_dmachan_memchan_rx_cmd,
 	[PCH_TRC_RT_DMACHAN_MEMCHAN_TX_CMD] = print_dmachan_memchan_tx_cmd,
 	[PCH_TRC_RT_DMACHAN_DMA_IRQ] = print_dma_irq,
+	[PCH_TRC_RT_DMACHAN_PIO_IRQ] = print_pio_irq,
 	[PCH_TRC_RT_TRC_ENABLE] = print_enable,
 	[PCH_TRC_RT_HLDEV_CONFIG_INIT] = print_hldev_config_init,
 	[PCH_TRC_RT_HLDEV_START] = print_hldev_start,

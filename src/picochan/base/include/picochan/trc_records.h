@@ -40,6 +40,13 @@ struct pch_trdata_id_irq {
         uint8_t         rx_state;
 };
 
+struct pch_trdata_pio_irq {
+        uint8_t         id;
+        uint8_t         pio_num;
+        uint8_t         sm;
+        uint8_t         complete;
+};
+
 struct pch_trdata_dev {
         pch_cuaddr_t    cuaddr;
         pch_unit_addr_t ua;
@@ -216,6 +223,20 @@ struct pch_trdata_hldev_end {
         uint8_t         sense_code;
         uint8_t         sense_asc;
         uint8_t         sense_ascq;
+};
+
+struct pch_trdata_dmachan_piochan_init {
+        uint8_t         id;
+        uint8_t         pio_num;
+        pch_irq_index_t irq_index;
+        uint8_t         tx_sm;
+        uint8_t         rx_sm;
+        uint8_t         tx_offset;
+        uint8_t         rx_offset;
+        uint8_t         tx_clock_in;
+        uint8_t         tx_data_out;
+        uint8_t         rx_clock_out;
+        uint8_t         rx_data_in;
 };
 
 struct pch_trdata_dmachan {

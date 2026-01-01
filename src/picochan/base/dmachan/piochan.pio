@@ -1,0 +1,71 @@
+/*
+ * Copyright (c) 2025 Malcolm Beattie
+ * SPDX-License-Identifier: MIT
+ */
+
+.program piochan_tx
+.out 1 auto 8
+.set 1
+.wrap_target
+  out x, 32     // Blocking pull. Get length of data to tx. We send x+1 *bits*
+  wait 0 irq 0 rel // Wait for caller signal (once DMA engine started)
+  wait 1 pin 0  // Wait for CLKI input to be high - indicates rx peer ready
+  set pins, 1   // Set data output high (start/sync bit) - indicates we're ready
+data_loop:
+  wait 0 pin 0  // Wait for CLKI to go down again
+  wait 1 pin 0  // Wait for CLKI to go high so we can send a data bit
+  out pins, 1   // Send a data bit
+  jmp x--, data_loop
+public start:
+  irq set 0 rel // Notify caller tx is done and we're ready for the next
+.wrap
+
+.program piochan_rx
+// slow down for testing
+.clock_div 16
+.in 32 auto 8
+// no real pins for transmit: just autopull to OSR then "out" to register X
+.out 0 auto 32
+.side_set 1
+.wrap_target
+  out x, 32      side 0     // Blocking pull from otherwise-unused TX FIFO to
+                            // get length of data to rx. We'll rx x+1 *bits*
+  wait 1 pin 0   side 1     // sideset CLKO high then wait for start/sync bit
+  nop            side 0 [8] // sideset CLKO low (start of clocking). Not sure
+                            // if we need a delay here or, if so, how much
+loop:
+  nop            side 1 [8] // sideset CLKO high then delay for n cycles
+                            // so tx peer can prepare its next data bit
+  in pins, 1     side 0 [7] // sideset CLKO low (we're ready to sample) then
+                            // sample and shift in the input data bit. Then
+                            // delay n-1 cycles to even out clock.
+  jmp x--, loop  side 0     // sideset CLKO low then test bit count and jump
+                            // back to loop if any remain
+.wrap
+
+% c-sdk {
+static void piochan_tx_pio_init(PIO pio, uint sm, uint offset, uint clock_in_pin, uint data_out_pin) {
+        pio_gpio_init(pio, clock_in_pin);
+        pio_gpio_init(pio, data_out_pin);
+        pio_sm_set_consecutive_pindirs(pio, sm, data_out_pin, 1, true);
+        pio_sm_config c = piochan_tx_program_get_default_config(offset);
+        sm_config_set_in_pin_base(&c, clock_in_pin);
+        // We use both "set" and "out" instructions to control data_out_pin
+        sm_config_set_out_pins(&c, data_out_pin, 1);
+        sm_config_set_set_pins(&c, data_out_pin, 1);
+        pio_sm_init(pio, sm, offset + piochan_tx_offset_start, &c);
+        pio_sm_set_enabled(pio, sm, true);
+}
+
+static void piochan_rx_pio_init(PIO pio, uint sm, uint offset, uint clock_out_pin, uint data_in_pin) {
+        pio_gpio_init(pio, clock_out_pin);
+        pio_gpio_init(pio, data_in_pin);
+        pio_sm_set_consecutive_pindirs(pio, sm, clock_out_pin, 1, true);
+        pio_sm_config c = piochan_rx_program_get_default_config(offset);
+        sm_config_set_in_pin_base(&c, data_in_pin);
+        // We use only "sideset" to control clock_out_pin
+        sm_config_set_sideset_pins(&c, clock_out_pin);
+        pio_sm_init(pio, sm, offset, &c);
+        pio_sm_set_enabled(pio, sm, true);
+}
+%}

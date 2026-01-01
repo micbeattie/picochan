@@ -107,7 +107,7 @@ int16_t pch_css_get_func_irq(void);
 int16_t pch_css_get_io_irq(void);
 
 // A variety of different initialisation functions for configuring
-// CSS IRQ index and IRQs and handler attributes for DMA,
+// CSS IRQ index and IRQs and handler attributes for DMA, PIO,
 // function and I/O IRQs.
 
 void pch_css_set_irq_index(pch_irq_index_t irq_index);
@@ -116,6 +116,11 @@ void pch_css_configure_dma_irq_exclusive(void);
 void pch_css_configure_dma_irq_shared(uint8_t order_priority);
 void pch_css_configure_dma_irq_shared_default(void);
 void pch_css_configure_dma_irq_if_needed(void);
+
+void pch_css_configure_pio_irq_exclusive(PIO pio);
+void pch_css_configure_pio_irq_shared(PIO pio, uint8_t order_priority);
+void pch_css_configure_pio_irq_shared_default(PIO pio);
+void pch_css_configure_pio_irq_if_needed(PIO pio);
 
 /*! \brief Low-level functions to set the IRQ number that the CSS uses
  * for application API notification to CSS
@@ -307,6 +312,22 @@ pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices);
  */
 
 void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartchan_config_t *cfg);
+
+/*! \brief Configure a PIO channel
+ * \ingroup picochan_css
+ *
+ * Configure PIO state machines as a channel to the remote CU to which
+ * the chosen pins are connected.
+ * cfg must reference a PIO which has already been initialised with
+ * pch_piochan_init() in order to load the two piochan PIO programs.
+ * This function claims two state machines in the PIO (either via
+ * explicit numbers in pc or claiming unused ones when tx_sm or tx_sm
+ * are -1) and initialises the GPIO pins in pc.pins. Those pins must
+ * be connected to a corresponding piochan CU with pins connected as
+ * TX_CLOCK_IN<->RX_CLOCK_OUT, TX_DATA_OUT<->RX_DATA_IN.
+ */
+
+void pch_chp_configure_piochan(pch_chpid_t chpid, pch_pio_config_t *cfg, pch_piochan_config_t *pc);
 
 /*! \brief Configure a memchan channel
  * \ingroup picochan_css

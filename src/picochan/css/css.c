@@ -123,6 +123,36 @@ void pch_css_configure_dma_irq_if_needed(void) {
                 pch_css_configure_dma_irq_shared_default();
 }
 
+// PIO interrupts
+
+static void configure_pio_irq(PIO pio, int order_priority) {
+        uint pio_num = PIO_NUM(pio);
+        assert(!CSS.pio_irq_configured[pio_num]);
+        pch_css_set_irq_index_if_needed();
+        irq_num_t irqnum = pio_get_irq_num(pio, CSS.irq_index);
+        configure_irq_handler(irqnum, pch_css_pio_irq_handler,
+                order_priority);
+        CSS.pio_irq_configured[pio_num] = true;
+}
+
+void pch_css_configure_pio_irq_shared(PIO pio, uint8_t order_priority)
+ {
+        configure_pio_irq(pio, order_priority);
+}
+
+void pch_css_configure_pio_irq_exclusive(PIO pio) {
+        configure_pio_irq(pio, -1);
+}
+
+void pch_css_configure_pio_irq_shared_default(PIO pio) {
+        configure_pio_irq(pio, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+}
+
+void pch_css_configure_pio_irq_if_needed(PIO pio) {
+        if (!CSS.pio_irq_configured[PIO_NUM(pio)])
+                pch_css_configure_pio_irq_shared_default(pio);
+}
+
 // Configuring function IRQ handler
 
 int16_t pch_css_get_func_irq(void) {

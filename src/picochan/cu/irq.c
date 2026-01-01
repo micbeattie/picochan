@@ -13,12 +13,17 @@ typedef enum __attribute__((packed)) irq_index_config_state {
         IRQIX_MUST_NOT_USE,
 } irq_index_config_state_t;
 
+#if NUM_DMA_IRQS < NUM_PIO_IRQS
 #define NUM_IRQ_INDEXES NUM_DMA_IRQS
+#else
+#define NUM_IRQ_INDEXES NUM_PIO_IRQS
+#endif
 
 typedef struct irq_index_config {
         irq_index_config_state_t state;
         uint8_t                 core_num;
         bool                    dma_irq_configured;
+        bool                    pio_irq_configured[NUM_PIOS];
 } irq_index_config_t;
 
 irq_index_config_t irq_index_configs[NUM_IRQ_INDEXES];
@@ -102,6 +107,35 @@ void pch_cus_configure_dma_irq_if_unset(pch_irq_index_t irq_index) {
                 pch_cus_configure_dma_irq_shared_default(irq_index);
 }
 
+void pch_cus_configure_pio_irq(PIO pio, pch_irq_index_t irq_index, int order_priority) {
+        irq_index_config_t *ic = get_irq_index_config(irq_index);
+        assert(ic->state == IRQIX_CLAIMED);
+        assert(!ic->pio_irq_configured[PIO_NUM(pio)]);
+        irq_num_t irqnum = pio_get_irq_num(pio, (uint)irq_index);
+        configure_irq_handler(irqnum, pch_cus_handle_pio_irq,
+                order_priority);
+        ic->pio_irq_configured[PIO_NUM(pio)] = true;
+}
+
+void pch_cus_configure_pio_irq_exclusive(PIO pio, pch_irq_index_t irq_index) {
+        pch_cus_configure_pio_irq(pio, irq_index, -1);
+}
+
+void pch_cus_configure_pio_irq_shared(PIO pio, pch_irq_index_t irq_index, uint8_t order_priority) {
+        pch_cus_configure_pio_irq(pio, irq_index, order_priority);
+}
+
+void pch_cus_configure_pio_irq_shared_default(PIO pio, pch_irq_index_t irq_index) {
+        pch_cus_configure_pio_irq_shared(pio, irq_index,
+                PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+}
+
+void pch_cus_configure_pio_irq_if_unset(PIO pio, pch_irq_index_t irq_index) {
+        irq_index_config_t *ic = get_irq_index_config(irq_index);
+        if (!ic->pio_irq_configured[PIO_NUM(pio)])
+                pch_cus_configure_pio_irq_shared_default(pio, irq_index);
+}
+
 void pch_cu_set_irq_index(pch_cu_t *cu, pch_irq_index_t irq_index) {
         assert(irq_index >= 0 && irq_index < NUM_IRQ_INDEXES);
         assert(cu->irq_index == -1 || cu->irq_index == irq_index);
@@ -157,6 +191,24 @@ void __isr __time_critical_func(pch_cus_handle_dma_irq)() {
 
                 pch_channel_handle_dma_irq(ch);
                 if (ch->tx.link.complete || ch->rx.link.complete)
+                        pch_cu_schedule_worker(cu);
+        }
+}
+
+void __isr __time_critical_func(pch_cus_handle_pio_irq)() {
+        uint irqnum = __get_current_exception() - VTABLE_FIRST_IRQ;
+        for (int i = 0; i < PCH_NUM_CUS; i++) {
+                pch_cu_t *cu = pch_cus[i];
+                if (cu == NULL)
+                        continue;
+
+                pch_channel_t *ch = &cu->channel;
+                if (!pch_channel_is_started(ch))
+                        continue;
+
+                pch_channel_handle_pio_irq(ch, irqnum);
+                // PIO interrupts are only used for tx completion
+                if (ch->tx.link.complete)
                         pch_cu_schedule_worker(cu);
         }
 }

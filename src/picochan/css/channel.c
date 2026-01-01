@@ -104,6 +104,20 @@ void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, pch_uartch
                 &chp->channel.rx.link);
 }
 
+void pch_chp_configure_piochan(pch_chpid_t chpid, pch_pio_config_t *cfg, pch_piochan_config_t *pc) {
+        pch_chp_t *chp = pch_get_chp(chpid);
+        assert(pch_chp_is_allocated(chp));
+
+        pch_css_configure_dma_irq_if_needed();
+        pch_css_configure_pio_irq_if_needed(cfg->pio);
+        pch_channel_init_piochan(&chp->channel, chpid, cfg, pc);
+
+        trace_chp_dma(PCH_TRC_RT_CSS_CHP_TX_DMA_INIT, chpid,
+                &chp->channel.tx.link);
+        trace_chp_dma(PCH_TRC_RT_CSS_CHP_RX_DMA_INIT, chpid,
+                &chp->channel.rx.link);
+}
+
 void pch_chp_configure_memchan(pch_chpid_t chpid, pch_channel_t *chpeer) {
         // Check that spin_lock is initialised even when not a Debug
         // release because silently ignoring it produces such

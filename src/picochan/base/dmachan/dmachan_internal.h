@@ -99,5 +99,7 @@ extern dmachan_rx_channel_ops_t dmachan_mem_rx_channel_ops;
 extern dmachan_tx_channel_ops_t dmachan_mem_tx_channel_ops;
 extern dmachan_rx_channel_ops_t dmachan_uart_rx_channel_ops;
 extern dmachan_tx_channel_ops_t dmachan_uart_tx_channel_ops;
+extern dmachan_rx_channel_ops_t dmachan_pio_rx_channel_ops;
+extern dmachan_tx_channel_ops_t dmachan_pio_tx_channel_ops;
 
 #endif
