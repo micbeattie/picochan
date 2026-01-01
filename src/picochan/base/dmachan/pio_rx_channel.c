@@ -33,11 +33,10 @@ static void __time_critical_func(pio_start_dst_cmdbuf)(dmachan_rx_channel_t *rx)
 }
 
 static void __time_critical_func(pio_start_dst_reset)(dmachan_rx_channel_t *rx) {
-        dmachan_link_t *rxl = &rx->link;
-        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_RESET, rxl,
-                DMACHAN_RESET_PROGRESSING);
-        rxl->resetting = true;
-        receive(rx, true, &rxl->cmd, 1);
+        trace_dmachan_byte(PCH_TRC_RT_DMACHAN_DST_RESET, &rx->link,
+                DMACHAN_RESET_BYPASSED);
+        // No reset action needed, go straight to receiving to cmdbuf
+        pio_start_dst_cmdbuf(rx);
 }
 
 static void __time_critical_func(pio_start_dst_data)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {

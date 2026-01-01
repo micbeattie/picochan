@@ -41,14 +41,7 @@ static void __time_critical_func(pio_start_src_cmdbuf)(dmachan_tx_channel_t *tx)
 }
 
 static void __time_critical_func(pio_write_src_reset)(dmachan_tx_channel_t *tx) {
-        trace_dmachan(PCH_TRC_RT_DMACHAN_SRC_RESET_REMOTE, &tx->link);
-        // Send a single byte with value DMACHAN_RESET_BYTE
-        // Unlike uartchan and memchan, we need to keep track of
-        // whether the tx link is resetting so that we can catch the
-        // tx completion interrupt and discard it
-        tx->link.resetting = true;
-        tx->link.cmd.buf[0] = DMACHAN_RESET_BYTE;
-        send(tx, &tx->link.cmd, 1);
+        // No reset action needed
 }
 
 static void __time_critical_func(pio_start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {
