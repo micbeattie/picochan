@@ -16,6 +16,20 @@
 - Each device on a CU has a "unit address" 0-255
 - Connection between CU and its CSS is via a *channel*
 - Currently implemented channels are:
+  * PIO channel ("piochan")
+    - uses two PIO state machines of a PIO instance on each side
+    - uses 4 GPIO pins on each side with physical connections
+      between CSS and CU of TX_CLOCK_IN<->RX_CLOCK_OUT and
+      TX_DATA_OUT<->TX_DATA_OUT.
+    - Any 4 GPIO pins of the 32 available to each chosen PIO can be
+      used for each channel. There is no need for consecutive or even
+      related pin numbers.
+    - The PIO program custom protocol has a clock and data signal for
+      each direction and allows full duplex transfers that are
+      independent for each side and transfer a counted number of bytes
+      so that DMA engines can be used for the transfers with no timing
+      constraints.
+    - Maximum number of piochan channels is 4 for RP2040, 6 for RP2350.
   * uart channel ("uartchan")
     - uses one Pico UART on CSS and one on CU side
     - hardware connections: TX, RX, RTS, CTS, GND
@@ -23,14 +37,6 @@
   * memory channel ("memchan")
     - between two cores on same Pico: one core runs CSS; one core runs CU
     - no hardware connections needed
-- An additional channel type is in development:
-  * pio channel ("piochan")
-    - uses PIO to drive the CSS<->CU protocol
-    - hardware connections: TX, RX, CLK, RTS, CTS, GND
-    - custom PIO state machine programs - all connections absolutely required
-    - The CSS-driven synchronous clock and the customised protocol
-      handling by the PIO on both CSS and CU side may allow for a
-      faster and/or more robust connection than a uart channel
 
 ### CSS <-> CU protocol
 
@@ -50,13 +56,14 @@
     unsolicited notification to CSS of device state change
     (e.g. "ready")
   * RequestRead (CU -> CSS) - please send data from (Write-type) CCW
+  * Room (CSS -> CU) - announces exact room available in segment
   * Data - immediately followed by bytes of data as per the count
     from the payload of the operations packet. Both CSS->CU (for
     responses to RequestRead) and CU->CSS (for transfer down the
     channel for the CSS to write to a segment of a Read-type CCW)
   * Signal (CSS -> CU) - mainly for "halt subchannel" (out-of-band)
 - All channel types use DMA for data segment transfer to/from channel
-- Channels are (for pio and uart channels) hardware FIFOs direct
+- Channels are (for PIO and UART channels) hardware FIFOs direct
 to/from Pico peripherals or (for mem channel) a single
 cross-memory 32-bit load/store with cross-memory DMA for data segments
 - CSS represents each device to the application as a "subchannel"

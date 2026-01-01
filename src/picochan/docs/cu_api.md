@@ -103,17 +103,36 @@ typedef struct pch_dev_sense pch_dev_sense_t;
 ```
 void pch_cus_init(void);
 
+// Each CU runs device driver callbacks in an async context of type
+// async_context_threadsafe_background_config_t. Optionally, you can
+// explicitly set one to be used when the first CU that needs one is
+// configured, or else one will be created automatically.
+async_context_t *pch_cus_configure_default_async_context(async_context_threadsafe_background_config_t *config);
+
 bool pch_cus_set_trace(bool trace);
 
+// If not using the hldev API, register your callbacks:
 pch_cbindex_t pch_register_unused_devib_callback(pch_devib_callback_func_t cbfunc, void *cbctx);
 
-// Optionally configure explicit IRQ index(es) for DMA IRQs
-// (and PIO irqs where relevant) or leave to auto-configure
-void pch_cus_configure_irq_index_exclusive(pch_irq_index_t irq_index);
-void pch_cus_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority);
-void pch_cus_configure_irq_index_shared_default(pch_irq_index_t irq_index);
+// Optionally configure explicit IRQ index(es) and IRQ handler
+// attributes for DMA IRQs (and PIO irqs where relevant) or leave
+// to auto-configure with defaults:
 void pch_cus_ignore_irq_index_t(pch_irq_index_t irq_index);
+void pch_cus_configure_dma_irq(pch_irq_index_t irq_index, int order_priority);
+void pch_cus_configure_dma_irq_exclusive(pch_irq_index_t irq_index);
+void pch_cus_configure_dma_irq_shared(pch_irq_index_t irq_index, uint8_t order_priority);
+void pch_cus_configure_dma_irq_shared_default(pch_irq_index_t irq_index);
 
+void pch_cus_configure_pio_irq(PIO pio, pch_irq_index_t irq_index, int order_priority);
+void pch_cus_configure_pio_irq_exclusive(PIO pio, pch_irq_index_t irq_index);
+void pch_cus_configure_pio_irq_shared(PIO pio, pch_irq_index_t irq_index, uint8_t order_priority);
+void pch_cus_configure_pio_irq_shared_default(PIO pio, pch_irq_index_t irq_index);
+
+// If using any PIO channel CUs, configure each PIO instance that is
+// going to be used by a channel:
+#define MY_PIO pio0
+pch_pio_config_t cfg = pch_pio_get_default_config(MY_PIO);
+pch_piochan_init(&cfg);
 ```
 
 ### Initialisation of each CU
@@ -128,19 +147,44 @@ pch_cu_register(pch_cu_t *cu, pch_cuaddr_t cua);
 
 bool pch_cus_trace_cu(pch_cuaddr_t cua, bool trace);
 
-// Configure connection as a UART channel...:
-void pch_cus_auto_configure_uartcu(pch_cuaddr_t cua, uart_inst_t *uart, uint baudrate);
-// ...or a memory channel (needs extra configuration):
-void pch_cus_memcu_configure(pch_cuaddr_t cua, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
+// If CU connection is as a PIO channel...:
+pch_piochan_pins_t pins = {
+        .tx_clock_in = MY_TX_CLOCK_IN_PIN,
+        .tx_data_out = MY_TX_DATA_OUT_PIN,
+        .rx_clock_out = MY_RX_CLOCK_OUT_PIN,
+        .rx_data_in = MY_RX_DATA_IN_PIN
+};
+pch_piochan_config_t pc = pch_piochan_get_default_config(pins);
+void pch_cus_piocu_configure(pch_cuaddr_t cua, pch_pio_config_t *cfg, pch_piochan_config_t *pc);
+
+// If CU connection is as a UART channel:
+#define MY_UART uart0
+gpio_set_function(MY_UART_TX_PIN, GPIO_FUNC_UART);
+gpio_set_function(MY_UART_RX_PIN, GPIO_FUNC_UART);
+gpio_set_function(MY_UART_CTS_PIN, GPIO_FUNC_UART);
+gpio_set_function(MY_UART_RTS_PIN, GPIO_FUNC_UART);
+
+pch_uartchan_config_t cfg = pch_uartchan_get_default_config(MY_UART);
+void pch_cus_uartcu_configure(pch_cuaddr_t cua, uart_inst_t *uart, pch_uartchan_config_t *cfg);
+
+// If CU connection is as a memory channel:
+// For a memchan, no physical channel connection is needed
+// but the CSS-side code and CU-side code must know about each
+// other's id number (CHPID and CU address) to connect the sides.
+pch_channel_t *chpeer = pch_chp_get_channel(CHPID);
+pch_cus_memcu_configure(CUADDR, chpeer);
 
 // Start CU. Returns immediately after setting all CU handling to
-// happen via interrupt handlers and callbacks from those so follow
-// with an infinite "__wfe()" loop if there is nothing else to be
-// done from main().
+// happen via interrupt handlers and callbacks from those.
+// So if your CU does not need to do anything other than serving
+// up its devices, you can follow with an infinite "__wfe()" loop.
 void pch_cu_start(pch_cuaddr_t cua);
 ```
 
-### Convenience API for device driver to its CU
+### Convenience low-level API for device driver to its CU
+
+In general, use the higher-level device API (hldev) instead of this
+but may occasionally need the following:
 
 #### Convenience API with fully general arguments
 
@@ -200,8 +244,9 @@ int pch_dev_update_status_error(pch_devib_t *devib, pch_dev_sense_t sense);
 
 ### Low-level API for device driver to its CU
 
-The Convenience API functions above use this low-level API and are
-more likely to be suitable instead of using these directly.
+Even when the higher-level device API (hldev) is not appropriate,
+the Convenience API functions above are more likely to be suitable
+instead of using these directly.
 
 ```
 static inline void pch_devib_prepare_callback(pch_devib_t *devib, pch_cbindex_t cbindex);

@@ -59,10 +59,12 @@ void pch_css_init(void);
 
 bool pch_css_set_trace(bool trace);
 
-// Optionally use pch_css_auto_configure_..., pch_css_configure_...
-// or pch_css_set functions to choose, configure and enable IRQ
-// handlers for DMA, function and I/O IRQs, then auto-configure
-// and enable any remaining ones with:
+// Optionally override the defaults for IRQ index and IRQ handler
+// attributes with pch_css_set_irq_index(),
+// pch_css_configure_dma_irq_...(), pch_css_configure_pio_irq_...(),
+// pch_css_configure_func_irq_...(), pch_css_configure_io_irq...().
+// Otherwise, they will be configured automatically when needed
+// using defaults.
 
 void pch_css_start(io_callback_t io_callback);
 
@@ -78,34 +80,83 @@ int pch_chp_claim_unused(bool required);
 // ...or (less commonly) claim a specific chpid
 // (panics on failure)
 void pch_chp_claim(pch_chpid_t chpid);
+
 // Allocate num_devices consecutive subchannels on the channel and
-// return the SID of the first.
+// return the SID of the first. The first SID will reference the
+// device with unit address 0 on the Control Unit that the channel
+// is connected to. Subsequent SIDs reference unit addresses
+// 1, 2, 3, ..., num_devices-1.
 pch_sid_t pch_chp_alloc(pch_chpid_t chpid, uint16_t num_devices);
+```
+
+#### Initialise a channel to a PIO CU
+
+```
+// Before creating any PIO channels, initialise any PIO instance
+// that will be used. This loads the piochan PIO programs into the
+// instance.
+#define MY_PIO pio0
+pch_pio_config_t cfg = pch_pio_get_default_config(MY_PIO);
+// Optionally change fields of cfg to use non-default irq_index,
+// IRQ handler attributes (exclusive/shared/priority) or if you need
+// to load the PIO programs manually at explicitly chosen offsets.
+pch_piochan_init(&cfg);
+ 
+// Initialise and configure a PIO channel. Each PIO instance can
+// support two separate channels. Each channel needs 4 GPIO pins to
+// be connected to its peer Control Unit: tx_clock_in, tx_data_out,
+// rx_clock_out, rx_data_in and the pins need to be connected with
+// tx_clock_in<->rx_clock_out, tx_data_out<->rx_data_in. Any 4 pins
+// can be chosen within the block of 32 pins addressable by the chosen
+// PIO instance - they do not need to be consecutive.
+pch_piochan_pins_t pins = {
+        .tx_clock_in = BLINK_TX_CLOCK_IN_PIN,
+        .tx_data_out = BLINK_TX_DATA_OUT_PIN,
+        .rx_clock_out = BLINK_RX_CLOCK_OUT_PIN,
+        .rx_data_in = BLINK_RX_DATA_IN_PIN
+};
+pch_piochan_config_t pc = pch_piochan_get_default_config(pins);
+// Optionally set explicit state machine numbers in pc (tx_sm and
+// rx_sm) or leave them at their default of -1 for unused state
+// machines to be claimed automatically.
+pch_chp_configure_piochan(chpid, &cfg, &pc);
 ```
 
 #### Initialise a channel to a UART CU
 
 ```
-// Initialise and configure a UART channel with default parameters...
-void pch_chp_auto_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
-// ...or, less commonly, configure with non-default DMA control
-// register flags after initialising the UART beforehand
-void pch_chp_configure_uartchan(pch_chpid_t chpid, uart_inst_t *uart, dma_channel_config ctrl);
+// For the UART peripheral instance whose 4 GPIO pins you have
+// connected to the peer Control Unit, select the UART function
+// of the GPIOs so the UART can drive them. As usual for UART to
+// UART connections, connect TX<->RX and CTS<->RTS. Note that
+// all 4 pins *must* be connected to the CU - hardware flow control
+// is mandatory.
+gpio_set_function(MY_UART_TX_PIN, GPIO_FUNC_UART);
+gpio_set_function(MY_UART_RX_PIN, GPIO_FUNC_UART);
+gpio_set_function(MY_UART_CTS_PIN, GPIO_FUNC_UART);
+gpio_set_function(MY_UART_RTS_PIN, GPIO_FUNC_UART);
+
+// Initialise the channel using your chosen baud rate which must
+// match the baud rate on the CU side.
+#define MY_UART uart0
+#define MY_BAUDRATE 115200
+pch_uartchan_config_t cfg = pch_uartchan_get_default_config(uart);
+cfg.baudrate = MY_BAUDRATE;
+pch_chp_configure_uartchan(chpid, MY_UART, &cfg);
 ```
 
-#### Initialise a channel to a memchan (cross-core) CU
+#### Initialise a memchan channel to a (cross-core) CU
 
 ```
 void pch_memchan_init();
 
-dmachan_tx_channel_t *pch_cu_get_tx_channel(pch_chpid_t chpid);
+// For a memchan, no physical channel connection is needed
+// but the CSS-side code and CU-side code must know about each
+// other's id number (CHPID and CU address) to connect the sides.
+pch_channel_t *chpeer = pch_cu_get_channel(CUADDR);
+pch_chp_configure_memchan(CHPID, chpeer);
 
-void pch_chp_configure_memchan(pch_chpid_t chpid, pch_dmaid_t txdmaid, pch_dmaid_t rxdmaid, dmachan_tx_channel_t *txpeer);
 ```
-
-#### Initialise a channel to a pio CU
-
-TBD
 
 ### Start a channel to a CU
 
