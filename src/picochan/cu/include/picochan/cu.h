@@ -240,50 +240,10 @@ bool pch_cus_set_trace(bool trace);
 bool pch_cus_is_traced(void);
 
 async_context_t *pch_cus_configure_default_async_context(async_context_threadsafe_background_config_t *config);
-void pch_cus_configure_default_async_context_if_unset(void);
 void pch_cu_configure_async_context_if_unset(pch_cu_t *cu);
 
-/*
- * \brief Configure an explicit IRQ index for use by CUs started from
- * the calling core and set an exclusive IRQ handler for it.
- * \ingroup picochan_cu
- *
- * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different IRQ index. The IRQ index is
- * used to distinguish between the available IRQs for each used irq
- * type (DMA and possibly PIO). A convenient way to still allow the CU
- * subsystem to auto-configure its IRQ index choice is to call
- * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
-*/
-void pch_cus_configure_irq_index_exclusive(pch_irq_index_t irq_index);
+void pch_cu_configure_irq_index_if_unset(pch_cu_t *cu);
 
-/*
- * \brief Configure an explicit IRQ index for use by CUs started from
- * the calling core and add a shared IRQ handler for it.
- * \ingroup picochan_cu
- *
- * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different IRQ index. The IRQ index is
- * used to distinguish between the available IRQs for each used irq
- * type (DMA and possibly PIO). A convenient way to still allow the CU
- * subsystem to auto-configure its IRQ index choice is to call
- * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
-*/
-void pch_cus_configure_irq_index_shared(pch_irq_index_t irq_index, uint8_t order_priority);
-
-/*
- * \brief Configure an explicit IRQ index for use by CUs started from
- * the calling core and add a shared IRQ handler for it using an
- * order_priority of PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY.
- * \ingroup picochan_cu
- *
- * If a CSS is to be used on the same Pico, it must be initialised on
- * a different core, using a different IRQ index. The IRQ index is
- * used to distinguish between the available IRQs for each used irq
- * type (DMA and possibly PIO). A convenient way to still allow the CU
- * subsystem to auto-configure its IRQ index choice is to call
- * pch_cus_ignore_irq_index() on the IRQ index of the CSS.
-*/
 pch_irq_index_t pch_cus_find_or_claim_irq_index(void);
 
 void pch_cus_configure_dma_irq(pch_irq_index_t irq_index, int order_priority);
@@ -298,9 +258,8 @@ void pch_cus_configure_pio_irq_shared(PIO pio, pch_irq_index_t irq_index, uint8_
 void pch_cus_configure_pio_irq_shared_default(PIO pio, pch_irq_index_t irq_index);
 void pch_cus_configure_pio_irq_if_unset(PIO pio, pch_irq_index_t irq_index);
 
-/* \brief Marks irq_index such that any call to
- * pch_cus_auto_configure_irq_index(), whether explicit or
- * implicitly from pch_cu_start(), will not choose that IRQ index.
+/* \brief Marks irq_index such that any implicitly chosen one
+ * will not choose it.
  * \ingroup picochan_cu
  * 
  * This function is convenient for avoiding the need to configure
