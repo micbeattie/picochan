@@ -144,8 +144,8 @@ typedef uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>pch_cuaddr
 <tr class="memdesc:gad50e88c5418c063d8bb3b66df7ef04ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">a channel path identifier between 0 and PCH_NUM_CHANNELS-1 (at most 255) that identifies a channel from the CSS side  <br /></td></tr>
 <tr class="memitem:ga6705e933e26b2eacd30534ef98a638af" id="r_ga6705e933e26b2eacd30534ef98a638af"><td class="memItemLeft" align="right" valign="top">typedef uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a></td></tr>
 <tr class="memdesc:ga6705e933e26b2eacd30534ef98a638af"><td class="mdescLeft">&#160;</td><td class="mdescRight">a DMA id used by CSS or CU  <br /></td></tr>
-<tr class="memitem:ga2051559b1a04ebbe80a064254c160209" id="r_ga2051559b1a04ebbe80a064254c160209"><td class="memItemLeft" align="right" valign="top">typedef int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a></td></tr>
-<tr class="memdesc:ga2051559b1a04ebbe80a064254c160209"><td class="mdescLeft">&#160;</td><td class="mdescRight">a DMA IRQ index  <br /></td></tr>
+<tr class="memitem:ga6eb90263fa596f98d3848c52e31cd7e3" id="r_ga6eb90263fa596f98d3848c52e31cd7e3"><td class="memItemLeft" align="right" valign="top">typedef int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a></td></tr>
+<tr class="memdesc:ga6eb90263fa596f98d3848c52e31cd7e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">a DMA IRQ index  <br /></td></tr>
 <tr class="memitem:ga3b35c1d1ecbdbb04f997457dc8b28506" id="r_ga3b35c1d1ecbdbb04f997457dc8b28506"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="structpch__schib.html">pch_schib</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga3b35c1d1ecbdbb04f997457dc8b28506">pch_schib_t</a></td></tr>
 <tr class="memdesc:ga3b35c1d1ecbdbb04f997457dc8b28506"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="#ga3b35c1d1ecbdbb04f997457dc8b28506" title="pch_schib_t is the Subchannel Information Block (SCHIB)">pch_schib_t</a> is the Subchannel Information Block (SCHIB)  <br /></td></tr>
 <tr class="memitem:ga7c762e6d91ddd3a8c187ba2bbca3baf2" id="r_ga7c762e6d91ddd3a8c187ba2bbca3baf2"><td class="memItemLeft" align="right" valign="top"><a id="ga7c762e6d91ddd3a8c187ba2bbca3baf2" name="ga7c762e6d91ddd3a8c187ba2bbca3baf2"></a>
@@ -264,23 +264,6 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>pch_bsize_encode_r
 
 </div>
 </div>
-<a id="ga2051559b1a04ebbe80a064254c160209" name="ga2051559b1a04ebbe80a064254c160209"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2051559b1a04ebbe80a064254c160209">&#9670;&#160;</a></span>pch_dma_irq_index_t</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef int8_t <a class="el" href="#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>a DMA IRQ index </p>
-<p>Must be either -1 (meaning no DMA IRQ index set) or between 0 and the number of DMA IRQs on the platform (e.g. 2 for RP2040 and 4 for RP2350). Pico SDK uses the uint type for DMA IRQ index arguments but Picochan uses the <a class="el" href="#ga2051559b1a04ebbe80a064254c160209" title="a DMA IRQ index">pch_dma_irq_index_t</a> type in its API and also for storing them so it can use a single byte instead of four. </p>
-
-</div>
-</div>
 <a id="ga6705e933e26b2eacd30534ef98a638af" name="ga6705e933e26b2eacd30534ef98a638af"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ga6705e933e26b2eacd30534ef98a638af">&#9670;&#160;</a></span>pch_dmaid_t</h2>
 
@@ -295,6 +278,23 @@ uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>pch_bsize_encode_r
 
 <p>a DMA id used by CSS or CU </p>
 <p>Must be between 0 and the number of DMA channels on the platform. Pico SDK uses the uint type for DMA channel id arguments but picochan uses <a class="el" href="#ga6705e933e26b2eacd30534ef98a638af" title="a DMA id used by CSS or CU">pch_dmaid_t</a> type in its API and also for storing them in a single byte instead of four. </p>
+
+</div>
+</div>
+<a id="ga6eb90263fa596f98d3848c52e31cd7e3" name="ga6eb90263fa596f98d3848c52e31cd7e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga6eb90263fa596f98d3848c52e31cd7e3">&#9670;&#160;</a></span>pch_irq_index_t</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef int8_t <a class="el" href="#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>a DMA IRQ index </p>
+<p>Must be either -1 (meaning no DMA IRQ index set) or between 0 and the number of DMA IRQs on the platform (e.g. 2 for RP2040 and 4 for RP2350). Pico SDK uses the uint type for DMA IRQ index arguments but Picochan uses the <a class="el" href="#ga6eb90263fa596f98d3848c52e31cd7e3" title="a DMA IRQ index">pch_irq_index_t</a> type in its API and also for storing them so it can use a single byte instead of four. </p>
 
 </div>
 </div>

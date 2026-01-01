@@ -8,7 +8,7 @@ var searchData=
   ['picochan_5',['Picochan',['../compiling_page.html',1,'Compiling using Picochan'],['../design_page.html',1,'Design of Picochan']]],
   ['picochan_20a_20channel_20subsystem_20for_20raspberry_20pi_20pico_6',['Picochan - a channel subsystem for Raspberry Pi Pico',['../index.html',1,'']]],
   ['picochan_20apis_7',['Picochan APIs',['../index.html#autotoc_md33',1,'']]],
-  ['pio_20cu_8',['Initialise a channel to a pio CU',['../css_api_page.html#autotoc_md13',1,'']]],
+  ['pio_20cu_8',['Initialise a channel to a PIO CU',['../css_api_page.html#autotoc_md11',1,'']]],
   ['platform_9',['&lt;span class=&quot;tt&quot;&gt;pch_dump_trace&lt;/span&gt; - parse and display traces (off-platform)',['../tracing_page.html#autotoc_md38',1,'']]],
   ['pmcw_20flags_20of_20a_20subchannel_20to_20enable_20disable_20trace_20or_20change_20isc_10',['Set PMCW flags of a subchannel to enable/disable, trace or change ISC',['../css_api_page.html#autotoc_md15',1,'']]],
   ['program_20command_20chaining_11',['Channel program command chaining',['../channel_program_page.html#autotoc_md2',1,'']]],

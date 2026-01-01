@@ -155,10 +155,12 @@ Functions</h2></td></tr>
 <tr class="memdesc:gad1b76d50296613b3f60ec58c8a17564b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialises a CU with space for num_devibs devices.  <br /></td></tr>
 <tr class="memitem:ga06d9bac1fb2e0470773a747f2e21820d" id="r_ga06d9bac1fb2e0470773a747f2e21820d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga06d9bac1fb2e0470773a747f2e21820d">pch_cu_register</a> (<a class="el" href="#gad255fd60b677de465d03fa6505775044">pch_cu_t</a> *cu, <a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua)</td></tr>
 <tr class="memdesc:ga06d9bac1fb2e0470773a747f2e21820d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a CU at a control unit address.  <br /></td></tr>
-<tr class="memitem:ga464a4dd9ab9789b8e85c67fc288f3777" id="r_ga464a4dd9ab9789b8e85c67fc288f3777"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga464a4dd9ab9789b8e85c67fc288f3777">pch_cus_uartcu_configure</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua, uart_inst_t *uart, dma_channel_config ctrl)</td></tr>
-<tr class="memdesc:ga464a4dd9ab9789b8e85c67fc288f3777"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure a UART control unit.  <br /></td></tr>
-<tr class="memitem:gaca2bd54cbc04af2fac3a3f2114c1f4f5" id="r_gaca2bd54cbc04af2fac3a3f2114c1f4f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gaca2bd54cbc04af2fac3a3f2114c1f4f5">pch_cus_memcu_configure</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua, <a class="el" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> txdmaid, <a class="el" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> rxdmaid, <a class="el" href="structdmachan__tx__channel.html">dmachan_tx_channel_t</a> *txpeer)</td></tr>
-<tr class="memdesc:gaca2bd54cbc04af2fac3a3f2114c1f4f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure a memchan control unit.  <br /></td></tr>
+<tr class="memitem:ga155765c26f3bf06d6046a329a87eac7b" id="r_ga155765c26f3bf06d6046a329a87eac7b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga155765c26f3bf06d6046a329a87eac7b">pch_cus_uartcu_configure</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua, uart_inst_t *uart, <a class="el" href="structpch__uartchan__config.html">pch_uartchan_config_t</a> *cfg)</td></tr>
+<tr class="memdesc:ga155765c26f3bf06d6046a329a87eac7b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure a UART control unit.  <br /></td></tr>
+<tr class="memitem:ga613489dc4592af7dadc283e2d469fe1f" id="r_ga613489dc4592af7dadc283e2d469fe1f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga613489dc4592af7dadc283e2d469fe1f">pch_cus_piocu_configure</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua, <a class="el" href="structpch__pio__config.html">pch_pio_config_t</a> *cfg, <a class="el" href="structpch__piochan__config.html">pch_piochan_config_t</a> *pc)</td></tr>
+<tr class="memdesc:ga613489dc4592af7dadc283e2d469fe1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure a PIO channel control unit.  <br /></td></tr>
+<tr class="memitem:ga5ff2d61c32dfa9d26393cd7f1166016e" id="r_ga5ff2d61c32dfa9d26393cd7f1166016e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga5ff2d61c32dfa9d26393cd7f1166016e">pch_cus_memcu_configure</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua, <a class="el" href="structpch__channel.html">pch_channel_t</a> *chpeer)</td></tr>
+<tr class="memdesc:ga5ff2d61c32dfa9d26393cd7f1166016e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Configure a memchan control unit.  <br /></td></tr>
 <tr class="memitem:ga74b09005ab0b15100aff9c8ceb943875" id="r_ga74b09005ab0b15100aff9c8ceb943875"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga74b09005ab0b15100aff9c8ceb943875">pch_cu_start</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua)</td></tr>
 <tr class="memdesc:ga74b09005ab0b15100aff9c8ceb943875"><td class="mdescLeft">&#160;</td><td class="mdescRight">Starts the channel from CU cua to the CSS.  <br /></td></tr>
 <tr class="memitem:ga79dfde3b47151fb1435d5c052f84888b" id="r_ga79dfde3b47151fb1435d5c052f84888b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga79dfde3b47151fb1435d5c052f84888b">pch_cus_trace_cu</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua, bool trace)</td></tr>
@@ -167,8 +169,8 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga701e63cbe1dc8e7017efcc38aad2e3cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets what tracing flags are enabled for CU cua.  <br /></td></tr>
 <tr class="memitem:gac3b0c2df1a229b612ca6244d265b2358" id="r_gac3b0c2df1a229b612ca6244d265b2358"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac3b0c2df1a229b612ca6244d265b2358">pch_cus_trace_dev</a> (<a class="el" href="#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, bool trace)</td></tr>
 <tr class="memdesc:gac3b0c2df1a229b612ca6244d265b2358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets whether tracing is enabled for device.  <br /></td></tr>
-<tr class="memitem:ga98dd293308d9db0561e6ebdd68edaeef" id="r_ga98dd293308d9db0561e6ebdd68edaeef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structdmachan__tx__channel.html">dmachan_tx_channel_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga98dd293308d9db0561e6ebdd68edaeef">pch_cu_get_tx_channel</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua)</td></tr>
-<tr class="memdesc:ga98dd293308d9db0561e6ebdd68edaeef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetch the internal tx side of a channel from CU to CSS.  <br /></td></tr>
+<tr class="memitem:ga4c3fd27cc13bbaefa0b140791d43e824" id="r_ga4c3fd27cc13bbaefa0b140791d43e824"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="structpch__channel.html">pch_channel_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga4c3fd27cc13bbaefa0b140791d43e824">pch_cu_get_channel</a> (<a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a> cua)</td></tr>
+<tr class="memdesc:ga4c3fd27cc13bbaefa0b140791d43e824"><td class="mdescLeft">&#160;</td><td class="mdescRight">Fetch the internal pch_channel_t from CU to CSS.  <br /></td></tr>
 <tr class="memitem:gac3e9e409735deb678f3aa637929e2308" id="r_gac3e9e409735deb678f3aa637929e2308"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#gac3e9e409735deb678f3aa637929e2308">pch_dev_set_callback</a> (<a class="el" href="#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, int cbindex_opt)</td></tr>
 <tr class="memdesc:gac3e9e409735deb678f3aa637929e2308"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set callback for device.  <br /></td></tr>
 <tr class="memitem:ga8c56b5359547ca2ab681f3a307f43f5c" id="r_ga8c56b5359547ca2ab681f3a307f43f5c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ga8c56b5359547ca2ab681f3a307f43f5c">pch_dev_send_then</a> (<a class="el" href="#gae778375f43278246f52713c263113a2a">pch_devib_t</a> *devib, void *srcaddr, uint16_t n, proto_chop_flags_t flags, int cbindex_opt)</td></tr>
@@ -316,22 +318,30 @@ static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_ca
 </div>
 </div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Function Documentation</h2>
-<a id="ga98dd293308d9db0561e6ebdd68edaeef" name="ga98dd293308d9db0561e6ebdd68edaeef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga98dd293308d9db0561e6ebdd68edaeef">&#9670;&#160;</a></span>pch_cu_get_tx_channel()</h2>
+<a id="ga4c3fd27cc13bbaefa0b140791d43e824" name="ga4c3fd27cc13bbaefa0b140791d43e824"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga4c3fd27cc13bbaefa0b140791d43e824">&#9670;&#160;</a></span>pch_cu_get_channel()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="structdmachan__tx__channel.html">dmachan_tx_channel_t</a> * pch_cu_get_tx_channel </td>
+          <td class="memname"><a class="el" href="structpch__channel.html">pch_channel_t</a> * pch_cu_get_channel </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a></td>          <td class="paramname"><span class="paramname"><em>cua</em></span></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel static">static</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Fetch the internal tx side of a channel from CU to CSS. </p>
+<p>Fetch the internal pch_channel_t from CU to CSS. </p>
 <p>This function is only needed when configuring a memchan between a CU and the CSS on different cores of a single Pico. The CSS initialisation procedure uses this function to find its peer CU structure in order to cross-connect the channels. </p>
 
 </div>
@@ -438,7 +448,7 @@ static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_ca
 </div><div class="memdoc">
 
 <p>Starts the channel from CU cua to the CSS. </p>
-<p>The CU must already have been registered by calling <a class="el" href="#ga06d9bac1fb2e0470773a747f2e21820d" title="Registers a CU at a control unit address.">pch_cu_register()</a>. If the CU has already been started, this function returns without doing anything. If no DMA IRQ index has yet been explicitly configured for this CU then pch_cus_auto_configure_dma_irq_index(true) is called and pch_cu_set_dma_irq_index() is called to set the CU to use the returned index. Then it marks the CU as started and starts the channel to the CSS, allowing it to receive commands from the CSS. </p>
+<p>The CU must already have been registered by calling <a class="el" href="#ga06d9bac1fb2e0470773a747f2e21820d" title="Registers a CU at a control unit address.">pch_cu_register()</a>. If the CU has already been started, this function returns without doing anything. If no DMA IRQ index has yet been explicitly configured for this CU then pch_cus_auto_configure_irq_index(true) is called and pch_cu_set_irq_index() is called to set the CU to use the returned index. Then it marks the CU as started and starts the channel to the CSS, allowing it to receive commands from the CSS. </p>
 
 </div>
 </div>
@@ -462,8 +472,8 @@ static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_ca
 
 </div>
 </div>
-<a id="gaca2bd54cbc04af2fac3a3f2114c1f4f5" name="gaca2bd54cbc04af2fac3a3f2114c1f4f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaca2bd54cbc04af2fac3a3f2114c1f4f5">&#9670;&#160;</a></span>pch_cus_memcu_configure()</h2>
+<a id="ga5ff2d61c32dfa9d26393cd7f1166016e" name="ga5ff2d61c32dfa9d26393cd7f1166016e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5ff2d61c32dfa9d26393cd7f1166016e">&#9670;&#160;</a></span>pch_cus_memcu_configure()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -476,23 +486,42 @@ static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_ca
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a></td>          <td class="paramname"><span class="paramname"><em>txdmaid</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a></td>          <td class="paramname"><span class="paramname"><em>rxdmaid</em></span>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structdmachan__tx__channel.html">dmachan_tx_channel_t</a> *</td>          <td class="paramname"><span class="paramname"><em>txpeer</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="structpch__channel.html">pch_channel_t</a> *</td>          <td class="paramname"><span class="paramname"><em>chpeer</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Configure a memchan control unit. </p>
-<p>A memchan control unit allows the CU to run on one core of a Pico while the CSS runs on the other core. Instead of using physical pins or connections between CU and CSS, picochan uses the DMA channels to copy memory-to-memory between CU and CSS and an internal state machine and cross-core synchronisation to mediate CU to CSS communications. txdmaid and rxdmaid must be two unused DMA ids, typically allocated using dma_claim_unused_channel(). In order for the CU to find the CSS-side information to cross-connect the sides in memory, the CSS API function <a class="el" href="group__picochan__css.html#ga1ff6be2ad0654c29681d3d0332e57c89" title="Fetch the internal tx side of a channel from CSS to CU.">pch_chp_get_tx_channel()</a> must be used to fetch the internal dmachan_tx_channel_t of the peer CSS channel for passing to pch_cus_memcu_configure. </p>
+<p>A memchan control unit allows the CU to run on one core of a Pico while the CSS runs on the other core. Instead of using physical pins or connections between CU and CSS, picochan uses two DMA channels to copy memory-to-memory between CU and CSS and an internal state machine and cross-core synchronisation to mediate CU to CSS communications. In order for the CU to find the CSS-side information to cross-connect the sides in memory, the CSS API function <a class="el" href="group__picochan__css.html#ga59205a83399cb3c1dc5cf9186e88d5c4" title="Get the underlying channel from a channel path from CSS to CU.">pch_chp_get_channel()</a> must be used to fetch the internal pch_channel_t of the peer CSS channel path for passing to pch_cus_memcu_configure. </p>
+
+</div>
+</div>
+<a id="ga613489dc4592af7dadc283e2d469fe1f" name="ga613489dc4592af7dadc283e2d469fe1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga613489dc4592af7dadc283e2d469fe1f">&#9670;&#160;</a></span>pch_cus_piocu_configure()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void pch_cus_piocu_configure </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__picochan__base.html#ga0cf813e237e3a90e67a308ee9865a011">pch_cuaddr_t</a></td>          <td class="paramname"><span class="paramname"><em>cua</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpch__pio__config.html">pch_pio_config_t</a> *</td>          <td class="paramname"><span class="paramname"><em>cfg</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structpch__piochan__config.html">pch_piochan_config_t</a> *</td>          <td class="paramname"><span class="paramname"><em>pc</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Configure a PIO channel control unit. </p>
+<p>Configure PIO state machines as a channel from CU cua to the CSS. cfg must reference a PIO which has already been initialised with pch_piochan_init() in order to load the two piochan PIO programs. This function claims two state machines in the PIO (either via explicit numbers in pc or claiming unused ones when tx_sm or tx_sm are -1) and initialises the GPIO pins in pc.pins. Those pins must be connected to the CSS with a corresponding piochan channel path with pins connected as TX_CLOCK_IN&lt;-&gt;RX_CLOCK_OUT, TX_DATA_OUT&lt;-&gt;RX_DATA_IN. </p>
 
 </div>
 </div>
@@ -564,8 +593,8 @@ static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_ca
 
 </div>
 </div>
-<a id="ga464a4dd9ab9789b8e85c67fc288f3777" name="ga464a4dd9ab9789b8e85c67fc288f3777"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga464a4dd9ab9789b8e85c67fc288f3777">&#9670;&#160;</a></span>pch_cus_uartcu_configure()</h2>
+<a id="ga155765c26f3bf06d6046a329a87eac7b" name="ga155765c26f3bf06d6046a329a87eac7b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga155765c26f3bf06d6046a329a87eac7b">&#9670;&#160;</a></span>pch_cus_uartcu_configure()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -583,14 +612,13 @@ static void *&#160;</td><td class="memItemRight" valign="bottom"><b>pch_devib_ca
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">dma_channel_config</td>          <td class="paramname"><span class="paramname"><em>ctrl</em></span>&#160;)</td>
+          <td class="paramtype"><a class="el" href="structpch__uartchan__config.html">pch_uartchan_config_t</a> *</td>          <td class="paramname"><span class="paramname"><em>cfg</em></span>&#160;)</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Configure a UART control unit. </p>
-<p>Configure the hardware UART instance uart as a channel from CU cua to the CSS. The UART must have been initialised already, be connected to the CSS using the same baud rate as the CSS has configured and the hardware flow control pins, CTS and RTS MUST be enabled and connected between CU and CSS. ctrl should typically be a default dma_channel_config as returned from dma_channel_get_default_config(dmaid) invoked on any DMA id. Most bits in that dma_channel_config are overridden by the CU (including the CHAIN_TO which is why the dmaid above does not matter) but some applications may wish to set bits SNIFF_EN and HIGH_PRIORITY for their own purposes.</p>
-<p>If you want to initialise and configure the UART channel using a given baud rate, suggested UART settings (8E1) and default DMA control register settings (no SNIFF_EN and no HIGH_PRIORITY), you can use <a class="el" href="group__picochan__css.html#gae8d99610900108b3b9ea3cc460784b5c" title="Initialise and configure a UART control unit with default dma_channel_config control register.">pch_cus_auto_configure_uartcu()</a> instead. </p>
+<p>Configure the hardware UART instance uart as a channel from CU cua to the CSS. This will initialise the UART. It must connected to the CSS using the same baud rate as this CU configures with cfg. The hardware flow control pins, CTS and RTS <em>MUST</em> be enabled and connected between CU and CSS. Use pch_uartchan_get_default_config() to obtain a default value for cfg and only make changes you need. You may well want to change baudrate. For ctrl, the only bits you may want to change are SNIFF_EN and HIGH_PRIORITY. </p>
 
 </div>
 </div>

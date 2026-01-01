@@ -104,6 +104,10 @@ Data Fields</h2></td></tr>
 schib_dlist_t&#160;</td><td class="memItemRight" valign="bottom"><b>isc_dlists</b> [8]</td></tr>
 <tr class="memitem:a2624e7e359b7d6bb14b032e556fa4bf0" id="r_a2624e7e359b7d6bb14b032e556fa4bf0"><td class="memItemLeft" align="right" valign="top"><a id="a2624e7e359b7d6bb14b032e556fa4bf0" name="a2624e7e359b7d6bb14b032e556fa4bf0"></a>
 <a class="el" href="group__picochan__css.html#gacc59d63a1e6d6e9c165c69697f6d05c7">io_callback_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>io_callback</b></td></tr>
+<tr class="memitem:ab422636b0ef2cda19f1a4d31ee0c3fe0" id="r_ab422636b0ef2cda19f1a4d31ee0c3fe0"><td class="memItemLeft" align="right" valign="top"><a id="ab422636b0ef2cda19f1a4d31ee0c3fe0" name="ab422636b0ef2cda19f1a4d31ee0c3fe0"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>dma_irq_configured</b></td></tr>
+<tr class="memitem:a90e9acdd4faf44d598a537b8993af487" id="r_a90e9acdd4faf44d598a537b8993af487"><td class="memItemLeft" align="right" valign="top"><a id="a90e9acdd4faf44d598a537b8993af487" name="a90e9acdd4faf44d598a537b8993af487"></a>
+bool&#160;</td><td class="memItemRight" valign="bottom"><b>pio_irq_configured</b> [NUM_PIO_IRQS]</td></tr>
 <tr class="memitem:a6c16a270bb9bd314069a4dc07867dc6e" id="r_a6c16a270bb9bd314069a4dc07867dc6e"><td class="memItemLeft" align="right" valign="top"><a id="a6c16a270bb9bd314069a4dc07867dc6e" name="a6c16a270bb9bd314069a4dc07867dc6e"></a>
 int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>io_irqnum</b></td></tr>
 <tr class="memdesc:a6c16a270bb9bd314069a4dc07867dc6e"><td class="mdescLeft">&#160;</td><td class="mdescRight">-1 or Irq raised for schib notify <br /></td></tr>
@@ -114,9 +118,9 @@ int16_t&#160;</td><td class="memItemRight" valign="bottom"><b>func_irqnum</b></t
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>isc_enable_mask</b></td></tr>
 <tr class="memitem:addf0fd42df680f2bfa337c34f95d1933" id="r_addf0fd42df680f2bfa337c34f95d1933"><td class="memItemLeft" align="right" valign="top"><a id="addf0fd42df680f2bfa337c34f95d1933" name="addf0fd42df680f2bfa337c34f95d1933"></a>
 uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>isc_status_mask</b></td></tr>
-<tr class="memitem:a203565ea0b6d1f779de82d524494dc45" id="r_a203565ea0b6d1f779de82d524494dc45"><td class="memItemLeft" align="right" valign="top"><a id="a203565ea0b6d1f779de82d524494dc45" name="a203565ea0b6d1f779de82d524494dc45"></a>
-<a class="el" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>dmairqix</b></td></tr>
-<tr class="memdesc:a203565ea0b6d1f779de82d524494dc45"><td class="mdescLeft">&#160;</td><td class="mdescRight">completions raise irq dma.IRQ_BASE+dmairqix <br /></td></tr>
+<tr class="memitem:ac606c450ff7604974e368625bbb99c45" id="r_ac606c450ff7604974e368625bbb99c45"><td class="memItemLeft" align="right" valign="top"><a id="ac606c450ff7604974e368625bbb99c45" name="ac606c450ff7604974e368625bbb99c45"></a>
+<a class="el" href="group__picochan__base.html#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>irq_index</b></td></tr>
+<tr class="memdesc:ac606c450ff7604974e368625bbb99c45"><td class="mdescLeft">&#160;</td><td class="mdescRight">completions raise irq with this irq_index <br /></td></tr>
 <tr class="memitem:a78a19c33707ab8e74c3733b6d037efdb" id="r_a78a19c33707ab8e74c3733b6d037efdb"><td class="memItemLeft" align="right" valign="top"><a id="a78a19c33707ab8e74c3733b6d037efdb" name="a78a19c33707ab8e74c3733b6d037efdb"></a>
 int8_t&#160;</td><td class="memItemRight" valign="bottom"><b>core_num</b></td></tr>
 <tr class="memitem:aeba2a824b748808e6661dd1f4926162a" id="r_aeba2a824b748808e6661dd1f4926162a"><td class="memItemLeft" align="right" valign="top"><a id="aeba2a824b748808e6661dd1f4926162a" name="aeba2a824b748808e6661dd1f4926162a"></a>

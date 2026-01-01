@@ -105,302 +105,424 @@ $(function(){initNavTree('dmachan_8h_source.html','',''); });
 <div class="line"><a id="l00011" name="l00011"></a><span class="lineno">   11</span><span class="preprocessor">#define PARAM_ASSERTIONS_ENABLED_PCH_DMACHAN 0</span></div>
 <div class="line"><a id="l00012" name="l00012"></a><span class="lineno">   12</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00013" name="l00013"></a><span class="lineno">   13</span> </div>
-<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#ifndef PCH_CONFIG_ENABLE_MEMCHAN</span></div>
-<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#define PCH_CONFIG_ENABLE_MEMCHAN 1</span></div>
+<div class="line"><a id="l00014" name="l00014"></a><span class="lineno">   14</span><span class="preprocessor">#ifndef PCH_UARTCHAN_DEFAULT_BAUDRATE</span></div>
+<div class="line"><a id="l00015" name="l00015"></a><span class="lineno">   15</span><span class="preprocessor">#define PCH_UARTCHAN_DEFAULT_BAUDRATE 115200</span></div>
 <div class="line"><a id="l00016" name="l00016"></a><span class="lineno">   16</span><span class="preprocessor">#endif</span></div>
 <div class="line"><a id="l00017" name="l00017"></a><span class="lineno">   17</span> </div>
 <div class="line"><a id="l00018" name="l00018"></a><span class="lineno">   18</span><span class="preprocessor">#include &quot;hardware/dma.h&quot;</span></div>
 <div class="line"><a id="l00019" name="l00019"></a><span class="lineno">   19</span><span class="preprocessor">#include &quot;hardware/structs/dma_debug.h&quot;</span></div>
 <div class="line"><a id="l00020" name="l00020"></a><span class="lineno">   20</span><span class="preprocessor">#include &quot;hardware/uart.h&quot;</span></div>
-<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;pico/platform/compiler.h&quot;</span></div>
-<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;picochan/dmachan_defs.h&quot;</span></div>
-<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;<a class="code" href="ids_8h.html">picochan/ids.h</a>&quot;</span></div>
-<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="trc_8h.html">picochan/trc.h</a>&quot;</span></div>
-<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span> </div>
-<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span><span class="comment">// General Pico SDK-like DMA-related functions that aren&#39;t in the SDK</span></div>
-<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keyword">enum</span> dma_channel_transfer_size channel_config_get_transfer_data_size(dma_channel_config config) {</div>
-<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span>        uint size = (config.ctrl &amp; DMA_CH0_CTRL_TRIG_DATA_SIZE_BITS) &gt;&gt; DMA_CH0_CTRL_TRIG_DATA_SIZE_LSB;</div>
-<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span>        <span class="keywordflow">return</span> (<span class="keyword">enum</span> dma_channel_transfer_size)size;</div>
-<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>}</div>
-<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span> </div>
-<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span><span class="keyword">static</span> <span class="keyword">inline</span> uint32_t dma_channel_get_transfer_count(uint channel) {</div>
-<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span>        <span class="keywordflow">return</span> dma_channel_hw_addr(channel)-&gt;transfer_count;</div>
-<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span>}</div>
-<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span> </div>
-<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span><span class="keyword">static</span> <span class="keyword">inline</span> dma_debug_channel_hw_t *dma_debug_channel_hw_addr(uint channel) {</div>
-<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span>        check_dma_channel_param(channel);</div>
-<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span>        <span class="keywordflow">return</span> &amp;dma_debug_hw-&gt;ch[channel];</div>
-<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>}</div>
-<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span> </div>
-<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span><span class="keyword">static</span> <span class="keyword">inline</span> uint32_t dma_channel_get_reload_count(uint channel) {</div>
-<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span>        <span class="keywordflow">return</span> dma_debug_channel_hw_addr(channel)-&gt;dbg_tcr;</div>
-<div class="line"><a id="l00043" name="l00043"></a><span class="lineno">   43</span>}</div>
-<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span> </div>
-<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> dma_irqn_get_channel_forced(uint irq_index, uint channel) {</div>
-<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>        invalid_params_if(HARDWARE_DMA, irq_index &gt;= NUM_DMA_IRQS);</div>
-<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>        check_dma_channel_param(channel);</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>        <span class="keywordflow">return</span> dma_hw-&gt;irq_ctrl[irq_index].intf &amp; (1u &lt;&lt; channel);</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>}</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span> </div>
-<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dma_irqn_set_channel_forced(uint irq_index, uint channel, <span class="keywordtype">bool</span> forced) {</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>        invalid_params_if(HARDWARE_DMA, irq_index &gt;= NUM_DMA_IRQS);</div>
+<div class="line"><a id="l00021" name="l00021"></a><span class="lineno">   21</span><span class="preprocessor">#include &quot;hardware/pio.h&quot;</span></div>
+<div class="line"><a id="l00022" name="l00022"></a><span class="lineno">   22</span><span class="preprocessor">#include &quot;pico/platform/compiler.h&quot;</span></div>
+<div class="line"><a id="l00023" name="l00023"></a><span class="lineno">   23</span><span class="preprocessor">#include &quot;picochan/dmachan_defs.h&quot;</span></div>
+<div class="line"><a id="l00024" name="l00024"></a><span class="lineno">   24</span><span class="preprocessor">#include &quot;<a class="code" href="ids_8h.html">picochan/ids.h</a>&quot;</span></div>
+<div class="line"><a id="l00025" name="l00025"></a><span class="lineno">   25</span><span class="preprocessor">#include &quot;<a class="code" href="trc_8h.html">picochan/trc.h</a>&quot;</span></div>
+<div class="line"><a id="l00026" name="l00026"></a><span class="lineno">   26</span> </div>
+<div class="line"><a id="l00027" name="l00027"></a><span class="lineno">   27</span><span class="comment">// General Pico SDK-like DMA-related functions that aren&#39;t in the SDK</span></div>
+<div class="line"><a id="l00028" name="l00028"></a><span class="lineno">   28</span> </div>
+<div class="line"><a id="l00029" name="l00029"></a><span class="lineno">   29</span><span class="keyword">static</span> <span class="keyword">inline</span> dma_debug_channel_hw_t *dma_debug_channel_hw_addr(uint channel) {</div>
+<div class="line"><a id="l00030" name="l00030"></a><span class="lineno">   30</span>        check_dma_channel_param(channel);</div>
+<div class="line"><a id="l00031" name="l00031"></a><span class="lineno">   31</span>        <span class="keywordflow">return</span> &amp;dma_debug_hw-&gt;ch[channel];</div>
+<div class="line"><a id="l00032" name="l00032"></a><span class="lineno">   32</span>}</div>
+<div class="line"><a id="l00033" name="l00033"></a><span class="lineno">   33</span> </div>
+<div class="line"><a id="l00034" name="l00034"></a><span class="lineno">   34</span><span class="keyword">static</span> <span class="keyword">inline</span> uint32_t dma_channel_get_reload_count(uint channel) {</div>
+<div class="line"><a id="l00035" name="l00035"></a><span class="lineno">   35</span>        <span class="keywordflow">return</span> dma_debug_channel_hw_addr(channel)-&gt;dbg_tcr;</div>
+<div class="line"><a id="l00036" name="l00036"></a><span class="lineno">   36</span>}</div>
+<div class="line"><a id="l00037" name="l00037"></a><span class="lineno">   37</span> </div>
+<div class="line"><a id="l00038" name="l00038"></a><span class="lineno">   38</span><span class="keyword">static</span> <span class="keyword">inline</span> uint32_t dma_get_ctrl_value(uint channel) {</div>
+<div class="line"><a id="l00039" name="l00039"></a><span class="lineno">   39</span>        dma_channel_config_t config = dma_get_channel_config(channel);</div>
+<div class="line"><a id="l00040" name="l00040"></a><span class="lineno">   40</span>        <span class="keywordflow">return</span> channel_config_get_ctrl_value(&amp;config);</div>
+<div class="line"><a id="l00041" name="l00041"></a><span class="lineno">   41</span>}</div>
+<div class="line"><a id="l00042" name="l00042"></a><span class="lineno">   42</span> </div>
+<div class="foldopen" id="foldopen00043" data-start="{" data-end="};">
+<div class="line"><a id="l00043" name="l00043"></a><span class="lineno"><a class="line" href="uniondmachan__cmd.html">   43</a></span><span class="keyword">typedef</span> <span class="keyword">union </span>__aligned(4) <a class="code hl_union" href="uniondmachan__cmd.html">dmachan_cmd</a> {</div>
+<div class="line"><a id="l00044" name="l00044"></a><span class="lineno">   44</span>        <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>   buf[4];</div>
+<div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>        uint32_t        raw;        </div>
+<div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>} dmachan_cmd_t;</div>
+</div>
+<div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span> </div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span><span class="preprocessor">#define DMACHAN_CMD_SIZE sizeof(dmachan_cmd_t)</span></div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span><span class="keyword">static_assert</span>(DMACHAN_CMD_SIZE == 4, <span class="stringliteral">&quot;dmachan_cmd_t must be 4 bytes&quot;</span>);</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_cmd_t dmachan_make_cmd_from_word(uint32_t rawcmd) {</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>        <span class="keywordflow">return</span> ((dmachan_cmd_t){.raw = rawcmd});</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>}</div>
 <div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>        <span class="keywordflow">if</span> (forced)</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>                hw_set_bits(&amp;dma_hw-&gt;irq_ctrl[irq_index].intf, 1u &lt;&lt; channel);</div>
-<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>        <span class="keywordflow">else</span></div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>                hw_clear_bits(&amp;dma_hw-&gt;irq_ctrl[irq_index].intf, 1u &lt;&lt; channel);</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span>}</div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="comment">// DMA configuration for one direction (tx or rx) of a dmachan channel</span></div>
-<div class="foldopen" id="foldopen00062" data-start="{" data-end="};">
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno"><a class="line" href="structdmachan__1way__config.html">   62</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__1way__config.html">dmachan_1way_config</a> {</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>        uint32_t                addr;</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        dma_channel_config      ctrl;</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a>             dmaid;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a>     dmairqix;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>} dmachan_1way_config_t;</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_cmd_set_zero(dmachan_cmd_t *cmd) {</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>        cmd-&gt;raw = 0;</div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>}</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="comment">// dmachan_link_t collects the common fields in tx and rx channels</span></div>
+<div class="foldopen" id="foldopen00060" data-start="{" data-end="};">
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="structdmachan__link.html">   60</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__link.html">dmachan_link</a> {</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>        dmachan_cmd_t           cmd;</div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>        <a class="code hl_typedef" href="group__internal__trc.html#gaa743327244077c1e3d25b48982c4481c">pch_trc_bufferset_t</a>     *bs;    <span class="comment">// set/unset by owning channel</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>        uint16_t                seqnum;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a>             dmaid;</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a>         irq_index;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>        <span class="keywordtype">bool</span>                    complete;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>        <span class="keywordtype">bool</span>                    resetting;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>} dmachan_link_t;</div>
 </div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_1way_config_t dmachan_1way_config_make(<a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> dmaid, uint32_t addr, dma_channel_config ctrl, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix) {</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>        <span class="keywordflow">return</span> ((dmachan_1way_config_t){</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>                .addr = addr,</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>                .ctrl = ctrl,</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>                .dmaid = dmaid,</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                .dmairqix = dmairqix</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>        });</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>}</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span> </div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_1way_config_t dmachan_1way_config_claim(uint32_t addr, dma_channel_config ctrl, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix) {</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> dmaid = (<a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a>)dma_claim_unused_channel(<span class="keyword">true</span>);</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>        <span class="keywordflow">return</span> dmachan_1way_config_make(dmaid, addr, ctrl, dmairqix);</div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>}</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_1way_config_t dmachan_1way_config_memchan_make(<a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> dmaid, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix) {</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>        dma_channel_config ctrl = dma_channel_get_default_config(dmaid);</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>        channel_config_set_transfer_data_size(&amp;ctrl, DMA_SIZE_8);</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>        channel_config_set_read_increment(&amp;ctrl, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>        channel_config_set_write_increment(&amp;ctrl, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        <span class="keywordflow">return</span> ((dmachan_1way_config_t){</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>                .addr = 0,</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>                .ctrl = ctrl,</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>                .dmaid = dmaid,</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>                .dmairqix = dmairqix</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>        });</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>}</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span> </div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span><span class="comment">// DMA configuration for both directions (tx and rx) of a dmachan</span></div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span><span class="comment">// channel</span></div>
-<div class="foldopen" id="foldopen00098" data-start="{" data-end="};">
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno"><a class="line" href="structdmachan__config.html">   98</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__config.html">dmachan_config</a> {</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>        dmachan_1way_config_t   tx;</div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span>        dmachan_1way_config_t   rx;</div>
-<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>} dmachan_config_t;</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span> </div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="keyword">static</span> <span class="keyword">inline</span> uint16_t dmachan_link_seqnum(dmachan_link_t *l) {</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>        <span class="keywordflow">return</span> l-&gt;seqnum;</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#else</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>        <span class="keywordflow">return</span> 0;</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>}</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_link_cmd_set_zero(dmachan_link_t *l) {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>        dmachan_cmd_set_zero(&amp;l-&gt;cmd);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>}</div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_link_cmd_set(dmachan_link_t *l, dmachan_cmd_t cmd) {</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>        l-&gt;seqnum++;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>        l-&gt;cmd.raw = cmd.raw;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>}</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span> </div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *src) {</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>        dst-&gt;cmd.raw = src-&gt;cmd.raw;</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>        dst-&gt;seqnum = src-&gt;seqnum;</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>}</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span><span class="comment">// UART channel (uartchan) configuration</span></div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span> </div>
+<div class="foldopen" id="foldopen00100" data-start="{" data-end="};">
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno"><a class="line" href="structpch__uartchan__config.html">  100</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__uartchan__config.html">pch_uartchan_config</a> {</div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>        dma_channel_config      ctrl;</div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span>        uint                    baudrate;</div>
+<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span>        uint                    irq_index;</div>
+<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>} pch_uartchan_config_t;</div>
 </div>
-<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span> </div>
-<div class="line"><a id="l00103" name="l00103"></a><span class="lineno">  103</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_config_t dmachan_config_claim(uint32_t txaddr, dma_channel_config txctrl, uint32_t rxaddr, dma_channel_config rxctrl, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix) {</div>
-<div class="line"><a id="l00104" name="l00104"></a><span class="lineno">  104</span>        <span class="keywordflow">return</span> ((dmachan_config_t){</div>
-<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span>                .tx = dmachan_1way_config_claim(txaddr, txctrl, dmairqix),</div>
-<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span>                .rx = dmachan_1way_config_claim(rxaddr, rxctrl, dmairqix)</div>
-<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        });</div>
-<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>}</div>
-<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span> </div>
-<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_config_t dmachan_config_memchan_make(<a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> txdmaid, <a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a> rxdmaid, <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix) {</div>
-<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        <span class="keywordflow">return</span> ((dmachan_config_t){</div>
-<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>                .tx = dmachan_1way_config_memchan_make(txdmaid, dmairqix),</div>
-<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>                .rx = dmachan_1way_config_memchan_make(rxdmaid, dmairqix)</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>        });</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>}</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span> </div>
-<div class="foldopen" id="foldopen00117" data-start="{" data-end="};">
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno"><a class="line" href="uniondmachan__cmd.html">  117</a></span><span class="keyword">typedef</span> <span class="keyword">union </span>__aligned(4) <a class="code hl_union" href="uniondmachan__cmd.html">dmachan_cmd</a> {</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span>        <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span>   buf[4];</div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>        uint32_t        raw;        </div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>} dmachan_cmd_t;</div>
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno">  105</span> </div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="keyword">static</span> <span class="keyword">inline</span> pch_uartchan_config_t pch_uartchan_get_default_config(uart_inst_t *uart) {</div>
+<div class="line"><a id="l00107" name="l00107"></a><span class="lineno">  107</span>        <span class="comment">// Argument 0 to dma_channel_get_default_config is ok here</span></div>
+<div class="line"><a id="l00108" name="l00108"></a><span class="lineno">  108</span>        <span class="comment">// (as would be any DMA id) because it only affects the</span></div>
+<div class="line"><a id="l00109" name="l00109"></a><span class="lineno">  109</span>        <span class="comment">// &quot;chain-to&quot; value and that is overridden when the ctrl</span></div>
+<div class="line"><a id="l00110" name="l00110"></a><span class="lineno">  110</span>        <span class="comment">// value is used.</span></div>
+<div class="line"><a id="l00111" name="l00111"></a><span class="lineno">  111</span>        <span class="keywordflow">return</span> ((pch_uartchan_config_t){</div>
+<div class="line"><a id="l00112" name="l00112"></a><span class="lineno">  112</span>                .ctrl = dma_channel_get_default_config(0),</div>
+<div class="line"><a id="l00113" name="l00113"></a><span class="lineno">  113</span>                .baudrate = PCH_UARTCHAN_DEFAULT_BAUDRATE,</div>
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>                .irq_index = get_core_num()</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>        });</div>
+<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>}</div>
+<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span> </div>
+<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span><span class="comment">// PIO channel (piochan) configuration</span></div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span> </div>
+<div class="foldopen" id="foldopen00120" data-start="{" data-end="};">
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno"><a class="line" href="structpch__pio__config.html">  120</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__pio__config.html">pch_pio_config</a> {</div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>        PIO                     pio;</div>
+<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>        dma_channel_config      ctrl;</div>
+<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>        int16_t                 tx_offset;</div>
+<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>        int16_t                 rx_offset;</div>
+<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span>        int16_t                 order_priority;</div>
+<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a>         irq_index;</div>
+<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>} pch_pio_config_t;</div>
 </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span> </div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span><span class="preprocessor">#define DMACHAN_CMD_SIZE sizeof(dmachan_cmd_t)</span></div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span><span class="keyword">static_assert</span>(DMACHAN_CMD_SIZE == 4, <span class="stringliteral">&quot;dmachan_cmd_t must be 4 bytes&quot;</span>);</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span> </div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_cmd_t dmachan_make_cmd_from_word(uint32_t rawcmd) {</div>
-<div class="line"><a id="l00126" name="l00126"></a><span class="lineno">  126</span>        <span class="keywordflow">return</span> ((dmachan_cmd_t){.raw = rawcmd});</div>
-<div class="line"><a id="l00127" name="l00127"></a><span class="lineno">  127</span>}</div>
 <div class="line"><a id="l00128" name="l00128"></a><span class="lineno">  128</span> </div>
-<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_cmd_set_zero(dmachan_cmd_t *cmd) {</div>
-<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        cmd-&gt;raw = 0;</div>
-<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>}</div>
-<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span> </div>
-<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span><span class="comment">// dmachan_link_t collects the common fields in tx and rx channels</span></div>
-<div class="foldopen" id="foldopen00134" data-start="{" data-end="};">
-<div class="line"><a id="l00134" name="l00134"></a><span class="lineno"><a class="line" href="structdmachan__link.html">  134</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__link.html">dmachan_link</a> {</div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>        dmachan_cmd_t           cmd;</div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>        <a class="code hl_typedef" href="group__internal__trc.html#gaa743327244077c1e3d25b48982c4481c">pch_trc_bufferset_t</a>     *bs;            <span class="comment">// only when tracing</span></div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>        uint16_t                seqnum;</div>
-<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a>             dmaid;</div>
-<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a>     dmairqix;</div>
-<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span>        <span class="keywordtype">bool</span>                    complete;</div>
-<div class="line"><a id="l00143" name="l00143"></a><span class="lineno">  143</span>        <span class="keywordtype">bool</span>                    resetting;</div>
-<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>} dmachan_link_t;</div>
+<div class="line"><a id="l00129" name="l00129"></a><span class="lineno">  129</span><span class="keyword">static</span> <span class="keyword">inline</span> pch_pio_config_t pch_pio_get_default_config(PIO pio) {</div>
+<div class="line"><a id="l00130" name="l00130"></a><span class="lineno">  130</span>        <span class="comment">// Argument 0 to dma_channel_get_default_config is ok here (as</span></div>
+<div class="line"><a id="l00131" name="l00131"></a><span class="lineno">  131</span>        <span class="comment">// would be any DMA id) because it only affects the &quot;chain-to&quot;</span></div>
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno">  132</span>        <span class="comment">// value and that is overridden when the ctrl value is used.</span></div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno">  133</span>        <span class="keywordflow">return</span> ((pch_pio_config_t){</div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno">  134</span>                .pio = pio,</div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>                .ctrl = dma_channel_get_default_config(0),</div>
+<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>                .tx_offset = -1, <span class="comment">// auto-load if -1</span></div>
+<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span>                .rx_offset = -1, <span class="comment">// auto-load if -1</span></div>
+<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span>                .order_priority = PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY,</div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>                .irq_index = (<a class="code hl_typedef" href="group__picochan__base.html#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a>)get_core_num()</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno">  140</span>        });</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>}</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span> </div>
+<div class="foldopen" id="foldopen00143" data-start="{" data-end="};">
+<div class="line"><a id="l00143" name="l00143"></a><span class="lineno"><a class="line" href="structpch__piochan__pins.html">  143</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__piochan__pins.html">pch_piochan_pins</a> {</div>
+<div class="line"><a id="l00144" name="l00144"></a><span class="lineno">  144</span>    uint8_t tx_clock_in;</div>
+<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span>    uint8_t tx_data_out;</div>
+<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span>    uint8_t rx_clock_out;</div>
+<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span>    uint8_t rx_data_in;</div>
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>} pch_piochan_pins_t;</div>
 </div>
-<div class="line"><a id="l00145" name="l00145"></a><span class="lineno">  145</span> </div>
-<div class="line"><a id="l00146" name="l00146"></a><span class="lineno">  146</span><span class="keyword">static</span> <span class="keyword">inline</span> uint16_t dmachan_link_seqnum(dmachan_link_t *l) {</div>
-<div class="line"><a id="l00147" name="l00147"></a><span class="lineno">  147</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
-<div class="line"><a id="l00148" name="l00148"></a><span class="lineno">  148</span>        <span class="keywordflow">return</span> l-&gt;seqnum;</div>
-<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span><span class="preprocessor">#else</span></div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>        <span class="keywordflow">return</span> 0;</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>}</div>
-<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span> </div>
-<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_link_bs(dmachan_link_t *l, <a class="code hl_typedef" href="group__internal__trc.html#gaa743327244077c1e3d25b48982c4481c">pch_trc_bufferset_t</a> *bs) {</div>
-<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>        l-&gt;bs = bs;</div>
-<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>}</div>
-<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span> </div>
-<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_link_cmd_set_zero(dmachan_link_t *l) {</div>
-<div class="line"><a id="l00159" name="l00159"></a><span class="lineno">  159</span>        dmachan_cmd_set_zero(&amp;l-&gt;cmd);</div>
-<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>}</div>
-<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span> </div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_link_cmd_set(dmachan_link_t *l, dmachan_cmd_t cmd) {</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span>        l-&gt;seqnum++;</div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        l-&gt;cmd.raw = cmd.raw;</div>
-<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>}</div>
-<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span> </div>
-<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_link_cmd_copy(dmachan_link_t *dst, dmachan_link_t *src) {</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>        dst-&gt;cmd.raw = src-&gt;cmd.raw;</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
-<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span>        dst-&gt;seqnum = src-&gt;seqnum;</div>
-<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span>}</div>
-<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span> </div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_link_irq_enabled(dmachan_link_t *l, <span class="keywordtype">bool</span> enabled) {</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span>        <a class="code hl_typedef" href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a> dmairqix = l-&gt;dmairqix;</div>
-<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span>        assert(dmairqix &gt;= 0 &amp;&amp; dmairqix &lt; NUM_DMA_IRQS);</div>
-<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span>        dma_irqn_set_channel_enabled(dmairqix, l-&gt;dmaid, enabled);</div>
-<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span>}</div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span> </div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> dmachan_link_irq_raised(dmachan_link_t *l) {</div>
-<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>        <span class="keywordflow">return</span> dma_irqn_get_channel_status(l-&gt;dmairqix, l-&gt;dmaid);</div>
-<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>};</div>
-<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span> </div>
-<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> dmachan_get_link_irq_forced(dmachan_link_t *l) {</div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>        <span class="keywordflow">return</span> dma_irqn_get_channel_forced(l-&gt;dmairqix, l-&gt;dmaid);</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span>}</div>
-<div class="line"><a id="l00189" name="l00189"></a><span class="lineno">  189</span> </div>
-<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_link_irq_forced(dmachan_link_t *l, <span class="keywordtype">bool</span> forced) {</div>
-<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        dma_irqn_set_channel_forced(l-&gt;dmairqix, l-&gt;dmaid, forced);</div>
-<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>}</div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span> </div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_ack_link_irq(dmachan_link_t *l) {</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>        dma_irqn_acknowledge_channel(l-&gt;dmairqix, l-&gt;dmaid);</div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>}</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span> </div>
-<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span><span class="comment">// tx and rx channels, starting with forward declarations because</span></div>
-<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span><span class="comment">// for memchans there is a field pointing at the peer channel</span></div>
-<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__tx__channel.html">dmachan_tx_channel</a> dmachan_tx_channel_t;</div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__rx__channel.html">dmachan_rx_channel</a> dmachan_rx_channel_t;</div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span> </div>
-<div class="foldopen" id="foldopen00203" data-start="{" data-end="};">
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno"><a class="line" href="structdmachan__tx__channel.html">  203</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__tx__channel.html">dmachan_tx_channel</a> {</div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        dmachan_link_t          link;</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>        dmachan_rx_channel_t    *mem_rx_peer;   <span class="comment">// only for memchan</span></div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>        dmachan_mem_src_state_t mem_src_state;  <span class="comment">// only for memchan</span></div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>} dmachan_tx_channel_t;</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno">  149</span> </div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span><span class="keyword">static</span> <span class="keyword">inline</span> pch_piochan_pins_t pch_piochan_pins_make(uint8_t tx_clock_in, uint8_t tx_data_out, uint8_t rx_clock_out, uint8_t rx_data_in) {</div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span>        <span class="keywordflow">return</span> ((pch_piochan_pins_t){</div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno">  152</span>                .tx_clock_in = tx_clock_in,</div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno">  153</span>                .tx_data_out = tx_data_out,</div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno">  154</span>                .rx_clock_out = rx_clock_out,</div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno">  155</span>                .rx_data_in = rx_data_in</div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno">  156</span>        });</div>
+<div class="line"><a id="l00157" name="l00157"></a><span class="lineno">  157</span>}</div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno">  158</span> </div>
+<div class="foldopen" id="foldopen00159" data-start="{" data-end="};">
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="structpch__piochan__config.html">  159</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__piochan__config.html">pch_piochan_config</a> {</div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno">  160</span>        pch_piochan_pins_t      pins;</div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno">  161</span>        <span class="keywordtype">int</span>                     tx_sm;</div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>        <span class="keywordtype">int</span>                     rx_sm;</div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>} pch_piochan_config_t;</div>
 </div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span> </div>
-<div class="foldopen" id="foldopen00209" data-start="{" data-end="};">
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno"><a class="line" href="structdmachan__rx__channel.html">  209</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__rx__channel.html">dmachan_rx_channel</a> {</div>
-<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>        dmachan_link_t          link;</div>
-<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>        dmachan_tx_channel_t    *mem_tx_peer;   <span class="comment">// only for memchan</span></div>
-<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>        uint32_t                srcaddr;</div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        dma_channel_config      ctrl;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        dmachan_mem_dst_state_t mem_dst_state;  <span class="comment">// only for memchan</span></div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>        uint16_t                seen_seqnum;</div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>} dmachan_rx_channel_t;</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
+<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="keyword">static</span> <span class="keyword">inline</span> pch_piochan_config_t pch_piochan_get_default_config(pch_piochan_pins_t pins) {</div>
+<div class="line"><a id="l00166" name="l00166"></a><span class="lineno">  166</span>        <span class="keywordflow">return</span> ((pch_piochan_config_t){</div>
+<div class="line"><a id="l00167" name="l00167"></a><span class="lineno">  167</span>                .pins = pins,</div>
+<div class="line"><a id="l00168" name="l00168"></a><span class="lineno">  168</span>                .tx_sm = -1,</div>
+<div class="line"><a id="l00169" name="l00169"></a><span class="lineno">  169</span>                .rx_sm = -1</div>
+<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>        });</div>
+<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span>}</div>
+<div class="line"><a id="l00172" name="l00172"></a><span class="lineno">  172</span> </div>
+<div class="line"><a id="l00173" name="l00173"></a><span class="lineno">  173</span><span class="comment">// pch_piochan_init() must be called before calling</span></div>
+<div class="line"><a id="l00174" name="l00174"></a><span class="lineno">  174</span><span class="comment">// pch_channel_init_piochan() to configure any pio channels.</span></div>
+<div class="line"><a id="l00175" name="l00175"></a><span class="lineno">  175</span><span class="keywordtype">void</span> pch_piochan_init(pch_pio_config_t *cfg);</div>
+<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span> </div>
+<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span><span class="comment">// Memory channel (memchan) configuration</span></div>
+<div class="line"><a id="l00178" name="l00178"></a><span class="lineno">  178</span> </div>
+<div class="line"><a id="l00179" name="l00179"></a><span class="lineno">  179</span><span class="comment">// pch_memchan_init must be called before configuring either side of</span></div>
+<div class="line"><a id="l00180" name="l00180"></a><span class="lineno">  180</span><span class="comment">// any memchan CU with pch_cus_memcu_configure or</span></div>
+<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span><span class="comment">// pch_chp_configure_memchan</span></div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span><span class="keywordtype">void</span> pch_memchan_init(<span class="keywordtype">void</span>);</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span> </div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span><span class="comment">// tx and rx channels, starting with forward declarations because</span></div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span><span class="comment">// for memchans there is a field pointing at the peer channel</span></div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__tx__channel.html">dmachan_tx_channel</a> dmachan_tx_channel_t;</div>
+<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__rx__channel.html">dmachan_rx_channel</a> dmachan_rx_channel_t;</div>
+<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span> </div>
+<div class="foldopen" id="foldopen00189" data-start="{" data-end="};">
+<div class="line"><a id="l00189" name="l00189"></a><span class="lineno"><a class="line" href="structdmachan__tx__channel__ops.html">  189</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__tx__channel__ops.html">dmachan_tx_channel_ops</a> {</div>
+<div class="line"><a id="l00190" name="l00190"></a><span class="lineno">  190</span>        void (*start_src_cmdbuf)(dmachan_tx_channel_t *tx);</div>
+<div class="line"><a id="l00191" name="l00191"></a><span class="lineno">  191</span>        void (*write_src_reset)(dmachan_tx_channel_t *tx);</div>
+<div class="line"><a id="l00192" name="l00192"></a><span class="lineno">  192</span>        void (*start_src_data)(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);</div>
+<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>        dmachan_irq_state_t (*handle_tx_dma_irq)(dmachan_tx_channel_t *tx);</div>
+<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>        bool (*handle_tx_pio_irq)(dmachan_tx_channel_t *tx, uint irqnum);</div>
+<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span>} dmachan_tx_channel_ops_t;</div>
 </div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span> </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span><span class="keyword">static</span> <span class="keyword">inline</span> dmachan_irq_state_t dmachan_make_irq_state(<span class="keywordtype">bool</span> raised, <span class="keywordtype">bool</span> forced, <span class="keywordtype">bool</span> complete) {</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        <span class="keywordflow">return</span> ((dmachan_irq_state_t)raised)</div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>                | ((dmachan_irq_state_t)forced) &lt;&lt; 1</div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>                | ((dmachan_irq_state_t)complete) &lt;&lt; 2;</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>}</div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span> </div>
-<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span><span class="comment">// tx channel irq and memory source state handling</span></div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {</div>
-<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        valid_params_if(PCH_DMACHAN,</div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>                new_state == DMACHAN_MEM_SRC_IDLE</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>                || tx-&gt;mem_src_state == DMACHAN_MEM_SRC_IDLE);</div>
+<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span> </div>
+<div class="foldopen" id="foldopen00197" data-start="{" data-end="};">
+<div class="line"><a id="l00197" name="l00197"></a><span class="lineno"><a class="line" href="structdmachan__mem__tx__channel__data.html">  197</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__mem__tx__channel__data.html">dmachan_mem_tx_channel_data</a> {</div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>        dmachan_rx_channel_t    *rx_peer;</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>        dmachan_mem_src_state_t src_state;</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>} dmachan_mem_tx_channel_data_t;</div>
+</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span> </div>
+<div class="foldopen" id="foldopen00202" data-start="{" data-end="};">
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno"><a class="line" href="structdmachan__pio__tx__channel__data.html">  202</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__pio__tx__channel__data.html">dmachan_pio_tx_channel_data</a> {</div>
+<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>        PIO     pio;</div>
+<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>        uint    sm;</div>
+<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>} dmachan_pio_tx_channel_data_t;</div>
+</div>
+<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span> </div>
+<div class="foldopen" id="foldopen00207" data-start="{" data-end="};">
+<div class="line"><a id="l00207" name="l00207"></a><span class="lineno"><a class="line" href="uniondmachan__tx__channel__data__t.html">  207</a></span><span class="keyword">typedef</span> <span class="keyword">union </span>{</div>
+<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>        dmachan_mem_tx_channel_data_t   mem;</div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>        dmachan_pio_tx_channel_data_t   pio;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span>} <a class="code hl_union" href="uniondmachan__tx__channel__data__t.html">dmachan_tx_channel_data_t</a>;</div>
+</div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span> </div>
+<div class="foldopen" id="foldopen00212" data-start="{" data-end="};">
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno"><a class="line" href="structdmachan__tx__channel.html">  212</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__tx__channel.html">dmachan_tx_channel</a> {</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>        dmachan_link_t                  link;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>        <span class="keyword">const</span> dmachan_tx_channel_ops_t  *ops;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>        <a class="code hl_union" href="uniondmachan__tx__channel__data__t.html">dmachan_tx_channel_data_t</a>       u;</div>
+<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>} dmachan_tx_channel_t;</div>
+</div>
+<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span> </div>
+<div class="foldopen" id="foldopen00218" data-start="{" data-end="};">
+<div class="line"><a id="l00218" name="l00218"></a><span class="lineno"><a class="line" href="structdmachan__rx__channel__ops.html">  218</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__rx__channel__ops.html">dmachan_rx_channel_ops</a> {</div>
+<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>        void (*start_dst_cmdbuf)(dmachan_rx_channel_t *rx);</div>
+<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>        void (*start_dst_reset)(dmachan_rx_channel_t *rx);</div>
+<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>        void (*start_dst_data)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);</div>
+<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span>        void (*start_dst_discard)(dmachan_rx_channel_t *rx, uint32_t count);</div>
+<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>        void (*prep_dst_data_src_zeroes)(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);</div>
+<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>        dmachan_irq_state_t (*handle_rx_irq)(dmachan_rx_channel_t *rx);</div>
+<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>} dmachan_rx_channel_ops_t;</div>
+</div>
+<div class="line"><a id="l00226" name="l00226"></a><span class="lineno">  226</span> </div>
+<div class="foldopen" id="foldopen00227" data-start="{" data-end="};">
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno"><a class="line" href="structdmachan__mem__rx__channel__data.html">  227</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__mem__rx__channel__data.html">dmachan_mem_rx_channel_data</a> {</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>        dmachan_tx_channel_t    *tx_peer;</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>        dmachan_mem_dst_state_t dst_state;</div>
+<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>} dmachan_mem_rx_channel_data_t;</div>
+</div>
 <div class="line"><a id="l00231" name="l00231"></a><span class="lineno">  231</span> </div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>        tx-&gt;mem_src_state = new_state;</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>}</div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span> </div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>dmachan_irq_state_t dmachan_handle_tx_irq(dmachan_tx_channel_t *tx);</div>
+<div class="foldopen" id="foldopen00232" data-start="{" data-end="};">
+<div class="line"><a id="l00232" name="l00232"></a><span class="lineno"><a class="line" href="structdmachan__pio__rx__channel__data.html">  232</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structdmachan__pio__rx__channel__data.html">dmachan_pio_rx_channel_data</a> {</div>
+<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>        PIO     pio;</div>
+<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>        uint    sm;</div>
+<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>} dmachan_pio_rx_channel_data_t;</div>
+</div>
 <div class="line"><a id="l00236" name="l00236"></a><span class="lineno">  236</span> </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span><span class="comment">// rx channel irq and memory destination state handling</span></div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {</div>
-<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        valid_params_if(PCH_DMACHAN,</div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>                new_state == DMACHAN_MEM_DST_IDLE</div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>                || rx-&gt;mem_dst_state == DMACHAN_MEM_DST_IDLE);</div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span> </div>
-<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        rx-&gt;mem_dst_state = new_state;</div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>}</div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span> </div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>dmachan_irq_state_t dmachan_handle_rx_irq(dmachan_rx_channel_t *rx);</div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span><span class="keywordtype">void</span> dmachan_panic_unless_memchan_initialised(<span class="keywordtype">void</span>);</div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="keywordtype">void</span> dmachan_init_tx_channel(dmachan_tx_channel_t *tx, dmachan_1way_config_t *cfg);</div>
-<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span><span class="keywordtype">void</span> dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx);</div>
-<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span><span class="keywordtype">void</span> dmachan_write_src_reset(dmachan_tx_channel_t *tx);</div>
-<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span><span class="keywordtype">void</span> dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count);</div>
-<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span> </div>
-<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span><span class="keywordtype">void</span> dmachan_init_rx_channel(dmachan_rx_channel_t *rx, dmachan_1way_config_t *cfg);</div>
-<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span><span class="keywordtype">void</span> dmachan_start_dst_reset(dmachan_rx_channel_t *rx);</div>
-<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span><span class="keywordtype">void</span> dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx);</div>
-<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span><span class="keywordtype">void</span> dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);</div>
-<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span><span class="keywordtype">void</span> dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count);</div>
-<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span><span class="keywordtype">void</span> dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);</div>
-<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span> </div>
-<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span><span class="comment">// Convenience functions for configuring UART channels</span></div>
-<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span><span class="keywordtype">void</span> pch_uart_init(uart_inst_t *uart, uint baudrate);</div>
+<div class="foldopen" id="foldopen00237" data-start="{" data-end="};">
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno"><a class="line" href="uniondmachan__rx__channel__data__t.html">  237</a></span><span class="keyword">typedef</span> <span class="keyword">union </span>{</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>        dmachan_mem_rx_channel_data_t   mem;</div>
+<div class="line"><a id="l00239" name="l00239"></a><span class="lineno">  239</span>        dmachan_pio_rx_channel_data_t   pio;</div>
+<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span>} <a class="code hl_union" href="uniondmachan__rx__channel__data__t.html">dmachan_rx_channel_data_t</a>;</div>
+</div>
+<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span> </div>
+<div class="foldopen" id="foldopen00242" data-start="{" data-end="};">
+<div class="line"><a id="l00242" name="l00242"></a><span class="lineno"><a class="line" href="structdmachan__rx__channel.html">  242</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span>__aligned(4) <a class="code hl_struct" href="structdmachan__rx__channel.html">dmachan_rx_channel</a> {</div>
+<div class="line"><a id="l00243" name="l00243"></a><span class="lineno">  243</span>        dmachan_link_t                  link;</div>
+<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span>        <span class="keyword">const</span> dmachan_rx_channel_ops_t  *ops;</div>
+<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>        uint32_t                        srcaddr;</div>
+<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>        dma_channel_config              ctrl;</div>
+<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span><span class="preprocessor">#ifdef PCH_CONFIG_DEBUG_MEMCHAN</span></div>
+<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>        uint16_t                        seen_seqnum;</div>
+<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span>        <a class="code hl_union" href="uniondmachan__rx__channel__data__t.html">dmachan_rx_channel_data_t</a>       u;</div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>} dmachan_rx_channel_t;</div>
+</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
+<div class="foldopen" id="foldopen00253" data-start="{" data-end="};">
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno"><a class="line" href="structpch__channel.html">  253</a></span><span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code hl_struct" href="structpch__channel.html">pch_channel</a> {</div>
+<div class="line"><a id="l00254" name="l00254"></a><span class="lineno">  254</span>        dmachan_tx_channel_t    tx;</div>
+<div class="line"><a id="l00255" name="l00255"></a><span class="lineno">  255</span>        dmachan_rx_channel_t    rx;</div>
+<div class="line"><a id="l00256" name="l00256"></a><span class="lineno">  256</span>        uint8_t                 flags;</div>
+<div class="line"><a id="l00257" name="l00257"></a><span class="lineno">  257</span>        uint8_t                 id;</div>
+<div class="line"><a id="l00258" name="l00258"></a><span class="lineno">  258</span>} pch_channel_t;</div>
+</div>
+<div class="line"><a id="l00259" name="l00259"></a><span class="lineno">  259</span> </div>
+<div class="line"><a id="l00260" name="l00260"></a><span class="lineno">  260</span><span class="comment">// Values of pch_channel_t flags field</span></div>
+<div class="line"><a id="l00261" name="l00261"></a><span class="lineno">  261</span><span class="preprocessor">#define PCH_CHANNEL_CONFIGURED  0x01</span></div>
+<div class="line"><a id="l00262" name="l00262"></a><span class="lineno">  262</span><span class="preprocessor">#define PCH_CHANNEL_STARTED     0x02</span></div>
+<div class="line"><a id="l00263" name="l00263"></a><span class="lineno">  263</span><span class="preprocessor">#define PCH_CHANNEL_TRACED      0x04</span></div>
 <div class="line"><a id="l00264" name="l00264"></a><span class="lineno">  264</span> </div>
-<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span><span class="keyword">static</span> <span class="keyword">inline</span> dma_channel_config dmachan_uart_make_txctrl(uart_inst_t *uart, dma_channel_config ctrl) {</div>
-<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        channel_config_set_transfer_data_size(&amp;ctrl, DMA_SIZE_8);</div>
-<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>        channel_config_set_write_increment(&amp;ctrl, <span class="keyword">false</span>);</div>
-<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span>        uint txdreq = uart_get_dreq_num(uart, <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span>        channel_config_set_dreq(&amp;ctrl, txdreq);</div>
-<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>        <span class="keywordflow">return</span> ctrl;</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_channel_is_configured(pch_channel_t *ch) {</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span>        <span class="keywordflow">return</span> ch-&gt;flags &amp; PCH_CHANNEL_CONFIGURED;</div>
+<div class="line"><a id="l00267" name="l00267"></a><span class="lineno">  267</span>}</div>
+<div class="line"><a id="l00268" name="l00268"></a><span class="lineno">  268</span> </div>
+<div class="line"><a id="l00269" name="l00269"></a><span class="lineno">  269</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_channel_is_started(pch_channel_t *ch) {</div>
+<div class="line"><a id="l00270" name="l00270"></a><span class="lineno">  270</span>        <span class="keywordflow">return</span> ch-&gt;flags &amp; PCH_CHANNEL_STARTED;</div>
 <div class="line"><a id="l00271" name="l00271"></a><span class="lineno">  271</span>}</div>
 <div class="line"><a id="l00272" name="l00272"></a><span class="lineno">  272</span> </div>
-<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span><span class="keyword">static</span> <span class="keyword">inline</span> dma_channel_config dmachan_uart_make_rxctrl(uart_inst_t *uart, dma_channel_config ctrl) {</div>
-<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        channel_config_set_transfer_data_size(&amp;ctrl, DMA_SIZE_8);</div>
-<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>        channel_config_set_read_increment(&amp;ctrl, <span class="keyword">false</span>);</div>
-<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span>        uint rxdreq = uart_get_dreq_num(uart, <span class="keyword">false</span>);</div>
-<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>        channel_config_set_dreq(&amp;ctrl, rxdreq);</div>
-<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        <span class="keywordflow">return</span> ctrl;</div>
-<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>}</div>
-<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span> </div>
-<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span><span class="comment">// pch_memchan_init must be called before configuring either side of</span></div>
-<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span><span class="comment">// any memchan CU with pch_cus_memcu_configure or</span></div>
-<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span><span class="comment">// pch_chp_configure_memchan</span></div>
-<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span><span class="keywordtype">void</span> pch_memchan_init(<span class="keywordtype">void</span>);</div>
-<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span> </div>
-<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00273" name="l00273"></a><span class="lineno">  273</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">bool</span> pch_channel_is_traced(pch_channel_t *ch) {</div>
+<div class="line"><a id="l00274" name="l00274"></a><span class="lineno">  274</span>        <span class="keywordflow">return</span> ch-&gt;flags &amp; PCH_CHANNEL_TRACED;</div>
+<div class="line"><a id="l00275" name="l00275"></a><span class="lineno">  275</span>}</div>
+<div class="line"><a id="l00276" name="l00276"></a><span class="lineno">  276</span> </div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_channel_configure_id(pch_channel_t *ch, uint8_t <span class="keywordtype">id</span>) {</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>        assert(!pch_channel_is_configured(ch));</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span>        ch-&gt;id = id;</div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>        ch-&gt;flags |= PCH_CHANNEL_CONFIGURED;</div>
+<div class="line"><a id="l00281" name="l00281"></a><span class="lineno">  281</span>}</div>
+<div class="line"><a id="l00282" name="l00282"></a><span class="lineno">  282</span> </div>
+<div class="line"><a id="l00283" name="l00283"></a><span class="lineno">  283</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_channel_set_unconfigured(pch_channel_t *ch) {</div>
+<div class="line"><a id="l00284" name="l00284"></a><span class="lineno">  284</span>        ch-&gt;flags &amp;= ~PCH_CHANNEL_CONFIGURED;</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>        ch-&gt;id = 0;</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span>}</div>
+<div class="line"><a id="l00287" name="l00287"></a><span class="lineno">  287</span> </div>
+<div class="line"><a id="l00288" name="l00288"></a><span class="lineno">  288</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_channel_set_started(pch_channel_t *ch, <span class="keywordtype">bool</span> b) {</div>
+<div class="line"><a id="l00289" name="l00289"></a><span class="lineno">  289</span>        <span class="keywordflow">if</span> (b)</div>
+<div class="line"><a id="l00290" name="l00290"></a><span class="lineno">  290</span>                ch-&gt;flags |= PCH_CHANNEL_STARTED;</div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>        <span class="keywordflow">else</span></div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span>                ch-&gt;flags &amp;= ~PCH_CHANNEL_STARTED;</div>
+<div class="line"><a id="l00293" name="l00293"></a><span class="lineno">  293</span>}</div>
+<div class="line"><a id="l00294" name="l00294"></a><span class="lineno">  294</span> </div>
+<div class="line"><a id="l00295" name="l00295"></a><span class="lineno">  295</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> pch_channel_trace(pch_channel_t *ch, <a class="code hl_typedef" href="group__internal__trc.html#gaa743327244077c1e3d25b48982c4481c">pch_trc_bufferset_t</a> *bs) {</div>
+<div class="line"><a id="l00296" name="l00296"></a><span class="lineno">  296</span>        <span class="keywordflow">if</span> (bs) {</div>
+<div class="line"><a id="l00297" name="l00297"></a><span class="lineno">  297</span>                ch-&gt;tx.link.bs = bs;</div>
+<div class="line"><a id="l00298" name="l00298"></a><span class="lineno">  298</span>                ch-&gt;rx.link.bs = bs;</div>
+<div class="line"><a id="l00299" name="l00299"></a><span class="lineno">  299</span>                ch-&gt;flags |= PCH_CHANNEL_TRACED;</div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>        } <span class="keywordflow">else</span> {</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span>                ch-&gt;tx.link.bs = NULL;</div>
+<div class="line"><a id="l00302" name="l00302"></a><span class="lineno">  302</span>                ch-&gt;rx.link.bs = NULL;</div>
+<div class="line"><a id="l00303" name="l00303"></a><span class="lineno">  303</span>                ch-&gt;flags &amp;= ~PCH_CHANNEL_TRACED;</div>
+<div class="line"><a id="l00304" name="l00304"></a><span class="lineno">  304</span>        }</div>
+<div class="line"><a id="l00305" name="l00305"></a><span class="lineno">  305</span>}</div>
+<div class="line"><a id="l00306" name="l00306"></a><span class="lineno">  306</span> </div>
+<div class="line"><a id="l00307" name="l00307"></a><span class="lineno">  307</span><span class="comment">// Initialisation of channels</span></div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span> </div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span><span class="keywordtype">void</span> pch_channel_init_uartchan(pch_channel_t *ch, uint8_t <span class="keywordtype">id</span>, uart_inst_t *uart, pch_uartchan_config_t *cfg);</div>
+<div class="line"><a id="l00310" name="l00310"></a><span class="lineno">  310</span><span class="keywordtype">void</span> pch_channel_init_piochan(pch_channel_t *ch, uint8_t <span class="keywordtype">id</span>, pch_pio_config_t *cfg, pch_piochan_config_t *pc);</div>
+<div class="line"><a id="l00311" name="l00311"></a><span class="lineno">  311</span><span class="keywordtype">void</span> pch_channel_init_memchan(pch_channel_t *ch, uint8_t <span class="keywordtype">id</span>, uint dmairqix, pch_channel_t *chpeer);</div>
+<div class="line"><a id="l00312" name="l00312"></a><span class="lineno">  312</span> </div>
+<div class="line"><a id="l00313" name="l00313"></a><span class="lineno">  313</span><span class="comment">// tx channel irq and memory source state handling</span></div>
+<div class="line"><a id="l00314" name="l00314"></a><span class="lineno">  314</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_mem_src_state(dmachan_tx_channel_t *tx, dmachan_mem_src_state_t new_state) {</div>
+<div class="line"><a id="l00315" name="l00315"></a><span class="lineno">  315</span>        valid_params_if(PCH_DMACHAN,</div>
+<div class="line"><a id="l00316" name="l00316"></a><span class="lineno">  316</span>                new_state == DMACHAN_MEM_SRC_IDLE</div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>                || tx-&gt;u.mem.src_state == DMACHAN_MEM_SRC_IDLE);</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span> </div>
+<div class="line"><a id="l00319" name="l00319"></a><span class="lineno">  319</span>        tx-&gt;u.mem.src_state = new_state;</div>
+<div class="line"><a id="l00320" name="l00320"></a><span class="lineno">  320</span>}</div>
+<div class="line"><a id="l00321" name="l00321"></a><span class="lineno">  321</span> </div>
+<div class="line"><a id="l00322" name="l00322"></a><span class="lineno">  322</span><span class="comment">// rx channel irq and memory destination state handling</span></div>
+<div class="line"><a id="l00323" name="l00323"></a><span class="lineno">  323</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_set_mem_dst_state(dmachan_rx_channel_t *rx, dmachan_mem_dst_state_t new_state) {</div>
+<div class="line"><a id="l00324" name="l00324"></a><span class="lineno">  324</span>        valid_params_if(PCH_DMACHAN,</div>
+<div class="line"><a id="l00325" name="l00325"></a><span class="lineno">  325</span>                new_state == DMACHAN_MEM_DST_IDLE</div>
+<div class="line"><a id="l00326" name="l00326"></a><span class="lineno">  326</span>                || rx-&gt;u.mem.dst_state == DMACHAN_MEM_DST_IDLE);</div>
+<div class="line"><a id="l00327" name="l00327"></a><span class="lineno">  327</span> </div>
+<div class="line"><a id="l00328" name="l00328"></a><span class="lineno">  328</span>        rx-&gt;u.mem.dst_state = new_state;</div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>}</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span> </div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span><span class="keywordtype">void</span> dmachan_panic_unless_memchan_initialised(<span class="keywordtype">void</span>);</div>
+<div class="line"><a id="l00332" name="l00332"></a><span class="lineno">  332</span> </div>
+<div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span><span class="comment">// Methods for dmachan_rx_channel_t</span></div>
+<div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span> </div>
+<div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_start_src_cmdbuf(dmachan_tx_channel_t *tx) {</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>        tx-&gt;ops-&gt;start_src_cmdbuf(tx);</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>}</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span> </div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_write_src_reset(dmachan_tx_channel_t *tx) {</div>
+<div class="line"><a id="l00340" name="l00340"></a><span class="lineno">  340</span>        tx-&gt;ops-&gt;write_src_reset(tx);</div>
+<div class="line"><a id="l00341" name="l00341"></a><span class="lineno">  341</span>}</div>
+<div class="line"><a id="l00342" name="l00342"></a><span class="lineno">  342</span> </div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_start_src_data(dmachan_tx_channel_t *tx, uint32_t srcaddr, uint32_t count) {</div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>        tx-&gt;ops-&gt;start_src_data(tx, srcaddr, count);</div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>}</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span> </div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span><span class="comment">// Methods for dmachan_rx_channel_t</span></div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span> </div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_start_dst_cmdbuf(dmachan_rx_channel_t *rx) {</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>        rx-&gt;ops-&gt;start_dst_cmdbuf(rx);</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>}</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span> </div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_start_dst_reset(dmachan_rx_channel_t *rx) {</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>        rx-&gt;ops-&gt;start_dst_reset(rx);</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span>}</div>
+<div class="line"><a id="l00356" name="l00356"></a><span class="lineno">  356</span> </div>
+<div class="line"><a id="l00357" name="l00357"></a><span class="lineno">  357</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_start_dst_data(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count) {</div>
+<div class="line"><a id="l00358" name="l00358"></a><span class="lineno">  358</span>        rx-&gt;ops-&gt;start_dst_data(rx, dstaddr, count);</div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>}</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span> </div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span><span class="keyword">static</span> <span class="keyword">inline</span> <span class="keywordtype">void</span> dmachan_start_dst_discard(dmachan_rx_channel_t *rx, uint32_t count) {</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>        rx-&gt;ops-&gt;start_dst_discard(rx, count);</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>}</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span> </div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span><span class="keywordtype">void</span> dmachan_start_dst_data_src_zeroes(dmachan_rx_channel_t *rx, uint32_t dstaddr, uint32_t count);</div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span> </div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span><span class="comment">// pch_channel_handle_dma_irq() must be called for each channel</span></div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span><span class="comment">// whenever there is a DMA interrupt that may be relevant to it.</span></div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span><span class="keywordtype">void</span> pch_channel_handle_dma_irq(pch_channel_t *ch);</div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span> </div>
+<div class="line"><a id="l00371" name="l00371"></a><span class="lineno">  371</span><span class="comment">// pch_channel_handle_pio_irq() must be called for each channel</span></div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span><span class="comment">// whenever there is a PIO interrupt that may be relevant to it.</span></div>
+<div class="line"><a id="l00373" name="l00373"></a><span class="lineno">  373</span><span class="keywordtype">void</span> pch_channel_handle_pio_irq(pch_channel_t *ch, uint irqnum);</div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span> </div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span><span class="preprocessor">#endif</span></div>
 <div class="ttc" id="agroup__internal__trc_html_gaa743327244077c1e3d25b48982c4481c"><div class="ttname"><a href="group__internal__trc.html#gaa743327244077c1e3d25b48982c4481c">pch_trc_bufferset_t</a></div><div class="ttdeci">struct pch_trc_bufferset pch_trc_bufferset_t</div><div class="ttdoc">set of buffers and metadata for a subsystem to use tracing</div></div>
-<div class="ttc" id="agroup__picochan__base_html_ga2051559b1a04ebbe80a064254c160209"><div class="ttname"><a href="group__picochan__base.html#ga2051559b1a04ebbe80a064254c160209">pch_dma_irq_index_t</a></div><div class="ttdeci">int8_t pch_dma_irq_index_t</div><div class="ttdoc">a DMA IRQ index</div><div class="ttdef"><b>Definition</b> ids.h:64</div></div>
 <div class="ttc" id="agroup__picochan__base_html_ga6705e933e26b2eacd30534ef98a638af"><div class="ttname"><a href="group__picochan__base.html#ga6705e933e26b2eacd30534ef98a638af">pch_dmaid_t</a></div><div class="ttdeci">uint8_t pch_dmaid_t</div><div class="ttdoc">a DMA id used by CSS or CU</div><div class="ttdef"><b>Definition</b> ids.h:52</div></div>
+<div class="ttc" id="agroup__picochan__base_html_ga6eb90263fa596f98d3848c52e31cd7e3"><div class="ttname"><a href="group__picochan__base.html#ga6eb90263fa596f98d3848c52e31cd7e3">pch_irq_index_t</a></div><div class="ttdeci">int8_t pch_irq_index_t</div><div class="ttdoc">a DMA IRQ index</div><div class="ttdef"><b>Definition</b> ids.h:64</div></div>
 <div class="ttc" id="aids_8h_html"><div class="ttname"><a href="ids_8h.html">ids.h</a></div></div>
-<div class="ttc" id="astructdmachan__1way__config_html"><div class="ttname"><a href="structdmachan__1way__config.html">dmachan_1way_config</a></div><div class="ttdef"><b>Definition</b> dmachan.h:62</div></div>
-<div class="ttc" id="astructdmachan__config_html"><div class="ttname"><a href="structdmachan__config.html">dmachan_config</a></div><div class="ttdef"><b>Definition</b> dmachan.h:98</div></div>
-<div class="ttc" id="astructdmachan__link_html"><div class="ttname"><a href="structdmachan__link.html">dmachan_link</a></div><div class="ttdef"><b>Definition</b> dmachan.h:134</div></div>
-<div class="ttc" id="astructdmachan__rx__channel_html"><div class="ttname"><a href="structdmachan__rx__channel.html">dmachan_rx_channel</a></div><div class="ttdef"><b>Definition</b> dmachan.h:209</div></div>
-<div class="ttc" id="astructdmachan__tx__channel_html"><div class="ttname"><a href="structdmachan__tx__channel.html">dmachan_tx_channel</a></div><div class="ttdef"><b>Definition</b> dmachan.h:203</div></div>
+<div class="ttc" id="astructdmachan__link_html"><div class="ttname"><a href="structdmachan__link.html">dmachan_link</a></div><div class="ttdef"><b>Definition</b> dmachan.h:60</div></div>
+<div class="ttc" id="astructdmachan__mem__rx__channel__data_html"><div class="ttname"><a href="structdmachan__mem__rx__channel__data.html">dmachan_mem_rx_channel_data</a></div><div class="ttdef"><b>Definition</b> dmachan.h:227</div></div>
+<div class="ttc" id="astructdmachan__mem__tx__channel__data_html"><div class="ttname"><a href="structdmachan__mem__tx__channel__data.html">dmachan_mem_tx_channel_data</a></div><div class="ttdef"><b>Definition</b> dmachan.h:197</div></div>
+<div class="ttc" id="astructdmachan__pio__rx__channel__data_html"><div class="ttname"><a href="structdmachan__pio__rx__channel__data.html">dmachan_pio_rx_channel_data</a></div><div class="ttdef"><b>Definition</b> dmachan.h:232</div></div>
+<div class="ttc" id="astructdmachan__pio__tx__channel__data_html"><div class="ttname"><a href="structdmachan__pio__tx__channel__data.html">dmachan_pio_tx_channel_data</a></div><div class="ttdef"><b>Definition</b> dmachan.h:202</div></div>
+<div class="ttc" id="astructdmachan__rx__channel__ops_html"><div class="ttname"><a href="structdmachan__rx__channel__ops.html">dmachan_rx_channel_ops</a></div><div class="ttdef"><b>Definition</b> dmachan.h:218</div></div>
+<div class="ttc" id="astructdmachan__rx__channel_html"><div class="ttname"><a href="structdmachan__rx__channel.html">dmachan_rx_channel</a></div><div class="ttdef"><b>Definition</b> dmachan.h:242</div></div>
+<div class="ttc" id="astructdmachan__tx__channel__ops_html"><div class="ttname"><a href="structdmachan__tx__channel__ops.html">dmachan_tx_channel_ops</a></div><div class="ttdef"><b>Definition</b> dmachan.h:189</div></div>
+<div class="ttc" id="astructdmachan__tx__channel_html"><div class="ttname"><a href="structdmachan__tx__channel.html">dmachan_tx_channel</a></div><div class="ttdef"><b>Definition</b> dmachan.h:212</div></div>
+<div class="ttc" id="astructpch__channel_html"><div class="ttname"><a href="structpch__channel.html">pch_channel</a></div><div class="ttdef"><b>Definition</b> dmachan.h:253</div></div>
+<div class="ttc" id="astructpch__pio__config_html"><div class="ttname"><a href="structpch__pio__config.html">pch_pio_config</a></div><div class="ttdef"><b>Definition</b> dmachan.h:120</div></div>
+<div class="ttc" id="astructpch__piochan__config_html"><div class="ttname"><a href="structpch__piochan__config.html">pch_piochan_config</a></div><div class="ttdef"><b>Definition</b> dmachan.h:159</div></div>
+<div class="ttc" id="astructpch__piochan__pins_html"><div class="ttname"><a href="structpch__piochan__pins.html">pch_piochan_pins</a></div><div class="ttdef"><b>Definition</b> dmachan.h:143</div></div>
+<div class="ttc" id="astructpch__uartchan__config_html"><div class="ttname"><a href="structpch__uartchan__config.html">pch_uartchan_config</a></div><div class="ttdef"><b>Definition</b> dmachan.h:100</div></div>
 <div class="ttc" id="atrc_8h_html"><div class="ttname"><a href="trc_8h.html">trc.h</a></div></div>
-<div class="ttc" id="auniondmachan__cmd_html"><div class="ttname"><a href="uniondmachan__cmd.html">dmachan_cmd</a></div><div class="ttdef"><b>Definition</b> dmachan.h:117</div></div>
+<div class="ttc" id="auniondmachan__cmd_html"><div class="ttname"><a href="uniondmachan__cmd.html">dmachan_cmd</a></div><div class="ttdef"><b>Definition</b> dmachan.h:43</div></div>
+<div class="ttc" id="auniondmachan__rx__channel__data__t_html"><div class="ttname"><a href="uniondmachan__rx__channel__data__t.html">dmachan_rx_channel_data_t</a></div><div class="ttdef"><b>Definition</b> dmachan.h:237</div></div>
+<div class="ttc" id="auniondmachan__tx__channel__data__t_html"><div class="ttname"><a href="uniondmachan__tx__channel__data__t.html">dmachan_tx_channel_data_t</a></div><div class="ttdef"><b>Definition</b> dmachan.h:207</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

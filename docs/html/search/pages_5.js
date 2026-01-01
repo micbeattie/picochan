@@ -8,7 +8,7 @@ var searchData=
   ['for_20convenience_20or_20optimisation_5',['Variations and wrappers for convenience or optimisation',['../css_api_page.html#autotoc_md17',1,'']]],
   ['for_20css_6',['Tracing for CSS',['../tracing_page.html#autotoc_md41',1,'']]],
   ['for_20cu_7',['Tracing for CU',['../tracing_page.html#autotoc_md42',1,'']]],
-  ['for_20device_20driver_20to_20its_20cu_8',['for device driver to its CU',['../cu_api_page.html#autotoc_md24',1,'Convenience API for device driver to its CU'],['../cu_api_page.html#autotoc_md27',1,'Low-level API for device driver to its CU']]],
+  ['for_20device_20driver_20to_20its_20cu_8',['for device driver to its CU',['../cu_api_page.html#autotoc_md24',1,'Convenience low-level API for device driver to its CU'],['../cu_api_page.html#autotoc_md27',1,'Low-level API for device driver to its CU']]],
   ['for_20device_20drivers_20overview_9',['Control Unit (CU) API for Device Drivers Overview',['../cu_api_page.html',1,'']]],
   ['for_20raspberry_20pi_20pico_10',['Picochan - a channel subsystem for Raspberry Pi Pico',['../index.html',1,'']]],
   ['fully_20general_20arguments_11',['Convenience API with fully general arguments',['../cu_api_page.html#autotoc_md25',1,'']]]
