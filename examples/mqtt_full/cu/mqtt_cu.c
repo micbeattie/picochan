@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Malcolm Beattie
+ * Copyright (c) 2025-2026 Malcolm Beattie
  * SPDX-License-Identifier: MIT
  */
 #include <string.h>
@@ -18,7 +18,7 @@
 #include "picochan/hldev.h"
 #include "picochan/ccw.h"
 
-#include "mqtt_cu.h"
+#include "mqtt_cu_internal.h"
 #include "mqtt_util.h"
 
 #define MD_ENABLE_HLDEV_TRACE true

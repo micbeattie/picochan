@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2025 Malcolm Beattie
+ * Copyright (c) 2025-2026 Malcolm Beattie
  * SPDX-License-Identifier: MIT
  */
 
 #include <hardware/sync.h>
 #include "pico/cyw43_arch.h"
-#include "mqtt_cu.h"
+#include "mqtt_cu_internal.h"
 #include "lwip/dns.h"
 
 static inline uint32_t md_task_list_lock(void) {
@@ -26,13 +26,11 @@ static inline bool task_list_active(void) {
 }
 
 static void task_list_pause(void) {
-        printf("pausing task list\n");
         ready_for_tasks = false;
 }
 
 static void task_list_restart(void) {
         md_cu_statistics.task_restart++;
-        printf("(re)starting task list\n");
         ready_for_tasks = true;
 }
 
@@ -198,8 +196,6 @@ static bool task_try(pch_devib_t *devib) {
         mqtt_dev_t *md = get_mqtt_dev(devib);
         uint8_t ccwcmd = md->hldev.ccwcmd;
 
-        printf("task_try for CCW:%02x\n", ccwcmd);
-
         switch (ccwcmd) {
         case CMD(PUBLISH):
                 return task_try_publish(devib);
@@ -222,7 +218,6 @@ void mqtt_cu_poll(void) {
 
         while (task_list_active() && task_head) {
                 if (task_try(task_head)) {
-                        printf("popping task from list\n");
                         md_cu_statistics.task_success++;
                         task_list_pop();
                 } else {

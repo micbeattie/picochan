@@ -4,8 +4,7 @@
  */
 
 #include <string.h>
-#include <stdint.h>
-#include "../mqtt_cu_api.h"
+#include "mqtt_cu_internal.h"
 #include "md_tmbuf.h"
 
 bool tmbuf_parse(tmbuf_t *tm, uint count) {

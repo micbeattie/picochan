@@ -50,6 +50,7 @@ endif()
 
 add_executable(mqtt_full_memchan
         mqtt_full_memchan.c
+        ../css_example.c
         ../cu/mqtt_cu.c
 	../cu/ccw_buffers.c
 	../cu/ccw.c

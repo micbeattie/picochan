@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2025 Malcolm Beattie
+ * Copyright (c) 2025-2026 Malcolm Beattie
  * SPDX-License-Identifier: MIT
  */
 
-#ifndef _MQTT_CU_H
-#define _MQTT_CU_H
+#ifndef _MQTT_CU_INTERNAL_H
+#define _MQTT_CU_INTERNAL_H
 
 #include <string.h>
 
@@ -16,7 +16,8 @@
 #include "picochan/hldev.h"
 #include "picochan/ccw.h"
 
-#include "../mqtt_cu_api.h"
+#include "../mqtt_cu.h"
+#include "../mqtt_api.h"
 #include "md_tmbuf.h"
 
 #ifndef NUM_TMBUF_BUFFERS

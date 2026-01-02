@@ -1,10 +1,10 @@
 /*
- * Copyright (c) 2025 Malcolm Beattie
+ * Copyright (c) 2025-2026 Malcolm Beattie
  * SPDX-License-Identifier: MIT
  */
 
 #include <hardware/sync.h>
-#include "mqtt_cu.h"
+#include "mqtt_cu_internal.h"
 #include "md_ccw.h"
 
 // Called to do a SET_FILTER_ID CCW

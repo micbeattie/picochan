@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2025 Malcolm Beattie
+ * Copyright (c) 2025-2026 Malcolm Beattie
  * SPDX-License-Identifier: MIT
  */
 
-#include "mqtt_cu.h"
+#include "mqtt_cu_internal.h"
 #include "md_ccw.h"
 
 static bool md_serial_acquire(pch_devib_t *devib) {
