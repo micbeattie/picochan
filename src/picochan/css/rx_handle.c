@@ -313,8 +313,6 @@ static void __time_critical_func(css_handle_rx_command_complete)(pch_chp_t *chp)
         dmachan_rx_channel_t *rx = &chp->channel.rx;
         dmachan_link_t *rxl = &rx->link;
         proto_packet_t p = get_rx_packet(rxl);
-        // Poison RxBuf to help troubleshooting
-        rxl->cmd.raw = 0xffffffff;
 
         pch_unit_addr_t ua = p.unit_addr;
         pch_schib_t *schib = get_schib_by_chp(chp, ua);
@@ -327,6 +325,9 @@ static void __time_critical_func(css_handle_rx_command_complete)(pch_chp_t *chp)
                 panic("expected seqnum %d, got %d", next_seqnum, seqnum);
         rx->seen_seqnum = seqnum;
 #endif
+
+        // Poison RxBuf to help troubleshooting
+        rxl->cmd.raw = 0xefefefef;
 
 	switch (proto_chop_cmd(p.chop)) {
 	case PROTO_CHOP_DATA:

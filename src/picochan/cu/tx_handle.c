@@ -90,7 +90,7 @@ void __time_critical_func(pch_cus_handle_tx_complete)(pch_cu_t *cu) {
         assert(devib);
 
         // Poison TxBuf to help troubleshooting
-        cu->channel.tx.link.cmd.raw = 0xffffffff;
+        cu->channel.tx.link.cmd.raw = 0xdfdfdfdf;
 
         bool callback_pending = pch_devib_is_callback_pending(devib);
 	trace_tx_complete(PCH_TRC_RT_CUS_TX_COMPLETE, cu,
