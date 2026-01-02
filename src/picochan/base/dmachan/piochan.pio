@@ -16,6 +16,8 @@ data_loop:
   wait 1 pin 0  // Wait for CLKI to go high so we can send a data bit
   out pins, 1   // Send a data bit
   jmp x--, data_loop
+  wait 0 pin 0  // Wait for CLKI to go down to ensure last bit received
+  set pins, 0   // Set data output low so we're not signalling "start bit"
 public start:
   irq set 0 rel // Notify caller tx is done and we're ready for the next
 .wrap
