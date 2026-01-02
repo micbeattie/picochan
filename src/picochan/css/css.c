@@ -233,12 +233,12 @@ void pch_css_set_io_irq(irq_num_t irqnum) {
 
 void pch_css_configure_io_irq_exclusive(irq_num_t irqnum) {
         pch_css_set_io_irq(irqnum);
-        configure_irq_handler(irqnum, pch_css_func_irq_handler, -1);
+        configure_irq_handler(irqnum, pch_css_io_irq_handler, -1);
 }
 
 void pch_css_configure_io_irq_shared(irq_num_t irqnum, uint8_t order_priority) {
         pch_css_set_io_irq(irqnum);
-        configure_irq_handler(irqnum, pch_css_func_irq_handler,
+        configure_irq_handler(irqnum, pch_css_io_irq_handler,
                 order_priority);
 }
 
